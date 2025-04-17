@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Edit, Trash2, ImageIcon, Music } from "lucide-react";
+import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Edit, Trash2 } from "lucide-react";
 import { 
   getAllEntries, 
   getEntryById, 
@@ -14,6 +14,8 @@ import {
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
+import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
+import { ImageIcon, Music } from "lucide-react";
 
 export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,17 +147,8 @@ export default function HistoryPage() {
                 <p className="text-muted-foreground line-clamp-3">{entry.content}</p>
                 
                 {entry.attachments && entry.attachments.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {entry.attachments.map((attachment, i) => (
-                      <div key={i} className="text-xs bg-muted p-1 px-2 rounded-full flex items-center gap-1">
-                        {attachment.type === 'image' ? (
-                          <ImageIcon className="h-3 w-3" />
-                        ) : (
-                          <Music className="h-3 w-3" />
-                        )}
-                        <span className="truncate max-w-[100px]">{attachment.name}</span>
-                      </div>
-                    ))}
+                  <div className="mt-3">
+                    <AttachmentViewer attachments={entry.attachments} size="small" />
                   </div>
                 )}
               </CardContent>
@@ -202,23 +195,7 @@ export default function HistoryPage() {
             {selectedEntry?.attachments && selectedEntry.attachments.length > 0 && (
               <div className="mt-4">
                 <h3 className="text-sm font-medium mb-2">Attachments</h3>
-                <div className="flex flex-wrap gap-2">
-                  {selectedEntry.attachments.map((att, i) => (
-                    <div key={i} className="text-sm bg-muted p-2 rounded-md">
-                      {att.type === 'image' ? (
-                        <div>
-                          <ImageIcon className="h-4 w-4 mr-1 inline" />
-                          <span>{att.name}</span>
-                        </div>
-                      ) : (
-                        <div>
-                          <Music className="h-4 w-4 mr-1 inline" />
-                          <span>{att.name}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <AttachmentViewer attachments={selectedEntry.attachments} size="medium" />
               </div>
             )}
             

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import JournalPage from "./pages/JournalPage";
 import HistoryPage from "./pages/HistoryPage";
 import MoodTrackerPage from "./pages/MoodTrackerPage";
 import SettingsPage from "./pages/SettingsPage";
+import CustomizePage from "./pages/CustomizePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,7 @@ const App = () => (
             <Route path="/" element={<Layout><JournalPage /></Layout>} />
             <Route path="/history" element={<Layout><HistoryPage /></Layout>} />
             <Route path="/mood-tracker" element={<Layout><MoodTrackerPage /></Layout>} />
+            <Route path="/customize" element={<Layout><CustomizePage /></Layout>} />
             <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

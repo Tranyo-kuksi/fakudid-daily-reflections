@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 
 export interface JournalEntry {
@@ -149,7 +148,7 @@ export function addAttachment(
     });
     
     const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
-    toast.success(`${type} attachment added`);
+    toast.success(`${type === 'image' ? 'Image' : 'Audio'} attachment added`);
     resolve(updatedEntry);
   });
 }
