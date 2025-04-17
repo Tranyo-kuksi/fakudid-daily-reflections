@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Image as ImageIcon, Music, SendHorizontal, Sparkles } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, ImageIcon, Music, SendHorizontal, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
@@ -11,6 +11,7 @@ import {
   addAttachment 
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Sample prompts
 const PROMPTS = [
@@ -35,6 +36,7 @@ export default function JournalPage() {
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
   
   // Custom mood names
   const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
@@ -126,23 +128,9 @@ export default function JournalPage() {
   };
 
   const handleImageAttachment = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleMusicAttachment = () => {
-    if (audioInputRef.current) {
-      audioInputRef.current.click();
-    }
-  };
-
-  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "music") => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-    
-    // Save the entry first if it hasn't been saved yet
+    // First check if we have an entry ID
     if (!entryId) {
+      // Save the entry first
       if (!journalEntry.trim()) {
         toast.error("Please write something in your journal before adding attachments");
         return;
@@ -154,22 +142,75 @@ export default function JournalPage() {
       }
       
       const saved = autosaveEntry(journalEntry.trim(), selectedMood as any);
+      if (!saved) {
+        toast.error("Failed to save journal entry. Please try again.");
+        return;
+      }
       
-      if (saved) {
-        const todayEntry = getTodayEntry();
-        if (todayEntry) {
-          setEntryId(todayEntry.id);
-          setIsEditing(true);
-          
-          // Now that we have an entry ID, add the attachment
-          await addAttachment(todayEntry.id, type, files[0]);
-          toast.success(`${type === "image" ? "Image" : "Audio"} attached successfully`);
+      const todayEntry = getTodayEntry();
+      if (todayEntry) {
+        setEntryId(todayEntry.id);
+        setIsEditing(true);
+        // Now that the entry is saved, open the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.click();
         }
       }
     } else {
-      // We already have an entry ID, so just add the attachment
+      // We already have an entry ID, so just open the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.click();
+      }
+    }
+  };
+
+  const handleMusicAttachment = () => {
+    // First check if we have an entry ID
+    if (!entryId) {
+      // Save the entry first
+      if (!journalEntry.trim()) {
+        toast.error("Please write something in your journal before adding attachments");
+        return;
+      }
+      
+      if (!selectedMood) {
+        toast.error("Please select a mood for your entry before adding attachments");
+        return;
+      }
+      
+      const saved = autosaveEntry(journalEntry.trim(), selectedMood as any);
+      if (!saved) {
+        toast.error("Failed to save journal entry. Please try again.");
+        return;
+      }
+      
+      const todayEntry = getTodayEntry();
+      if (todayEntry) {
+        setEntryId(todayEntry.id);
+        setIsEditing(true);
+        // Now that the entry is saved, open the file input
+        if (audioInputRef.current) {
+          audioInputRef.current.click();
+        }
+      }
+    } else {
+      // We already have an entry ID, so just open the file input
+      if (audioInputRef.current) {
+        audioInputRef.current.click();
+      }
+    }
+  };
+
+  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "music") => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    // Now add the attachment
+    if (entryId) {
       await addAttachment(entryId, type, files[0]);
       toast.success(`${type === "image" ? "Image" : "Audio"} attached successfully`);
+    } else {
+      toast.error("Something went wrong. Please try saving your entry first.");
     }
     
     // Reset the input
@@ -204,13 +245,13 @@ export default function JournalPage() {
           ) : (
             <>
               <SmileIcon className="h-5 w-5" />
-              <span>How are you feeling?</span>
+              <span>{isMobile ? "Mood" : "How are you feeling?"}</span>
             </>
           )}
         </Button>
         
         {showMoodPicker && (
-          <Card className="absolute top-12 z-10 p-2 w-full flex justify-between gap-2 animate-fade-in">
+          <Card className="absolute top-12 right-0 z-10 p-2 w-60 flex justify-between gap-2 animate-fade-in">
             {moodOptions.map((mood) => (
               <TooltipProvider key={mood.value}>
                 <Tooltip>
@@ -239,8 +280,8 @@ export default function JournalPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-4 flex justify-between items-center">
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6">
+      <div className="mb-4 flex justify-between items-center flex-wrap gap-2">
         <p className="text-sm text-muted-foreground">
           {new Date().toLocaleDateString('en-US', { 
             weekday: 'long', 
@@ -261,7 +302,7 @@ export default function JournalPage() {
         />
       </div>
       
-      <div className="flex justify-between items-center">
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between'} items-center`}>
         <div className="flex gap-2">
           <input 
             type="file" 
@@ -305,10 +346,10 @@ export default function JournalPage() {
           </TooltipProvider>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-4 sm:mt-0">
           <Button variant="outline" className="gap-2" onClick={generatePrompt}>
             <Sparkles className="h-4 w-4" />
-            Generate Prompt
+            {isMobile ? "" : "Generate Prompt"}
           </Button>
           <Button className="bg-fakudid-purple hover:bg-fakudid-darkPurple" onClick={handleSave}>
             {isEditing ? "Update" : "Save"} <SendHorizontal className="ml-2 h-4 w-4" />

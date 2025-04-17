@@ -92,14 +92,14 @@ export function ThemeProvider({
       setTheme(theme);
     },
     lightTheme,
-    setLightTheme: (lightTheme: string) => {
-      localStorage.setItem("fakudid-light-theme", lightTheme);
-      setLightTheme(lightTheme);
+    setLightTheme: (theme: string) => {
+      localStorage.setItem("fakudid-light-theme", theme);
+      setLightTheme(theme);
     },
     darkTheme,
-    setDarkTheme: (darkTheme: string) => {
-      localStorage.setItem("fakudid-dark-theme", darkTheme);
-      setDarkTheme(darkTheme);
+    setDarkTheme: (theme: string) => {
+      localStorage.setItem("fakudid-dark-theme", theme);
+      setDarkTheme(theme);
     }
   };
 

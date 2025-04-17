@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar, ImageIcon, Music } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
   getAllEntries, 
@@ -17,10 +18,33 @@ export default function MoodTrackerPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+  const [monthlySummary, setMonthlySummary] = useState<{[key: string]: number}>({});
   
   useEffect(() => {
     const allEntries = getAllEntries();
     setEntries(allEntries);
+    
+    // Calculate monthly mood summary
+    const summary: {[key: string]: number} = {
+      dead: 0,
+      sad: 0,
+      meh: 0,
+      good: 0,
+      awesome: 0
+    };
+    
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    allEntries.forEach(entry => {
+      const entryDate = new Date(entry.date);
+      if (entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear && entry.mood) {
+        summary[entry.mood] = (summary[entry.mood] || 0) + 1;
+      }
+    });
+    
+    setMonthlySummary(summary);
   }, []);
   
   const formatDate = (date: Date): string => {
@@ -50,19 +74,31 @@ export default function MoodTrackerPage() {
   };
   
   const getMoodLabel = (mood: string | null): string => {
+    const moodNames = JSON.parse(localStorage.getItem("fakudid-mood-names") || JSON.stringify({
+      dead: "Dead Inside",
+      sad: "Shity",
+      meh: "Meh",
+      good: "Pretty Good",
+      awesome: "Fucking AWESOME"
+    }));
+    
+    return mood ? moodNames[mood] || "Unknown Mood" : "No Mood";
+  };
+  
+  const getMoodColor = (mood: string | null): string => {
     switch (mood) {
       case "dead":
-        return "Dead Inside";
+        return "bg-mood-dead text-white";
       case "sad":
-        return "Shity";
+        return "bg-mood-sad text-white";
       case "meh":
-        return "Meh";
+        return "bg-mood-meh text-white";
       case "good":
-        return "Pretty Good";
+        return "bg-mood-good text-white";
       case "awesome":
-        return "Fucking AWESOME";
+        return "bg-mood-awesome text-white";
       default:
-        return "No Mood";
+        return "bg-muted text-muted-foreground";
     }
   };
   
@@ -116,7 +152,7 @@ export default function MoodTrackerPage() {
         >
           <Badge 
             variant={entryForDay ? "default" : "outline"}
-            className="w-full h-full flex items-center justify-center"
+            className={`w-full h-full flex items-center justify-center ${entryForDay ? getMoodColor(entryForDay.mood) : ""}`}
           >
             {i}
           </Badge>
@@ -129,7 +165,7 @@ export default function MoodTrackerPage() {
   
   return (
     <div className="max-w-4xl mx-auto">
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Mood Tracker</CardTitle>
         </CardHeader>
@@ -147,6 +183,23 @@ export default function MoodTrackerPage() {
         </CardContent>
       </Card>
       
+      {/* Monthly Summary */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Monthly Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 justify-center">
+            {Object.entries(monthlySummary).map(([mood, count]) => (
+              <div key={mood} className={`p-3 rounded-lg flex items-center gap-2 ${getMoodColor(mood)}`}>
+                {getMoodIcon(mood)}
+                <span className="font-medium">{getMoodLabel(mood)}: {count}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      
       {/* Day Detail Dialog */}
       <Dialog open={!!selectedDate} onOpenChange={() => setSelectedDate(null)}>
         <DialogContent className="max-w-3xl">
@@ -160,7 +213,7 @@ export default function MoodTrackerPage() {
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-2">
                 <span className="font-medium">Mood:</span>
-                <div className="flex items-center gap-1">
+                <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
                   {getMoodIcon(selectedEntry.mood)}
                   <span>{getMoodLabel(selectedEntry.mood)}</span>
                 </div>

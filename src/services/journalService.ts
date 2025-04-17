@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/sonner";
 
 export interface JournalEntry {
