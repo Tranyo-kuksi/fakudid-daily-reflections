@@ -36,6 +36,43 @@ export default {
           good: "#16A34A",     // Green
           awesome: "#EAB308",  // Gold/Yellow
         },
+        // Theme colors
+        theme: {
+          // Light themes
+          lavender: {
+            light: "#E6E6FA",
+            dark: "#9370DB",
+          },
+          mint: {
+            light: "#F5FFFA",
+            dark: "#98FB98",
+          },
+          peach: {
+            light: "#FFDAB9",
+            dark: "#FFDAB9",
+          },
+          sky: {
+            light: "#E0F7FA",
+            dark: "#4FC3F7",
+          },
+          // Dark themes
+          midnight: {
+            light: "#2c3e50",
+            dark: "#1a2530",
+          },
+          forest: {
+            light: "#2E4045",
+            dark: "#1D2B30",
+          },
+          plum: {
+            light: "#4A3B4B",
+            dark: "#342A35",
+          },
+          ocean: {
+            light: "#1F3A5F",
+            dark: "#152C47",
+          }
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -63,6 +100,14 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background, var(--background)))",
+          foreground: "hsl(var(--sidebar-foreground, var(--foreground)))",
+          border: "hsl(var(--sidebar-border, var(--border)))",
+          accent: "hsl(var(--sidebar-accent, var(--muted)))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground, var(--muted-foreground)))",
+          ring: "hsl(var(--sidebar-ring, var(--ring)))",
         },
       },
       borderRadius: {

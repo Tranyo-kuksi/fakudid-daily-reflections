@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Image, Music, SendHorizontal } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Image as ImageIcon, Music, SendHorizontal, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
@@ -35,6 +35,23 @@ export default function JournalPage() {
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  
+  // Custom mood names
+  const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
+    dead: "Dead Inside",
+    sad: "Shity",
+    meh: "Meh",
+    good: "Pretty Good",
+    awesome: "Fucking AWESOME"
+  });
+  
+  // Load custom mood names
+  useEffect(() => {
+    const storedMoodNames = localStorage.getItem("fakudid-mood-names");
+    if (storedMoodNames) {
+      setMoodNames(JSON.parse(storedMoodNames));
+    }
+  }, []);
 
   // Load today's entry, if it exists
   useEffect(() => {
@@ -71,7 +88,14 @@ export default function JournalPage() {
 
   const generatePrompt = () => {
     const randomIndex = Math.floor(Math.random() * PROMPTS.length);
-    setJournalEntry(PROMPTS[randomIndex]);
+    const randomPrompt = PROMPTS[randomIndex];
+    
+    // Add a newline and AI star icon before the prompt if there's existing text
+    if (journalEntry.trim()) {
+      setJournalEntry(journalEntry.trim() + '\n\n✨ ' + randomPrompt);
+    } else {
+      setJournalEntry('✨ ' + randomPrompt);
+    }
   };
 
   const handleSave = () => {
@@ -102,39 +126,62 @@ export default function JournalPage() {
   };
 
   const handleImageAttachment = () => {
-    if (!entryId) {
-      toast.error("Please save your journal entry before adding attachments");
-      return;
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
-    
-    fileInputRef.current?.click();
   };
 
   const handleMusicAttachment = () => {
-    if (!entryId) {
-      toast.error("Please save your journal entry before adding attachments");
-      return;
+    if (audioInputRef.current) {
+      audioInputRef.current.click();
     }
-    
-    audioInputRef.current?.click();
   };
 
   const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "music") => {
     const files = event.target.files;
-    if (!files || files.length === 0 || !entryId) return;
+    if (!files || files.length === 0) return;
     
-    await addAttachment(entryId, type, files[0]);
+    // Save the entry first if it hasn't been saved yet
+    if (!entryId) {
+      if (!journalEntry.trim()) {
+        toast.error("Please write something in your journal before adding attachments");
+        return;
+      }
+      
+      if (!selectedMood) {
+        toast.error("Please select a mood for your entry before adding attachments");
+        return;
+      }
+      
+      const saved = autosaveEntry(journalEntry.trim(), selectedMood as any);
+      
+      if (saved) {
+        const todayEntry = getTodayEntry();
+        if (todayEntry) {
+          setEntryId(todayEntry.id);
+          setIsEditing(true);
+          
+          // Now that we have an entry ID, add the attachment
+          await addAttachment(todayEntry.id, type, files[0]);
+          toast.success(`${type === "image" ? "Image" : "Audio"} attached successfully`);
+        }
+      }
+    } else {
+      // We already have an entry ID, so just add the attachment
+      await addAttachment(entryId, type, files[0]);
+      toast.success(`${type === "image" ? "Image" : "Audio"} attached successfully`);
+    }
     
     // Reset the input
     event.target.value = '';
   };
 
   const moodOptions = [
-    { name: "Dead Inside", value: "dead", icon: Skull, color: "text-mood-dead" },
-    { name: "Shity", value: "sad", icon: FrownIcon, color: "text-mood-sad" },
-    { name: "Meh", value: "meh", icon: MehIcon, color: "text-mood-meh" },
-    { name: "Pretty Good", value: "good", icon: SmileIcon, color: "text-mood-good" },
-    { name: "Fucking AWESOME", value: "awesome", icon: PartyPopper, color: "text-mood-awesome" }
+    { name: moodNames.dead, value: "dead", icon: Skull, color: "text-mood-dead" },
+    { name: moodNames.sad, value: "sad", icon: FrownIcon, color: "text-mood-sad" },
+    { name: moodNames.meh, value: "meh", icon: MehIcon, color: "text-mood-meh" },
+    { name: moodNames.good, value: "good", icon: SmileIcon, color: "text-mood-good" },
+    { name: moodNames.awesome, value: "awesome", icon: PartyPopper, color: "text-mood-awesome" }
   ];
 
   const MoodPickerButton = () => {
@@ -193,8 +240,6 @@ export default function JournalPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">My Journal</h1>
-      
       <div className="mb-4 flex justify-between items-center">
         <p className="text-sm text-muted-foreground">
           {new Date().toLocaleDateString('en-US', { 
@@ -237,7 +282,7 @@ export default function JournalPage() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="icon" onClick={handleImageAttachment}>
-                  <Image className="h-5 w-5" />
+                  <ImageIcon className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -261,7 +306,8 @@ export default function JournalPage() {
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" onClick={generatePrompt}>
+          <Button variant="outline" className="gap-2" onClick={generatePrompt}>
+            <Sparkles className="h-4 w-4" />
             Generate Prompt
           </Button>
           <Button className="bg-fakudid-purple hover:bg-fakudid-darkPurple" onClick={handleSave}>

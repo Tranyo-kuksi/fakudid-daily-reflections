@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Moon, Sun, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export const NavBar = () => {
   const location = useLocation();
@@ -16,36 +17,30 @@ export const NavBar = () => {
     setStreak(7);
   }, []);
 
-  const navItems = [
-    { path: "/", label: "Journal" },
-    { path: "/history", label: "History" },
-    { path: "/mood-tracker", label: "Mood Tracker" },
-    { path: "/settings", label: "Settings" },
-  ];
+  // Page titles
+  const getPageTitle = (path: string) => {
+    switch (path) {
+      case "/":
+        return "My Journal";
+      case "/history":
+        return "Journal History";
+      case "/mood-tracker":
+        return "Mood Tracker";
+      case "/customize":
+        return "Customize Your Journal";
+      case "/settings":
+        return "Settings";
+      default:
+        return "FakUdid";
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-fakudid-purple">FakUdid</span>
-          </Link>
-          
-          <nav className="hidden md:flex gap-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`text-sm font-medium transition-colors hover:text-fakudid-purple ${
-                  location.pathname === item.path
-                    ? "text-fakudid-purple"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="md:hidden" />
+          <h1 className="text-xl font-semibold">{getPageTitle(location.pathname)}</h1>
         </div>
         
         <div className="flex items-center gap-4">
