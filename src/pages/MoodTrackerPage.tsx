@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar, ImageIcon, Music } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
   getAllEntries, 
@@ -314,7 +313,7 @@ export default function MoodTrackerPage() {
                   <div className="flex flex-wrap gap-2">
                     {selectedEntry.attachments.map((att, i) => (
                       <div key={i} className="bg-muted p-2 rounded-md text-sm flex items-center gap-1">
-                        {att.type === 'image' ? <Image className="h-4 w-4" /> : <Music className="h-4 w-4" />}
+                        {att.type === 'image' ? <ImageIcon className="h-4 w-4" /> : <Music className="h-4 w-4" />}
                         {att.name}
                       </div>
                     ))}

@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Edit, Trash2 } from "lucide-react";
+import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Edit, Trash2, ImageIcon, Music } from "lucide-react";
 import { 
   getAllEntries, 
   getEntryById, 
@@ -150,7 +149,7 @@ export default function HistoryPage() {
                     {entry.attachments.map((attachment, i) => (
                       <div key={i} className="text-xs bg-muted p-1 px-2 rounded-full flex items-center gap-1">
                         {attachment.type === 'image' ? (
-                          <Image className="h-3 w-3" />
+                          <ImageIcon className="h-3 w-3" />
                         ) : (
                           <Music className="h-3 w-3" />
                         )}
@@ -208,7 +207,7 @@ export default function HistoryPage() {
                     <div key={i} className="text-sm bg-muted p-2 rounded-md">
                       {att.type === 'image' ? (
                         <div>
-                          <Image className="h-4 w-4 mr-1 inline" />
+                          <ImageIcon className="h-4 w-4 mr-1 inline" />
                           <span>{att.name}</span>
                         </div>
                       ) : (
