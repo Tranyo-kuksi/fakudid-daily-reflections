@@ -52,6 +52,23 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+        fakudid: {
+          purple: '#9b87f5',
+          darkPurple: '#7E69AB',
+          pink: '#D946EF',
+          orange: '#F97316',
+          blue: '#33C3F0',
+          green: '#F2FCE2',
+          red: '#ea384c',
+          gold: '#FFD700',
+        },
+        mood: {
+          dead: '#ea384c',
+          sad: '#F97316',
+          meh: '#33C3F0',
+          good: '#4ade80',
+          awesome: '#FFD700',
+        },
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -84,11 +101,31 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+        'fade-in': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(10px)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        },
+        'pulse': {
+          '0%, 100%': {
+            opacity: '1'
+          },
+          '50%': {
+            opacity: '.5'
+          }
+        }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+        'fade-in': 'fade-in 0.3s ease-out',
+        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
 			}
 		}
 	},
