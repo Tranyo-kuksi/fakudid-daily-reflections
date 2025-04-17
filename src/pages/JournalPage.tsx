@@ -1,10 +1,16 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Image, Music, SendHorizontal } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { 
+  getTodayEntry, 
+  autosaveEntry, 
+  addAttachment 
+} from "@/services/journalService";
+import { toast } from "@/components/ui/sonner";
 
 // Sample prompts
 const PROMPTS = [
@@ -24,6 +30,44 @@ export default function JournalPage() {
   const [journalEntry, setJournalEntry] = useState("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [showMoodPicker, setShowMoodPicker] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [entryId, setEntryId] = useState<string | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+
+  // Load today's entry, if it exists
+  useEffect(() => {
+    const todayEntry = getTodayEntry();
+    if (todayEntry) {
+      setJournalEntry(todayEntry.content);
+      setSelectedMood(todayEntry.mood);
+      setEntryId(todayEntry.id);
+      setIsEditing(true);
+    }
+  }, []);
+
+  // Autosave functionality
+  useEffect(() => {
+    // Clear any existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Set a new timer to autosave after 3 seconds of inactivity
+    if (journalEntry.trim() || selectedMood) {
+      autoSaveTimerRef.current = setTimeout(() => {
+        autosaveEntry(journalEntry, selectedMood as any);
+      }, 3000);
+    }
+
+    // Cleanup function
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [journalEntry, selectedMood]);
 
   const generatePrompt = () => {
     const randomIndex = Math.floor(Math.random() * PROMPTS.length);
@@ -32,22 +76,57 @@ export default function JournalPage() {
 
   const handleSave = () => {
     if (!journalEntry.trim()) {
-      alert("Please write something in your journal");
+      toast.error("Please write something in your journal");
       return;
     }
     
     if (!selectedMood) {
-      alert("Please select a mood for your entry");
+      toast.error("Please select a mood for your entry");
       return;
     }
     
-    // In a real app, this would save to a database
-    console.log("Saving entry:", { journalEntry, mood: selectedMood, date: new Date() });
+    const saved = autosaveEntry(journalEntry.trim(), selectedMood as any);
     
-    // Reset form
-    setJournalEntry("");
-    setSelectedMood(null);
-    alert("Journal entry saved successfully!");
+    if (saved) {
+      // Retrieve the entry ID if it's a new entry
+      if (!isEditing) {
+        const todayEntry = getTodayEntry();
+        if (todayEntry) {
+          setEntryId(todayEntry.id);
+          setIsEditing(true);
+        }
+      }
+      
+      toast.success(isEditing ? "Journal entry updated" : "Journal entry saved");
+    }
+  };
+
+  const handleImageAttachment = () => {
+    if (!entryId) {
+      toast.error("Please save your journal entry before adding attachments");
+      return;
+    }
+    
+    fileInputRef.current?.click();
+  };
+
+  const handleMusicAttachment = () => {
+    if (!entryId) {
+      toast.error("Please save your journal entry before adding attachments");
+      return;
+    }
+    
+    audioInputRef.current?.click();
+  };
+
+  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "music") => {
+    const files = event.target.files;
+    if (!files || files.length === 0 || !entryId) return;
+    
+    await addAttachment(entryId, type, files[0]);
+    
+    // Reset the input
+    event.target.value = '';
   };
 
   const moodOptions = [
@@ -139,10 +218,25 @@ export default function JournalPage() {
       
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={(e) => handleFileSelected(e, "image")} 
+            accept="image/*" 
+            className="hidden" 
+          />
+          <input 
+            type="file" 
+            ref={audioInputRef} 
+            onChange={(e) => handleFileSelected(e, "music")} 
+            accept="audio/*" 
+            className="hidden" 
+          />
+          
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={handleImageAttachment}>
                   <Image className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
@@ -155,7 +249,7 @@ export default function JournalPage() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={handleMusicAttachment}>
                   <Music className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
@@ -171,7 +265,7 @@ export default function JournalPage() {
             Generate Prompt
           </Button>
           <Button className="bg-fakudid-purple hover:bg-fakudid-darkPurple" onClick={handleSave}>
-            Save <SendHorizontal className="ml-2 h-4 w-4" />
+            {isEditing ? "Update" : "Save"} <SendHorizontal className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>

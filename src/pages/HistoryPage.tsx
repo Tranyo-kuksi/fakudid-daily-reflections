@@ -1,59 +1,100 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper } from "lucide-react";
-
-// Mock data for journal entries
-const MOCK_ENTRIES = [
-  {
-    id: 1,
-    date: new Date('2023-04-17'),
-    content: "Today was an amazing day! I aced my math test and hung out with friends after school. We went to the mall and got ice cream. It was exactly what I needed after a stressful week.",
-    mood: "awesome"
-  },
-  {
-    id: 2,
-    date: new Date('2023-04-16'),
-    content: "School was okay today. Nothing special happened. I'm looking forward to the weekend though. Might play some video games tonight to relax.",
-    mood: "meh"
-  },
-  {
-    id: 3,
-    date: new Date('2023-04-15'),
-    content: "Got into an argument with my parents about my phone usage. I understand their concerns but I wish they'd trust me more. Feeling frustrated.",
-    mood: "sad"
-  },
-  {
-    id: 4,
-    date: new Date('2023-04-14'),
-    content: "Had a great day at soccer practice! Coach said my skills are improving. I'm excited for our game this weekend.",
-    mood: "good"
-  },
-  {
-    id: 5,
-    date: new Date('2023-04-13'),
-    content: "Failed my history test even though I studied so hard. Feeling like nothing I do matters. Just want to sleep all day.",
-    mood: "dead"
-  },
-];
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Edit, Trash2 } from "lucide-react";
+import { 
+  getAllEntries, 
+  getEntryById, 
+  updateEntry, 
+  deleteEntry,
+  JournalEntry 
+} from "@/services/journalService";
+import { toast } from "@/components/ui/sonner";
+import { useNavigate } from "react-router-dom";
 
 export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [entries, setEntries] = useState(MOCK_ENTRIES);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [filteredEntries, setFilteredEntries] = useState<JournalEntry[]>([]);
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Load all entries
+  useEffect(() => {
+    const loadEntries = () => {
+      const allEntries = getAllEntries();
+      setEntries(allEntries);
+      setFilteredEntries(allEntries);
+    };
+    
+    loadEntries();
+    
+    // Setup an interval to check for new entries (simulating real-time updates)
+    const intervalId = setInterval(loadEntries, 10000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Filter entries based on search query
-    const filtered = MOCK_ENTRIES.filter(entry => 
+    const filtered = entries.filter(entry => 
       entry.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.date.toLocaleDateString().includes(searchQuery)
+      new Date(entry.date).toLocaleDateString().includes(searchQuery)
     );
-    setEntries(filtered);
+    setFilteredEntries(filtered);
   };
 
-  const getMoodIcon = (mood: string) => {
+  const handleEdit = (entry: JournalEntry) => {
+    setSelectedEntry(entry);
+    setEditContent(entry.content);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = (entry: JournalEntry) => {
+    setSelectedEntry(entry);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedEntry) {
+      const success = deleteEntry(selectedEntry.id);
+      if (success) {
+        // Update the local state to remove the entry
+        const updatedEntries = entries.filter(e => e.id !== selectedEntry.id);
+        setEntries(updatedEntries);
+        setFilteredEntries(filteredEntries.filter(e => e.id !== selectedEntry.id));
+        setIsDeleteDialogOpen(false);
+      }
+    }
+  };
+
+  const saveEdit = () => {
+    if (selectedEntry) {
+      const updated = updateEntry(selectedEntry.id, { content: editContent });
+      if (updated) {
+        // Update local entries with the edited content
+        const updatedEntries = entries.map(e => 
+          e.id === selectedEntry.id ? { ...e, content: editContent } : e
+        );
+        setEntries(updatedEntries);
+        setFilteredEntries(filteredEntries.map(e => 
+          e.id === selectedEntry.id ? { ...e, content: editContent } : e
+        ));
+        setIsEditDialogOpen(false);
+        toast.success("Journal entry updated");
+      }
+    }
+  };
+
+  const getMoodIcon = (mood: string | null) => {
     switch (mood) {
       case "dead":
         return <Skull className="h-5 w-5 text-mood-dead" />;
@@ -87,12 +128,12 @@ export default function HistoryPage() {
       </form>
       
       <div className="space-y-4">
-        {entries.length > 0 ? (
-          entries.map(entry => (
+        {filteredEntries.length > 0 ? (
+          filteredEntries.map(entry => (
             <Card key={entry.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between p-4">
                 <p className="font-medium">
-                  {entry.date.toLocaleDateString('en-US', { 
+                  {new Date(entry.date).toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     year: 'numeric', 
                     month: 'long', 
@@ -103,7 +144,40 @@ export default function HistoryPage() {
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <p className="text-muted-foreground line-clamp-3">{entry.content}</p>
+                
+                {entry.attachments && entry.attachments.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {entry.attachments.map((attachment, i) => (
+                      <div key={i} className="text-xs bg-muted p-1 px-2 rounded-full flex items-center gap-1">
+                        {attachment.type === 'image' ? (
+                          <Image className="h-3 w-3" />
+                        ) : (
+                          <Music className="h-3 w-3" />
+                        )}
+                        <span className="truncate max-w-[100px]">{attachment.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
+              <CardFooter className="p-4 pt-0 flex justify-end gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-blue-600"
+                  onClick={() => handleEdit(entry)}
+                >
+                  <Edit className="h-4 w-4 mr-1" /> Edit
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-red-600"
+                  onClick={() => handleDelete(entry)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                </Button>
+              </CardFooter>
             </Card>
           ))
         ) : (
@@ -112,6 +186,74 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
+      
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Journal Entry</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Textarea 
+              value={editContent} 
+              onChange={(e) => setEditContent(e.target.value)} 
+              className="min-h-[200px]"
+            />
+            
+            {selectedEntry?.attachments && selectedEntry.attachments.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium mb-2">Attachments</h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedEntry.attachments.map((att, i) => (
+                    <div key={i} className="text-sm bg-muted p-2 rounded-md">
+                      {att.type === 'image' ? (
+                        <div>
+                          <Image className="h-4 w-4 mr-1 inline" />
+                          <span>{att.name}</span>
+                        </div>
+                      ) : (
+                        <div>
+                          <Music className="h-4 w-4 mr-1 inline" />
+                          <span>{att.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveEdit}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Journal Entry</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <p>Are you sure you want to delete this journal entry? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDelete}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,40 +1,41 @@
 
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-// Mock data - this would come from a database in a real app
-const MOCK_MOOD_DATA = [
-  { date: new Date(2023, 3, 1), mood: "good" },
-  { date: new Date(2023, 3, 2), mood: "meh" },
-  { date: new Date(2023, 3, 3), mood: "good" },
-  { date: new Date(2023, 3, 4), mood: "awesome" },
-  { date: new Date(2023, 3, 5), mood: "awesome" },
-  { date: new Date(2023, 3, 6), mood: "sad" },
-  { date: new Date(2023, 3, 7), mood: "sad" },
-  { date: new Date(2023, 3, 8), mood: "dead" },
-  { date: new Date(2023, 3, 9), mood: "meh" },
-  { date: new Date(2023, 3, 10), mood: "good" },
-  { date: new Date(2023, 3, 11), mood: "good" },
-  { date: new Date(2023, 3, 12), mood: "awesome" },
-  { date: new Date(2023, 3, 13), mood: "sad" },
-  { date: new Date(2023, 3, 14), mood: "meh" },
-  { date: new Date(2023, 3, 15), mood: "dead" },
-  { date: new Date(2023, 3, 16), mood: "meh" },
-  { date: new Date(2023, 3, 17), mood: "good" },
-];
+import { 
+  getAllEntries, 
+  getEntryByDate,
+  JournalEntry 
+} from "@/services/journalService";
 
 export default function MoodTrackerPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+  const [showEntryDialog, setShowEntryDialog] = useState(false);
+  
+  // Load entries on mount and when month changes
+  useEffect(() => {
+    setEntries(getAllEntries());
+    
+    // Refresh entries every 10 seconds to catch any updates
+    const intervalId = setInterval(() => {
+      setEntries(getAllEntries());
+    }, 10000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
   
   // Get the mood for a specific date
   const getMoodForDate = (date: Date) => {
-    const moodEntry = MOCK_MOOD_DATA.find(
-      entry => entry.date.toDateString() === date.toDateString()
+    const dateString = date.toDateString();
+    const entry = entries.find(
+      e => new Date(e.date).toDateString() === dateString
     );
-    return moodEntry ? moodEntry.mood : null;
+    return entry ? entry.mood : null;
   };
   
   // Generate calendar data
@@ -116,12 +117,28 @@ export default function MoodTrackerPage() {
     setSelectedDate(null);
   };
   
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    
+    const entry = getEntryByDate(date);
+    if (entry) {
+      setSelectedEntry(entry);
+      setShowEntryDialog(true);
+    }
+  };
+  
   // Generate mood summary
   const generateMoodSummary = () => {
-    const moodsInMonth = MOCK_MOOD_DATA.filter(entry => {
-      return entry.date.getMonth() === currentMonth.getMonth() && 
-             entry.date.getFullYear() === currentMonth.getFullYear();
-    }).map(entry => entry.mood);
+    const monthStartDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const monthEndDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    
+    const moodsInMonth = entries
+      .filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= monthStartDate && entryDate <= monthEndDate;
+      })
+      .map(entry => entry.mood)
+      .filter(Boolean) as string[];
     
     const moodCounts: Record<string, number> = {
       awesome: 0,
@@ -136,6 +153,11 @@ export default function MoodTrackerPage() {
         moodCounts[mood]++;
       }
     });
+    
+    // If no moods are recorded for this month
+    if (moodsInMonth.length === 0) {
+      return "No mood data recorded for this month.";
+    }
     
     const mostFrequentMood = Object.entries(moodCounts)
       .sort((a, b) => b[1] - a[1])[0][0];
@@ -215,12 +237,12 @@ export default function MoodTrackerPage() {
                   className={`p-1 rounded-lg cursor-pointer transition-all ${
                     isSelected ? 'ring-2 ring-fakudid-purple' : ''
                   }`}
-                  onClick={() => setSelectedDate(day)}
+                  onClick={() => handleDateClick(day)}
                 >
                   <div className={`h-full w-full rounded-md flex flex-col items-center justify-center p-2 ${
                     mood ? getMoodColorClass(mood) : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}>
-                    <div className="text-xs mb-1 text-center">
+                    <div className={`text-xs mb-1 text-center ${mood ? 'text-white' : ''}`}>
                       {day.getDate()}
                     </div>
                     <div>
@@ -260,6 +282,49 @@ export default function MoodTrackerPage() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Journal Entry Dialog */}
+      <Dialog open={showEntryDialog} onOpenChange={setShowEntryDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedEntry && new Date(selectedEntry.date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedEntry && (
+            <div className="mt-2">
+              <div className="flex items-center gap-2 mb-4">
+                <span>Mood:</span>
+                <div className={`p-1 rounded-full ${getMoodColorClass(selectedEntry.mood)}`}>
+                  {getMoodIcon(selectedEntry.mood)}
+                </div>
+              </div>
+              
+              <p className="whitespace-pre-wrap">{selectedEntry.content}</p>
+              
+              {selectedEntry.attachments && selectedEntry.attachments.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-semibold mb-2">Attachments:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedEntry.attachments.map((att, i) => (
+                      <div key={i} className="bg-muted p-2 rounded-md text-sm flex items-center gap-1">
+                        {att.type === 'image' ? <Image className="h-4 w-4" /> : <Music className="h-4 w-4" />}
+                        {att.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
