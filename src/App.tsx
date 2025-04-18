@@ -26,6 +26,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout><JournalPage /></Layout>} />
+            <Route path="/entry/:id" element={<Layout><JournalPage /></Layout>} />
             <Route path="/history" element={<Layout><HistoryPage /></Layout>} />
             <Route path="/mood-tracker" element={<Layout><MoodTrackerPage /></Layout>} />
             <Route path="/customize" element={<Layout><CustomizePage /></Layout>} />

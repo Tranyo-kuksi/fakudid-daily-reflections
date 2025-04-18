@@ -1,16 +1,19 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, ImageIcon, Music, SendHorizontal, Sparkles } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, ImageIcon, Music, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useParams, useLocation } from "react-router-dom";
 import { 
   getTodayEntry, 
   autosaveEntry, 
   addAttachment,
   deleteAttachment,
-  getAllEntries
+  getAllEntries,
+  getEntryById
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,11 +27,14 @@ export default function JournalPage() {
   const [showMoodPicker, setShowMoodPicker] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [entryId, setEntryId] = useState<string | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+  const params = useParams();
+  const location = useLocation();
   
   // Custom mood names
   const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
@@ -47,20 +53,62 @@ export default function JournalPage() {
     }
   }, []);
 
-  // Load today's entry, if it exists
+  // Load entry based on URL parameters
   useEffect(() => {
-    const todayEntry = getTodayEntry();
-    if (todayEntry) {
-      setJournalTitle(todayEntry.title || "");
-      setJournalEntry(todayEntry.content);
-      setSelectedMood(todayEntry.mood);
-      setEntryId(todayEntry.id);
-      setIsEditing(true);
-    }
-  }, []);
+    const loadEntry = () => {
+      // If we have an ID in the URL, load that specific entry
+      if (params.id) {
+        const specificEntry = getEntryById(params.id);
+        if (specificEntry) {
+          setJournalTitle(specificEntry.title || "");
+          setJournalEntry(specificEntry.content);
+          setSelectedMood(specificEntry.mood);
+          setEntryId(specificEntry.id);
+          setIsEditing(true);
+          
+          // If it's not today's entry, make it read-only
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const entryDate = new Date(specificEntry.date);
+          entryDate.setHours(0, 0, 0, 0);
+          
+          if (entryDate.getTime() !== today.getTime()) {
+            setReadOnly(true);
+          } else {
+            setReadOnly(false);
+          }
+          
+          return;
+        }
+      }
+
+      // If no ID in URL or ID not found, load today's entry
+      const todayEntry = getTodayEntry();
+      if (todayEntry) {
+        setJournalTitle(todayEntry.title || "");
+        setJournalEntry(todayEntry.content);
+        setSelectedMood(todayEntry.mood);
+        setEntryId(todayEntry.id);
+        setIsEditing(true);
+        setReadOnly(false);
+      } else {
+        // Reset the form for a new entry
+        setJournalTitle("");
+        setJournalEntry("");
+        setSelectedMood(null);
+        setEntryId(null);
+        setIsEditing(false);
+        setReadOnly(false);
+      }
+    };
+
+    loadEntry();
+  }, [params.id, location.pathname]);
 
   // Update autosave effect with shorter delay (500ms instead of 3000ms)
   useEffect(() => {
+    if (readOnly) return; // Don't autosave if in read-only mode
+    
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
     }
@@ -76,9 +124,14 @@ export default function JournalPage() {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [journalTitle, journalEntry, selectedMood]);
+  }, [journalTitle, journalEntry, selectedMood, readOnly]);
 
   const generatePrompt = async () => {
+    if (readOnly) {
+      toast.error("Cannot modify past entries");
+      return;
+    }
+    
     try {
       // Show loading state
       setIsGeneratingPrompt(true);
@@ -133,6 +186,11 @@ export default function JournalPage() {
   };
 
   const handleSave = () => {
+    if (readOnly) {
+      toast.error("Cannot modify past entries");
+      return;
+    }
+    
     if (!journalEntry.trim()) {
       toast.error("Please write something in your journal");
       return;
@@ -159,6 +217,11 @@ export default function JournalPage() {
   };
 
   const handleImageAttachment = () => {
+    if (readOnly) {
+      toast.error("Cannot modify past entries");
+      return;
+    }
+    
     // First check if we have an entry ID
     if (!entryId) {
       // Save the entry first
@@ -196,6 +259,11 @@ export default function JournalPage() {
   };
 
   const handleMusicAttachment = () => {
+    if (readOnly) {
+      toast.error("Cannot modify past entries");
+      return;
+    }
+    
     // First check if we have an entry ID
     if (!entryId) {
       // Save the entry first
@@ -233,6 +301,11 @@ export default function JournalPage() {
   };
 
   const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "music") => {
+    if (readOnly) {
+      toast.error("Cannot modify past entries");
+      return;
+    }
+    
     const files = event.target.files;
     if (!files || files.length === 0) return;
     
@@ -249,6 +322,11 @@ export default function JournalPage() {
   };
 
   const handleDeleteAttachment = (attachmentIndex: number) => {
+    if (readOnly) {
+      toast.error("Cannot modify past entries");
+      return;
+    }
+    
     if (entryId) {
       const updatedEntry = deleteAttachment(entryId, attachmentIndex);
       if (updatedEntry) {
@@ -277,6 +355,7 @@ export default function JournalPage() {
           variant="outline" 
           className="gap-2"
           onClick={() => setShowMoodPicker(!showMoodPicker)}
+          disabled={readOnly}
         >
           {selectedMoodOption ? (
             <>
@@ -320,8 +399,19 @@ export default function JournalPage() {
     );
   };
 
+  // Get the entry for displaying attachments
+  const currentEntry = entryId ? getEntryById(entryId) : null;
+
   return (
     <div className="w-full h-full relative">
+      {readOnly && (
+        <div className="bg-yellow-100 dark:bg-yellow-900 p-3 mb-4 rounded-md">
+          <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium text-center">
+            This is a past entry. You are viewing it in read-only mode.
+          </p>
+        </div>
+      )}
+      
       {/* Controls section */}
       <div className="mb-4 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -331,6 +421,7 @@ export default function JournalPage() {
               className="text-lg"
               value={journalTitle}
               onChange={(e) => setJournalTitle(e.target.value)}
+              readOnly={readOnly}
             />
           </div>
           
@@ -355,7 +446,12 @@ export default function JournalPage() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" onClick={handleImageAttachment}>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={handleImageAttachment}
+                      disabled={readOnly}
+                    >
                       <ImageIcon className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
@@ -368,7 +464,12 @@ export default function JournalPage() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" onClick={handleMusicAttachment}>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={handleMusicAttachment}
+                      disabled={readOnly}
+                    >
                       <Music className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
@@ -390,45 +491,46 @@ export default function JournalPage() {
         className="min-h-[calc(100vh-300px)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
         value={journalEntry}
         onChange={(e) => setJournalEntry(e.target.value)}
+        readOnly={readOnly}
       />
 
       {/* Fixed attachments viewer if there are any */}
-      {entryId && getTodayEntry()?.attachments && getTodayEntry()?.attachments.length > 0 && (
+      {currentEntry?.attachments && currentEntry.attachments.length > 0 && (
         <div className="fixed bottom-20 left-0 right-0 bg-background/80 backdrop-blur-sm border-t p-4">
           <div className="container max-w-3xl mx-auto">
             <h3 className="text-sm font-medium mb-2">Attachments</h3>
             <AttachmentViewer 
-              attachments={getTodayEntry()?.attachments || []} 
+              attachments={currentEntry.attachments} 
               size="medium"
-              onDelete={handleDeleteAttachment}
+              onDelete={readOnly ? undefined : handleDeleteAttachment}
             />
           </div>
         </div>
       )}
 
-      {/* Remove the fixed bottom bar with save button - we don't need it anymore */}
-
-      {/* Floating prompt generator button */}
-      <div className="fixed bottom-24 right-8">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="default"
-                size="icon"
-                className="h-12 w-12 rounded-full shadow-lg bg-fakudid-purple hover:bg-fakudid-darkPurple"
-                onClick={generatePrompt}
-                disabled={isGeneratingPrompt}
-              >
-                <Sparkles className="h-5 w-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>Generate Prompt</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+      {/* Floating prompt generator button - only show for non-readonly entries */}
+      {!readOnly && (
+        <div className="fixed bottom-24 right-8">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="default"
+                  size="icon"
+                  className="h-12 w-12 rounded-full shadow-lg bg-fakudid-purple hover:bg-fakudid-darkPurple"
+                  onClick={generatePrompt}
+                  disabled={isGeneratingPrompt}
+                >
+                  <Sparkles className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>Generate Prompt</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
     </div>
   );
 }

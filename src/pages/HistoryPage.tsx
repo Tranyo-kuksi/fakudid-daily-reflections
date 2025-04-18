@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -86,7 +87,8 @@ export default function HistoryPage() {
   };
 
   const navigateToEntry = (entry: JournalEntry) => {
-    navigate(`/?id=${entry.id}`);
+    // Change from ?id= to /entry/:id for clearer routing
+    navigate(`/entry/${entry.id}`);
   };
 
   return (
