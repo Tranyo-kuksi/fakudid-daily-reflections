@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, CheckCircle } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
 // Define theme options
@@ -64,6 +64,11 @@ export default function CustomizePage() {
     }
   };
   
+  // Determine if we're currently in light or dark mode
+  const currentMode = theme === "system" 
+    ? window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+    : theme;
+  
   return (
     <div className="max-w-4xl mx-auto">
       <div className="grid gap-6">
@@ -90,7 +95,14 @@ export default function CustomizePage() {
                     />
                     <div className="text-center font-medium">{themeOption.name}</div>
                     {lightTheme === themeOption.id && (
-                      <div className="absolute top-3 right-3 h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+                      <div className="absolute top-3 right-3">
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                      </div>
+                    )}
+                    {currentMode === 'light' && lightTheme === themeOption.id && (
+                      <div className="absolute bottom-8 left-0 right-0 text-center text-xs font-medium text-primary">
+                        Active
+                      </div>
                     )}
                   </div>
                 ))}
@@ -114,7 +126,14 @@ export default function CustomizePage() {
                     />
                     <div className="text-center font-medium">{themeOption.name}</div>
                     {darkTheme === themeOption.id && (
-                      <div className="absolute top-3 right-3 h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+                      <div className="absolute top-3 right-3">
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                      </div>
+                    )}
+                    {currentMode === 'dark' && darkTheme === themeOption.id && (
+                      <div className="absolute bottom-8 left-0 right-0 text-center text-xs font-medium text-primary">
+                        Active
+                      </div>
                     )}
                   </div>
                 ))}

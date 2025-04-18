@@ -89,24 +89,24 @@ export function ThemeProvider({
       // Apply light theme variables
       switch (lightTheme) {
         case "lavender":
+          root.style.setProperty("--background", "260 30% 98%");
           root.style.setProperty("--primary", "260 78% 75%");
           root.style.setProperty("--accent", "326 78% 60%");
-          root.style.setProperty("--background", "260 30% 98%");
           break;
         case "mint":
+          root.style.setProperty("--background", "152 30% 98%");
           root.style.setProperty("--primary", "152 78% 75%");
           root.style.setProperty("--accent", "152 78% 60%");
-          root.style.setProperty("--background", "152 30% 98%");
           break;
         case "peach":
+          root.style.setProperty("--background", "32 30% 98%");
           root.style.setProperty("--primary", "32 95% 75%");
           root.style.setProperty("--accent", "6 78% 60%");
-          root.style.setProperty("--background", "32 30% 98%");
           break;
         case "sky":
+          root.style.setProperty("--background", "200 30% 98%");
           root.style.setProperty("--primary", "200 85% 75%");
           root.style.setProperty("--accent", "210 78% 60%");
-          root.style.setProperty("--background", "200 30% 98%");
           break;
       }
     } else {
@@ -118,27 +118,34 @@ export function ThemeProvider({
       // Apply dark theme variables
       switch (darkTheme) {
         case "midnight":
+          root.style.setProperty("--background", "240 10% 8%");
           root.style.setProperty("--primary", "260 78% 75%");
           root.style.setProperty("--accent", "326 78% 60%");
-          root.style.setProperty("--background", "240 10% 8%");
           break;
         case "forest":
+          root.style.setProperty("--background", "150 30% 10%");
           root.style.setProperty("--primary", "152 60% 60%");
           root.style.setProperty("--accent", "120 40% 50%");
-          root.style.setProperty("--background", "150 30% 10%");
           break;
         case "plum":
+          root.style.setProperty("--background", "300 30% 10%");
           root.style.setProperty("--primary", "300 60% 60%");
           root.style.setProperty("--accent", "326 78% 60%");
-          root.style.setProperty("--background", "300 30% 10%");
           break;
         case "ocean":
+          root.style.setProperty("--background", "200 70% 8%");
           root.style.setProperty("--primary", "200 60% 60%");
           root.style.setProperty("--accent", "210 78% 60%");
-          root.style.setProperty("--background", "200 70% 8%");
           break;
       }
     }
+    
+    // Force a repaint to ensure theme changes are applied consistently
+    document.body.style.display = 'none';
+    document.body.offsetHeight; // Trigger a reflow
+    document.body.style.display = '';
+    
+    console.log(`Applied theme: ${mode} - ${themeToApply}`);
   }, [theme, lightTheme, darkTheme]);
 
   const value = {
