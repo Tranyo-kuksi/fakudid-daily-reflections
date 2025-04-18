@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,7 +8,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { 
   getTodayEntry, 
   autosaveEntry, 
-  addAttachment 
+  addAttachment,
+  getAllEntries
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -90,8 +92,16 @@ export default function JournalPage() {
 
   const generatePrompt = async () => {
     try {
+      // Get recent entries (last 5 entries, excluding the current one)
+      const recentEntries = getAllEntries()
+        .slice(0, 5)
+        .filter(entry => entry.content !== journalEntry);
+
       const { data, error } = await supabase.functions.invoke('generate-prompt', {
-        body: { currentEntry: journalEntry }
+        body: { 
+          currentEntry: journalEntry,
+          recentEntries: recentEntries
+        }
       });
       
       if (error) throw error;
