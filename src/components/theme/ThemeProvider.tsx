@@ -86,27 +86,27 @@ export function ThemeProvider({
       root.style.removeProperty("--accent");
       root.style.removeProperty("--background");
       
-      // Apply light theme variables
+      // Apply light theme variables with softer colors
       switch (lightTheme) {
         case "lavender":
-          root.style.setProperty("--background", "260 30% 98%");
-          root.style.setProperty("--primary", "260 78% 75%");
-          root.style.setProperty("--accent", "326 78% 60%");
+          root.style.setProperty("--background", "240 30% 97%");  // Softer lavender background
+          root.style.setProperty("--primary", "260 50% 70%");     // Softer primary color
+          root.style.setProperty("--accent", "326 50% 55%");      // Softer accent color
           break;
         case "mint":
-          root.style.setProperty("--background", "152 30% 98%");
-          root.style.setProperty("--primary", "152 78% 75%");
-          root.style.setProperty("--accent", "152 78% 60%");
+          root.style.setProperty("--background", "152 20% 96%");  // Softer mint background
+          root.style.setProperty("--primary", "152 50% 60%");     // Softer primary color
+          root.style.setProperty("--accent", "152 50% 50%");      // Softer accent color
           break;
         case "peach":
-          root.style.setProperty("--background", "32 30% 98%");
-          root.style.setProperty("--primary", "32 95% 75%");
-          root.style.setProperty("--accent", "6 78% 60%");
+          root.style.setProperty("--background", "32 20% 96%");   // Softer peach background
+          root.style.setProperty("--primary", "32 70% 65%");      // Softer primary color
+          root.style.setProperty("--accent", "6 50% 55%");        // Softer accent color
           break;
         case "sky":
-          root.style.setProperty("--background", "200 30% 98%");
-          root.style.setProperty("--primary", "200 85% 75%");
-          root.style.setProperty("--accent", "210 78% 60%");
+          root.style.setProperty("--background", "200 20% 96%");  // Softer sky background
+          root.style.setProperty("--primary", "200 60% 65%");     // Softer primary color
+          root.style.setProperty("--accent", "210 50% 55%");      // Softer accent color
           break;
       }
     } else {
@@ -185,3 +185,4 @@ export const useTheme = () => {
 
   return context;
 };
+
