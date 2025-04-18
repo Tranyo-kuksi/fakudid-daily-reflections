@@ -17,17 +17,17 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           "relative flex min-h-[80px] w-full rounded-md border border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}>
-          <div 
-            className="absolute inset-0 overflow-auto px-3 py-2 text-sm"
-            style={{ pointerEvents: 'none', zIndex: 1 }}
-          >
-            {renderText(props.value.toString())}
-          </div>
           <textarea
-            className="relative z-0 w-full h-full resize-none bg-transparent p-3 text-sm focus:outline-none"
+            className="w-full h-full resize-none bg-transparent p-3 text-sm focus:outline-none"
             ref={ref}
             {...props}
           />
+          <div 
+            className="absolute inset-0 overflow-auto px-3 py-2 text-sm pointer-events-none"
+            aria-hidden="true"
+          >
+            {renderText(props.value.toString())}
+          </div>
         </div>
       )
     }
