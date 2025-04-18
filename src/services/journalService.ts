@@ -155,6 +155,27 @@ export function addAttachment(
   });
 }
 
+// Delete an attachment from an entry
+export function deleteAttachment(entryId: string, attachmentIndex: number): JournalEntry | null {
+  const entry = getEntryById(entryId);
+  if (!entry || !entry.attachments) {
+    return null;
+  }
+  
+  // Remove the attachment at the specified index
+  const newAttachments = [...entry.attachments];
+  newAttachments.splice(attachmentIndex, 1);
+  
+  // Update the entry with the new attachments array
+  const updatedEntry = updateEntry(entryId, { attachments: newAttachments });
+  
+  if (updatedEntry) {
+    toast.success("Attachment deleted");
+  }
+  
+  return updatedEntry;
+}
+
 // Autosave functionality - returns true if saved successfully
 export function autosaveEntry(title: string, content: string, mood: JournalEntry['mood']): boolean {
   // Check if there's already an entry for today

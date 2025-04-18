@@ -9,6 +9,7 @@ import {
   getTodayEntry, 
   autosaveEntry, 
   addAttachment,
+  deleteAttachment,
   getAllEntries
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
@@ -234,6 +235,16 @@ export default function JournalPage() {
     event.target.value = '';
   };
 
+  const handleDeleteAttachment = (attachmentIndex: number) => {
+    if (entryId) {
+      const updatedEntry = deleteAttachment(entryId, attachmentIndex);
+      if (updatedEntry) {
+        // Force a re-render to show the updated attachments
+        setEntryId(updatedEntry.id);
+      }
+    }
+  };
+
   const moodOptions = [
     { name: moodNames.dead, value: "dead", icon: Skull, color: "text-mood-dead" },
     { name: moodNames.sad, value: "sad", icon: FrownIcon, color: "text-mood-sad" },
@@ -329,7 +340,11 @@ export default function JournalPage() {
       {entryId && getTodayEntry()?.attachments && getTodayEntry()?.attachments.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-medium mb-2">Attachments</h3>
-          <AttachmentViewer attachments={getTodayEntry()?.attachments || []} size="medium" />
+          <AttachmentViewer 
+            attachments={getTodayEntry()?.attachments || []} 
+            size="medium"
+            onDelete={handleDeleteAttachment}
+          />
         </div>
       )}
       

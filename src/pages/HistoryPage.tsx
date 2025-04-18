@@ -1,21 +1,22 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Edit, Trash2 } from "lucide-react";
+import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Edit, Trash2, ImageIcon } from "lucide-react";
 import { 
   getAllEntries, 
   getEntryById, 
   updateEntry, 
   deleteEntry,
+  deleteAttachment,
   JournalEntry 
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
-import { ImageIcon, Music } from "lucide-react";
 
 export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,18 +80,38 @@ export default function HistoryPage() {
 
   const saveEdit = () => {
     if (selectedEntry) {
-      const updated = updateEntry(selectedEntry.id, { content: editContent });
+      const updated = updateEntry(selectedEntry.id, { 
+        content: editContent,
+        title: selectedEntry.title 
+      });
+      
       if (updated) {
         // Update local entries with the edited content
         const updatedEntries = entries.map(e => 
-          e.id === selectedEntry.id ? { ...e, content: editContent } : e
+          e.id === selectedEntry.id ? { ...e, content: editContent, title: selectedEntry.title } : e
         );
         setEntries(updatedEntries);
         setFilteredEntries(filteredEntries.map(e => 
-          e.id === selectedEntry.id ? { ...e, content: editContent } : e
+          e.id === selectedEntry.id ? { ...e, content: editContent, title: selectedEntry.title } : e
         ));
         setIsEditDialogOpen(false);
         toast.success("Journal entry updated");
+      }
+    }
+  };
+
+  const handleDeleteAttachment = (attachmentIndex: number) => {
+    if (selectedEntry) {
+      const updatedEntry = deleteAttachment(selectedEntry.id, attachmentIndex);
+      if (updatedEntry) {
+        setSelectedEntry(updatedEntry);
+        
+        // Update the entries lists with the updated entry
+        const updateEntryInList = (list: JournalEntry[]) => 
+          list.map(e => e.id === updatedEntry.id ? updatedEntry : e);
+        
+        setEntries(updateEntryInList(entries));
+        setFilteredEntries(updateEntryInList(filteredEntries));
       }
     }
   };
@@ -110,6 +131,12 @@ export default function HistoryPage() {
       default:
         return null;
     }
+  };
+
+  // Function to truncate text with ellipsis
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
   };
 
   return (
@@ -149,11 +176,15 @@ export default function HistoryPage() {
                 <div>{getMoodIcon(entry.mood)}</div>
               </CardHeader>
               <CardContent className="p-4 pt-0">
-                <p className="text-muted-foreground line-clamp-2">{entry.content}</p>
+                <p className="text-muted-foreground">
+                  {truncateText(entry.content, 50)}
+                  <span className="bg-gradient-to-r from-transparent to-background inline-block w-8 ml-1"></span>
+                </p>
                 
-                {entry.attachments && entry.attachments.length > 0 && (
-                  <div className="mt-3">
-                    <AttachmentViewer attachments={entry.attachments} size="small" />
+                {entry.attachments && entry.attachments.some(a => a.type === 'image') && (
+                  <div className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
+                    <ImageIcon className="h-4 w-4" />
+                    <span>Has images</span>
                   </div>
                 )}
               </CardContent>
@@ -206,7 +237,11 @@ export default function HistoryPage() {
             {selectedEntry?.attachments && selectedEntry.attachments.length > 0 && (
               <div className="mt-4">
                 <h3 className="text-sm font-medium mb-2">Attachments</h3>
-                <AttachmentViewer attachments={selectedEntry.attachments} size="medium" />
+                <AttachmentViewer 
+                  attachments={selectedEntry.attachments} 
+                  size="medium"
+                  onDelete={handleDeleteAttachment}
+                />
               </div>
             )}
             

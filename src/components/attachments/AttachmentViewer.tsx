@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ImageIcon, Music, X, Maximize2 } from "lucide-react";
+import { ImageIcon, Music, X, Maximize2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Attachment {
@@ -14,12 +14,14 @@ interface AttachmentViewerProps {
   attachments?: Attachment[];
   size?: "small" | "medium" | "large";
   showFullScreenOption?: boolean;
+  onDelete?: (index: number) => void; // New prop for deletion
 }
 
 export const AttachmentViewer = ({ 
   attachments = [], 
   size = "medium", 
-  showFullScreenOption = true 
+  showFullScreenOption = true,
+  onDelete
 }: AttachmentViewerProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -39,28 +41,45 @@ export const AttachmentViewer = ({
     <>
       <div className="flex flex-wrap gap-2">
         {attachments.map((attachment, i) => (
-          <div 
-            key={i} 
-            className={`bg-muted p-2 rounded-md text-sm flex items-center gap-1 ${
-              attachment.type === 'image' && showFullScreenOption ? 'cursor-pointer hover:bg-muted/80' : ''
-            }`}
-            onClick={() => {
-              if (attachment.type === 'image' && showFullScreenOption) {
-                setSelectedImage(attachment.url);
-              }
-            }}
-          >
+          <div key={i} className="relative group">
             {attachment.type === 'image' ? (
-              <>
-                <ImageIcon className={iconClass} />
-                <span>{attachment.name}</span>
-                {showFullScreenOption && <Maximize2 className="h-3 w-3 ml-1 text-muted-foreground" />}
-              </>
+              <div 
+                className={`${
+                  showFullScreenOption ? 'cursor-pointer hover:opacity-90' : ''
+                } relative rounded-md overflow-hidden`}
+                onClick={() => {
+                  if (showFullScreenOption) {
+                    setSelectedImage(attachment.url);
+                  }
+                }}
+              >
+                <img 
+                  src={attachment.url} 
+                  alt={attachment.name}
+                  className="h-20 w-20 object-cover rounded-md"
+                />
+                {showFullScreenOption && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Maximize2 className="h-6 w-6 text-white" />
+                  </div>
+                )}
+              </div>
             ) : (
-              <>
+              <div className="bg-muted p-2 rounded-md text-sm flex items-center gap-1">
                 <Music className={iconClass} />
                 <span>{attachment.name}</span>
-              </>
+              </div>
+            )}
+            
+            {onDelete && (
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute -top-2 -right-2 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => onDelete(i)}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             )}
           </div>
         ))}
