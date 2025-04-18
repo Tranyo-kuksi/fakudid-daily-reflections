@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, ImageIcon, Music, SendHorizontal, Sparkles, MessageSquare } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, ImageIcon, Music, SendHorizontal, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
@@ -77,20 +77,6 @@ export default function JournalPage() {
       }
     };
   }, [journalTitle, journalEntry, selectedMood]);
-
-  const formatJournalEntry = (entry: string) => {
-    if (!entry) return "";
-    
-    // Split the entry by AI prompts (marked with ✨)
-    return entry.split('\n\n').map((paragraph, index) => {
-      if (paragraph.startsWith('✨ ')) {
-        // AI prompt styling - just return the text with styling
-        return <span key={index} className="block text-xs text-muted-foreground italic">{paragraph}</span>;
-      }
-      // User text - return as is
-      return <span key={index} className="block">{paragraph}</span>;
-    });
-  };
 
   const generatePrompt = async () => {
     try {
@@ -362,10 +348,6 @@ export default function JournalPage() {
           value={journalEntry}
           onChange={(e) => setJournalEntry(e.target.value)}
         />
-      </div>
-
-      <div className="mb-6 prose dark:prose-invert max-w-none">
-        {formatJournalEntry(journalEntry)}
       </div>
 
       {entryId && getTodayEntry()?.attachments && getTodayEntry()?.attachments.length > 0 && (
