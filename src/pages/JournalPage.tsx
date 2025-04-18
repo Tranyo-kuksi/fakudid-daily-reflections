@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -428,7 +427,7 @@ export default function JournalPage() {
           <MoodPickerButton />
         </div>
 
-        {/* Attachment buttons now below mood selector */}
+        {/* Attachment controls */}
         <div className="flex gap-2">
           <input 
             type="file" 
@@ -481,6 +480,17 @@ export default function JournalPage() {
             </Tooltip>
           </TooltipProvider>
         </div>
+
+        {/* Display attachments if they exist */}
+        {currentEntry?.attachments && currentEntry.attachments.length > 0 && (
+          <div className="bg-background p-4 rounded-md border">
+            <AttachmentViewer 
+              attachments={currentEntry.attachments} 
+              size="medium"
+              onDelete={readOnly ? undefined : handleDeleteAttachment}
+            />
+          </div>
+        )}
       </div>
 
       {/* Main content area with full height textarea */}
@@ -492,20 +502,6 @@ export default function JournalPage() {
           onChange={(e) => setJournalEntry(e.target.value)}
           readOnly={readOnly}
         />
-
-        {/* Fixed attachments viewer if there are any */}
-        {currentEntry?.attachments && currentEntry.attachments.length > 0 && (
-          <div className="fixed bottom-20 left-0 right-0 bg-background/80 backdrop-blur-sm border-t p-4">
-            <div className="container max-w-3xl mx-auto">
-              <h3 className="text-sm font-medium mb-2">Attachments</h3>
-              <AttachmentViewer 
-                attachments={currentEntry.attachments} 
-                size="medium"
-                onDelete={readOnly ? undefined : handleDeleteAttachment}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Floating prompt generator button - overlaying the textarea */}
         {!readOnly && (
