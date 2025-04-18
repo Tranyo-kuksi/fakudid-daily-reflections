@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -323,79 +322,75 @@ export default function JournalPage() {
 
   return (
     <div className="w-full h-full relative">
-      {/* Top bar with title, mood and attachment buttons */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b p-4">
-        <div className="container max-w-3xl mx-auto">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Title your day..."
-                className="text-lg"
-                value={journalTitle}
-                onChange={(e) => setJournalTitle(e.target.value)}
+      {/* Controls section */}
+      <div className="mb-4 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex-1">
+            <Input
+              placeholder="Title your day..."
+              className="text-lg"
+              value={journalTitle}
+              onChange={(e) => setJournalTitle(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* Attachment buttons */}
+            <div className="flex gap-2">
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={(e) => handleFileSelected(e, "image")} 
+                accept="image/*" 
+                className="hidden" 
               />
+              <input 
+                type="file" 
+                ref={audioInputRef} 
+                onChange={(e) => handleFileSelected(e, "music")} 
+                accept="audio/*" 
+                className="hidden" 
+              />
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" onClick={handleImageAttachment}>
+                      <ImageIcon className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Add Image</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" onClick={handleMusicAttachment}>
+                      <Music className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Add Music</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             
-            <div className="flex items-center gap-4">
-              {/* Attachment buttons */}
-              <div className="flex gap-2">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={(e) => handleFileSelected(e, "image")} 
-                  accept="image/*" 
-                  className="hidden" 
-                />
-                <input 
-                  type="file" 
-                  ref={audioInputRef} 
-                  onChange={(e) => handleFileSelected(e, "music")} 
-                  accept="audio/*" 
-                  className="hidden" 
-                />
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" onClick={handleImageAttachment}>
-                        <ImageIcon className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Add Image</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" onClick={handleMusicAttachment}>
-                        <Music className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Add Music</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <MoodPickerButton />
-            </div>
+            <MoodPickerButton />
           </div>
         </div>
       </div>
 
-      {/* Main content area with padding for top bar */}
-      <div className="pt-24 pb-20 min-h-screen">
-        <Textarea 
-          placeholder="Write about your day..."
-          className="min-h-screen w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
-          value={journalEntry}
-          onChange={(e) => setJournalEntry(e.target.value)}
-        />
-      </div>
+      {/* Main content area */}
+      <Textarea 
+        placeholder="Write about your day..."
+        className="min-h-[calc(100vh-300px)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
+        value={journalEntry}
+        onChange={(e) => setJournalEntry(e.target.value)}
+      />
 
       {/* Fixed attachments viewer if there are any */}
       {entryId && getTodayEntry()?.attachments && getTodayEntry()?.attachments.length > 0 && (
