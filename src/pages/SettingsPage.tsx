@@ -22,7 +22,13 @@ export default function SettingsPage() {
   const [streak, setStreak] = useState(7);
   const [language, setLanguage] = useState("en");
   const [subscriptionPlan, setSubscriptionPlan] = useState("free");
+  const [darkMode, setDarkMode] = useState(theme === 'dark');
   const [notifications, setNotifications] = useState(true);
+  
+  const handleDarkModeChange = (checked: boolean) => {
+    setDarkMode(checked);
+    setTheme(checked ? 'dark' : 'light');
+  };
   
   return (
     <div className="max-w-4xl mx-auto">
@@ -116,6 +122,18 @@ export default function SettingsPage() {
             </div>
             
             <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="dark-mode">Dark Mode</Label>
+                  <p className="text-sm text-muted-foreground">Toggle between light and dark themes</p>
+                </div>
+                <Switch 
+                  id="dark-mode" 
+                  checked={darkMode}
+                  onCheckedChange={handleDarkModeChange}
+                />
+              </div>
+              
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="notifications">Notifications</Label>

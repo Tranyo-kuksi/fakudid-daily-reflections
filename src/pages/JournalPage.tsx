@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,14 +10,12 @@ import {
   autosaveEntry, 
   addAttachment,
   deleteAttachment,
-  getAllEntries,
-  getEntryById
+  getAllEntries
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
-import { useSearchParams } from "react-router-dom";
 
 export default function JournalPage() {
   const [journalTitle, setJournalTitle] = useState("");
@@ -32,7 +29,6 @@ export default function JournalPage() {
   const audioInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
-  const [searchParams] = useSearchParams();
   
   // Custom mood names
   const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
@@ -51,34 +47,17 @@ export default function JournalPage() {
     }
   }, []);
 
-  // Check URL for specific entry ID and load that entry instead of today's
+  // Load today's entry, if it exists
   useEffect(() => {
-    const idParam = searchParams.get('id');
-    
-    if (idParam) {
-      // Load specific entry by ID
-      const entry = getEntryById(idParam);
-      if (entry) {
-        setJournalTitle(entry.title || "");
-        setJournalEntry(entry.content);
-        setSelectedMood(entry.mood);
-        setEntryId(entry.id);
-        setIsEditing(true);
-      } else {
-        toast.error("Entry not found");
-      }
-    } else {
-      // Load today's entry, if it exists
-      const todayEntry = getTodayEntry();
-      if (todayEntry) {
-        setJournalTitle(todayEntry.title || "");
-        setJournalEntry(todayEntry.content);
-        setSelectedMood(todayEntry.mood);
-        setEntryId(todayEntry.id);
-        setIsEditing(true);
-      }
+    const todayEntry = getTodayEntry();
+    if (todayEntry) {
+      setJournalTitle(todayEntry.title || "");
+      setJournalEntry(todayEntry.content);
+      setSelectedMood(todayEntry.mood);
+      setEntryId(todayEntry.id);
+      setIsEditing(true);
     }
-  }, [searchParams]);
+  }, []);
 
   // Update autosave effect with shorter delay (500ms instead of 3000ms)
   useEffect(() => {
@@ -342,7 +321,7 @@ export default function JournalPage() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col relative">
+    <div className="w-full h-full relative">
       {/* Controls section */}
       <div className="mb-4 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -405,21 +384,21 @@ export default function JournalPage() {
         </div>
       </div>
 
-      {/* Main content area - updated to take remaining height */}
+      {/* Main content area */}
       <Textarea 
         placeholder="Write about your day..."
-        className="flex-1 w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none min-h-0"
+        className="min-h-[calc(100vh-300px)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
         value={journalEntry}
         onChange={(e) => setJournalEntry(e.target.value)}
       />
 
       {/* Fixed attachments viewer if there are any */}
-      {entryId && ((searchParams.get('id') ? getEntryById(searchParams.get('id') || '') : getTodayEntry())?.attachments || []).length > 0 && (
+      {entryId && getTodayEntry()?.attachments && getTodayEntry()?.attachments.length > 0 && (
         <div className="fixed bottom-20 left-0 right-0 bg-background/80 backdrop-blur-sm border-t p-4">
           <div className="container max-w-3xl mx-auto">
             <h3 className="text-sm font-medium mb-2">Attachments</h3>
             <AttachmentViewer 
-              attachments={(searchParams.get('id') ? getEntryById(searchParams.get('id') || '') : getTodayEntry())?.attachments || []} 
+              attachments={getTodayEntry()?.attachments || []} 
               size="medium"
               onDelete={handleDeleteAttachment}
             />
