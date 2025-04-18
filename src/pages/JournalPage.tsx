@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -116,13 +116,11 @@ export default function JournalPage() {
         return;
       }
       
+      // Add a newline and AI star icon before the prompt if there's existing text
       if (journalEntry.trim()) {
-        // Add a newline, AI star icon, and style the generated prompt differently
-        // Make sure we add proper line breaks
-        setJournalEntry(journalEntry.trim() + '\n\n' + 
-          `<ai-prompt>✨ ${data.prompt}</ai-prompt>`);
+        setJournalEntry(journalEntry.trim() + '\n\n✨ ' + data.prompt);
       } else {
-        setJournalEntry(`<ai-prompt>✨ ${data.prompt}</ai-prompt>`);
+        setJournalEntry('✨ ' + data.prompt);
       }
       
       toast.success(`Prompt generated!`);
@@ -349,21 +347,6 @@ export default function JournalPage() {
           className="min-h-[300px] text-lg p-4 focus:border-fakudid-purple"
           value={journalEntry}
           onChange={(e) => setJournalEntry(e.target.value)}
-          // Add custom styling for AI-generated prompts
-          renderText={(text) => 
-            text.split(/<ai-prompt>(.*?)<\/ai-prompt>/g).map((part, index) => 
-              index % 2 === 1 ? (
-                <span 
-                  key={index} 
-                  className="text-sm italic text-gray-500 block mt-2"
-                >
-                  {part}
-                </span>
-              ) : (
-                <span key={index}>{part}</span>
-              )
-            )
-          }
         />
       </div>
 
