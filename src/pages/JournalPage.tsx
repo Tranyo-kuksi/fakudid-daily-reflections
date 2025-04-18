@@ -59,7 +59,7 @@ export default function JournalPage() {
     }
   }, []);
 
-  // Update autosave effect
+  // Update autosave effect with shorter delay (500ms instead of 3000ms)
   useEffect(() => {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
@@ -68,7 +68,7 @@ export default function JournalPage() {
     if (journalTitle.trim() || journalEntry.trim() || selectedMood) {
       autoSaveTimerRef.current = setTimeout(() => {
         autosaveEntry(journalTitle, journalEntry, selectedMood as any);
-      }, 3000);
+      }, 500); // Changed from 3000ms to 500ms
     }
 
     return () => {
@@ -406,14 +406,7 @@ export default function JournalPage() {
         </div>
       )}
 
-      {/* Fixed bottom bar with save button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t p-4">
-        <div className="container max-w-3xl mx-auto flex justify-end">
-          <Button className="bg-fakudid-purple hover:bg-fakudid-darkPurple" onClick={handleSave}>
-            {isEditing ? "Update" : "Save"} <SendHorizontal className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      {/* Remove the fixed bottom bar with save button - we don't need it anymore */}
 
       {/* Floating prompt generator button */}
       <div className="fixed bottom-24 right-8">
