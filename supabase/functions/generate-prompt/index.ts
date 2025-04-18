@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -16,53 +15,49 @@ serve(async (req) => {
   try {
     const { currentEntry, recentEntries } = await req.json();
     
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('Missing OpenAI API key');
-    }
+    // Analyze mood from recent entries
+    const moodIndicators = recentEntries.map(entry => entry.mood).filter(Boolean);
+    const predominantMood = moodIndicators.length > 0 ? 
+      moodIndicators.reduce((a, b) => 
+        moodIndicators.filter(v => v === a).length >= moodIndicators.filter(v => v === b).length ? a : b
+      ) : null;
 
-    // Prepare context from recent entries
-    const entriesContext = recentEntries ? 
-      `Recent entries:\n${recentEntries.map((entry) => entry.content).join('\n')}` : 
-      'No previous entries';
+    let systemPrompt = `You are a chill, understanding AI that matches the user's energy while gently encouraging them to open up. You write in a casual, conversational way that teenagers can relate to. Your responses should:
+- Be single, focused prompts (not multiple questions)
+- Match the user's emotional state but maintain a grounding presence
+- Use casual language and occasional emojis naturally
+- Avoid being overly cheerful when inappropriate
+- Aim to be supportive without being pushy
+- Reference specific things they've mentioned when relevant
+
+If the user seems down, be understanding and validating. If they're excited, match their energy. Always keep it real.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          {
-            role: 'system',
-            content: `You are a fun, casual, and supportive friend who helps teenagers journal. Your style is:
-            - Super casual and friendly, like texting with a friend
-            - Use emojis occasionally
-            - Keep responses short and engaging (1-2 sentences max)
-            - Ask about specific details from their entries in a casual way
-            - Be encouraging but not cheesy
-            - Use casual language like "hey", "cool", "awesome", etc.
-            
-            If no entries available, ask something fun and relatable about their day or feelings.`
-          },
-          {
-            role: 'user',
-            content: `Generate a casual, friendly prompt based on this context:
-            Current entry: ${currentEntry || 'No entry yet'}
-            ${entriesContext}`
+          { role: 'system', content: systemPrompt },
+          ...(predominantMood ? [{ 
+            role: 'system', 
+            content: `Recent entries suggest a ${predominantMood} mood. Adjust your tone accordingly.`
+          }] : []),
+          { 
+            role: 'user', 
+            content: `Generate a single, focused prompt based on this journal entry: "${currentEntry}"`
           }
         ],
-        temperature: 0.9,
-        max_tokens: 80,
+        max_tokens: 100,
+        temperature: 0.8,
       }),
     });
 
     const data = await response.json();
-    const prompt = data.choices[0].message.content;
-
-    return new Response(JSON.stringify({ prompt }), {
+    return new Response(JSON.stringify({ prompt: data.choices[0].message.content }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {

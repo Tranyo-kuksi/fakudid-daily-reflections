@@ -1,31 +1,23 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Edit, Trash2, ImageIcon } from "lucide-react";
+import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Trash2, ImageIcon } from "lucide-react";
 import { 
   getAllEntries, 
-  getEntryById, 
-  updateEntry, 
   deleteEntry,
-  deleteAttachment,
   JournalEntry 
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
-import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
 
 export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
-  const [editContent, setEditContent] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   // Load all entries
@@ -54,12 +46,6 @@ export default function HistoryPage() {
     setFilteredEntries(filtered);
   };
 
-  const handleEdit = (entry: JournalEntry) => {
-    setSelectedEntry(entry);
-    setEditContent(entry.content);
-    setIsEditDialogOpen(true);
-  };
-
   const handleDelete = (entry: JournalEntry) => {
     setSelectedEntry(entry);
     setIsDeleteDialogOpen(true);
@@ -69,49 +55,10 @@ export default function HistoryPage() {
     if (selectedEntry) {
       const success = deleteEntry(selectedEntry.id);
       if (success) {
-        // Update the local state to remove the entry
         const updatedEntries = entries.filter(e => e.id !== selectedEntry.id);
         setEntries(updatedEntries);
         setFilteredEntries(filteredEntries.filter(e => e.id !== selectedEntry.id));
         setIsDeleteDialogOpen(false);
-      }
-    }
-  };
-
-  const saveEdit = () => {
-    if (selectedEntry) {
-      const updated = updateEntry(selectedEntry.id, { 
-        content: editContent,
-        title: selectedEntry.title 
-      });
-      
-      if (updated) {
-        // Update local entries with the edited content
-        const updatedEntries = entries.map(e => 
-          e.id === selectedEntry.id ? { ...e, content: editContent, title: selectedEntry.title } : e
-        );
-        setEntries(updatedEntries);
-        setFilteredEntries(filteredEntries.map(e => 
-          e.id === selectedEntry.id ? { ...e, content: editContent, title: selectedEntry.title } : e
-        ));
-        setIsEditDialogOpen(false);
-        toast.success("Journal entry updated");
-      }
-    }
-  };
-
-  const handleDeleteAttachment = (attachmentIndex: number) => {
-    if (selectedEntry) {
-      const updatedEntry = deleteAttachment(selectedEntry.id, attachmentIndex);
-      if (updatedEntry) {
-        setSelectedEntry(updatedEntry);
-        
-        // Update the entries lists with the updated entry
-        const updateEntryInList = (list: JournalEntry[]) => 
-          list.map(e => e.id === updatedEntry.id ? updatedEntry : e);
-        
-        setEntries(updateEntryInList(entries));
-        setFilteredEntries(updateEntryInList(filteredEntries));
       }
     }
   };
@@ -133,10 +80,13 @@ export default function HistoryPage() {
     }
   };
 
-  // Function to truncate text with ellipsis
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + '...';
+  };
+
+  const navigateToEntry = (entry: JournalEntry) => {
+    navigate(`/?id=${entry.id}`);
   };
 
   return (
@@ -158,7 +108,11 @@ export default function HistoryPage() {
       <div className="space-y-4">
         {filteredEntries.length > 0 ? (
           filteredEntries.map(entry => (
-            <Card key={entry.id} className="hover:shadow-md transition-shadow">
+            <Card 
+              key={entry.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigateToEntry(entry)}
+            >
               <CardHeader className="flex flex-row items-center justify-between p-4">
                 <div>
                   <h3 className="font-medium text-lg mb-1">
@@ -192,16 +146,11 @@ export default function HistoryPage() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-blue-600"
-                  onClick={() => handleEdit(entry)}
-                >
-                  <Edit className="h-4 w-4 mr-1" /> Edit
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
                   className="text-red-600"
-                  onClick={() => handleDelete(entry)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(entry);
+                  }}
                 >
                   <Trash2 className="h-4 w-4 mr-1" /> Delete
                 </Button>
@@ -214,48 +163,6 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
-      
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Journal Entry</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <Input
-              value={selectedEntry?.title || ""}
-              onChange={(e) => setSelectedEntry(prev => prev ? {...prev, title: e.target.value} : prev)}
-              placeholder="Entry title"
-              className="mb-4"
-            />
-            <Textarea 
-              value={editContent} 
-              onChange={(e) => setEditContent(e.target.value)} 
-              className="min-h-[200px]"
-            />
-            
-            {selectedEntry?.attachments && selectedEntry.attachments.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-sm font-medium mb-2">Attachments</h3>
-                <AttachmentViewer 
-                  attachments={selectedEntry.attachments} 
-                  size="medium"
-                  onDelete={handleDeleteAttachment}
-                />
-              </div>
-            )}
-            
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={saveEdit}>
-                Save Changes
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
