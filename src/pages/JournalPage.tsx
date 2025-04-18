@@ -84,16 +84,11 @@ export default function JournalPage() {
     // Split the entry by AI prompts (marked with ✨)
     return entry.split('\n\n').map((paragraph, index) => {
       if (paragraph.startsWith('✨ ')) {
-        // AI prompt styling
-        return (
-          <div key={index} className="flex items-start gap-2 my-4 p-3 bg-muted/50 rounded-lg border border-border">
-            <MessageSquare className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
-            <p className="text-xs text-muted-foreground italic">{paragraph.substring(2)}</p>
-          </div>
-        );
+        // AI prompt styling - just return the text with styling
+        return <span key={index} className="block text-xs text-muted-foreground italic">{paragraph}</span>;
       }
-      // User text styling
-      return <p key={index} className="my-2">{paragraph}</p>;
+      // User text - return as is
+      return <span key={index} className="block">{paragraph}</span>;
     });
   };
 
