@@ -9,7 +9,7 @@ import { getAllEntries } from "@/services/journalService";
 
 export const NavBar = () => {
   const location = useLocation();
-  const { theme, setTheme, lightTheme, darkTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [streak, setStreak] = useState(0);
 
   // Calculate actual streak based on journal entries
@@ -62,36 +62,18 @@ export const NavBar = () => {
     setStreak(currentStreak);
   }, [location.pathname]); // Recalculate when changing pages
 
-  // Page titles
-  const getPageTitle = (path: string) => {
-    switch (path) {
-      case "/":
-        return "My Journal";
-      case "/history":
-        return "Journal History";
-      case "/mood-tracker":
-        return "Mood Tracker";
-      case "/customize":
-        return "Customize Your Journal";
-      case "/settings":
-        return "Settings";
-      default:
-        return "FakUdid";
-    }
-  };
-
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="md:hidden" />
-          <h1 className="text-xl font-semibold">{getPageTitle(location.pathname)}</h1>
+          <h1 className="text-xl font-semibold">FakUdid</h1>
         </div>
         
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <Flame className="h-5 w-5 text-orange-500" />
-            <span className="text-sm font-medium">{streak} day streak</span>
+            <span className="text-sm font-medium">{streak}</span>
           </div>
           
           <Button

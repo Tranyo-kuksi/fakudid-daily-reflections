@@ -116,6 +116,23 @@ export default function MoodTrackerPage() {
     }
   };
   
+  const getMoodTextColor = (mood: string | null): string => {
+    switch (mood) {
+      case "dead":
+        return "text-mood-dead";
+      case "sad":
+        return "text-mood-sad";
+      case "meh":
+        return "text-mood-meh";
+      case "good":
+        return "text-mood-good";
+      case "awesome":
+        return "text-mood-awesome";
+      default:
+        return "text-muted-foreground";
+    }
+  };
+  
   const handleDayClick = (date: Date) => {
     setSelectedDate(date);
     
@@ -203,7 +220,7 @@ export default function MoodTrackerPage() {
           <CardTitle className="text-xl font-bold">Monthly Summary</CardTitle>
           {dominantMood && (
             <p className="text-muted-foreground">
-              You were mostly <span className={`font-semibold ${getMoodColor(dominantMood).replace('bg-', 'text-')}`}>
+              You were mostly <span className={`font-semibold ${getMoodTextColor(dominantMood)}`}>
                 {getMoodLabel(dominantMood)}
               </span> this month
             </p>

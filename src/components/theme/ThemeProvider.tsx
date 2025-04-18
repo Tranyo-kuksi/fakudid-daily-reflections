@@ -79,11 +79,17 @@ export function ThemeProvider({
     const themeToApply = mode === "dark" ? darkTheme : lightTheme;
     root.classList.add(`theme-${themeToApply}`);
     
-    // Update CSS variables based on the selected theme
+    // Apply theme CSS variables
     if (mode === "light") {
+      // Reset default variables first
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--accent");
+      
+      // Apply light theme variables
       switch (lightTheme) {
         case "lavender":
-          // Default lavender theme - no need to change variables
+          root.style.setProperty("--primary", "260 78% 75%");
+          root.style.setProperty("--accent", "326 78% 60%");
           break;
         case "mint":
           root.style.setProperty("--primary", "152 78% 75%");
@@ -97,15 +103,17 @@ export function ThemeProvider({
           root.style.setProperty("--primary", "200 85% 75%");
           root.style.setProperty("--accent", "210 78% 60%");
           break;
-        default:
-          // Reset to default
-          root.style.setProperty("--primary", "260 78% 75%");
-          root.style.setProperty("--accent", "326 78% 60%");
       }
     } else {
+      // Reset default variables first
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--accent");
+      
+      // Apply dark theme variables
       switch (darkTheme) {
         case "midnight":
-          // Default midnight theme - no need to change variables
+          root.style.setProperty("--primary", "260 78% 75%");
+          root.style.setProperty("--accent", "326 78% 60%");
           break;
         case "forest":
           root.style.setProperty("--primary", "152 60% 60%");
@@ -119,10 +127,6 @@ export function ThemeProvider({
           root.style.setProperty("--primary", "200 60% 60%");
           root.style.setProperty("--accent", "210 78% 60%");
           break;
-        default:
-          // Reset to default
-          root.style.setProperty("--primary", "260 78% 75%");
-          root.style.setProperty("--accent", "326 78% 60%");
       }
     }
   }, [theme, lightTheme, darkTheme]);
