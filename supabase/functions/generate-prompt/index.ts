@@ -23,10 +23,8 @@ serve(async (req) => {
 
     // Prepare context from recent entries
     const entriesContext = recentEntries ? 
-      `Recent journal entries context:\n${recentEntries.map((entry, index) => 
-        `Entry ${index + 1}: ${entry.content}`
-      ).join('\n\n')}` : 
-      'No recent entry context available.';
+      `Recent entries:\n${recentEntries.map((entry) => entry.content).join('\n')}` : 
+      'No previous entries';
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -39,24 +37,25 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an empathetic and insightful journal prompt generator. Create deeply personalized, reflective prompts that:
-            - Consider the user's recent journal entries
-            - Encourage self-discovery and emotional exploration
-            - Provide unique, thought-provoking questions
-            - Maintain a supportive and non-judgmental tone
+            content: `You are a fun, casual, and supportive friend who helps teenagers journal. Your style is:
+            - Super casual and friendly, like texting with a friend
+            - Use emojis occasionally
+            - Keep responses short and engaging (1-2 sentences max)
+            - Ask about specific details from their entries in a casual way
+            - Be encouraging but not cheesy
+            - Use casual language like "hey", "cool", "awesome", etc.
             
-            If no recent entries are available, generate a universally engaging prompt about personal growth, emotions, or life experiences.`
+            If no entries available, ask something fun and relatable about their day or feelings.`
           },
           {
             role: 'user',
-            content: `Generate a thoughtful, personalized journal prompt. 
-            Current entry content: ${currentEntry || 'No current entry'}
-            
+            content: `Generate a casual, friendly prompt based on this context:
+            Current entry: ${currentEntry || 'No entry yet'}
             ${entriesContext}`
           }
         ],
-        temperature: 0.7,
-        max_tokens: 150,
+        temperature: 0.9,
+        max_tokens: 80,
       }),
     });
 
