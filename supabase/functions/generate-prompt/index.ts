@@ -48,13 +48,13 @@ If the user seems down, be understanding and validating. If they're excited, mat
       });
     }
     
-    // Make request to OpenAI API
+    // Make request to OpenAI API - Remove the organization header that's causing issues
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
-        'OpenAI-Organization': 'org-XQaYCCKBcAWrpgLcoAeNrqSb',
+        // Removed the problematic OpenAI-Organization header
         'OpenAI-Beta': 'assistants=v2',
       },
       body: JSON.stringify({
