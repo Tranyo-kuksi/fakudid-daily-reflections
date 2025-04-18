@@ -214,7 +214,7 @@ export default function MoodTrackerPage() {
         </CardContent>
       </Card>
       
-      {/* Monthly Summary */}
+      {/* Monthly Summary - updated to ensure all moods fit on one line */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-xl font-bold">Monthly Summary</CardTitle>
@@ -227,11 +227,11 @@ export default function MoodTrackerPage() {
           )}
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex justify-between items-center w-full">
             {Object.entries(monthlySummary).map(([mood, count]) => (
-              <div key={mood} className={`p-3 rounded-lg flex items-center gap-2 ${getMoodColor(mood)}`}>
+              <div key={mood} className={`p-2 rounded-lg flex items-center gap-1 ${getMoodColor(mood)}`}>
                 {getMoodIcon(mood)}
-                <span className="font-medium">{getMoodLabel(mood)}: {count}</span>
+                <span className="font-medium text-sm">{count}</span>
               </div>
             ))}
           </div>
