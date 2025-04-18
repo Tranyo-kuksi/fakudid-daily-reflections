@@ -32,7 +32,22 @@ serve(async (req) => {
 
 If the user seems down, be understanding and validating. If they're excited, match their energy. Always keep it real.`;
 
+    // Fallback prompts in case the API call fails
+    const fallbackPrompts = [
+      "What's one thing that's been on your mind today?",
+      "If you could change one thing about your day, what would it be?",
+      "What's something you're looking forward to?",
+      "Tell me about something that caught your attention today.",
+      "What's something you wish people understood about you?",
+      "What's one small thing that made today better?",
+      "If today had a soundtrack, what song would be playing right now?",
+      "What's something you're proud of that you don't talk about much?",
+      "What's a question you've been asking yourself lately?",
+      "If you could send a message to your past self from a week ago, what would you say?"
+    ];
+
     try {
+      console.log("Calling OpenAI API...");
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -49,7 +64,7 @@ If the user seems down, be understanding and validating. If they're excited, mat
             }] : []),
             { 
               role: 'user', 
-              content: `Generate a single, focused prompt based on this journal entry: "${currentEntry}"`
+              content: `Generate a single, focused prompt based on this journal entry: "${currentEntry || 'No entry yet'}"`
             }
           ],
           max_tokens: 100,
@@ -57,30 +72,54 @@ If the user seems down, be understanding and validating. If they're excited, mat
         }),
       });
 
+      console.log("OpenAI API response status:", response.status);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('OpenAI API error:', errorData);
-        throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+        const errorText = await response.text();
+        console.error('OpenAI API error:', errorText);
+        
+        // Return a fallback prompt if OpenAI API fails
+        const randomIndex = Math.floor(Math.random() * fallbackPrompts.length);
+        return new Response(JSON.stringify({ 
+          prompt: fallbackPrompts[randomIndex],
+          source: 'fallback'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
       const data = await response.json();
+      console.log("OpenAI API response data:", JSON.stringify(data).substring(0, 200) + "...");
       
       // Make sure we have a valid response before accessing properties
       if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
-        return new Response(JSON.stringify({ prompt: data.choices[0].message.content }), {
+        return new Response(JSON.stringify({ 
+          prompt: data.choices[0].message.content,
+          source: 'openai'
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } else {
         console.error('Invalid response format from OpenAI:', data);
-        throw new Error('Invalid response format from OpenAI');
+        
+        // Return a fallback prompt if the OpenAI response is invalid
+        const randomIndex = Math.floor(Math.random() * fallbackPrompts.length);
+        return new Response(JSON.stringify({ 
+          prompt: fallbackPrompts[randomIndex],
+          source: 'fallback'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
     } catch (openAiError) {
       console.error('OpenAI API error:', openAiError);
+      
+      // Return a fallback prompt if there's an exception calling OpenAI
+      const randomIndex = Math.floor(Math.random() * fallbackPrompts.length);
       return new Response(JSON.stringify({ 
-        error: 'Failed to generate prompt',
-        details: openAiError.message 
+        prompt: fallbackPrompts[randomIndex],
+        source: 'fallback'
       }), {
-        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

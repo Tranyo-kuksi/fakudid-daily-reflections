@@ -90,11 +90,14 @@ export default function JournalPage() {
       }
     };
   }, [journalTitle, journalEntry, selectedMood]);
+  
+  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
 
   const generatePrompt = async () => {
     try {
-      // Show loading toast
-      const loadingToast = toast.loading('Generating prompt...');
+      // Show loading state
+      setIsGeneratingPrompt(true);
+      toast.loading('Generating prompt...', { id: 'generate-prompt' });
       
       // Get recent entries (last 5 entries, excluding the current one)
       const recentEntries = getAllEntries()
@@ -109,7 +112,8 @@ export default function JournalPage() {
       });
       
       // Dismiss loading toast
-      toast.dismiss(loadingToast);
+      toast.dismiss('generate-prompt');
+      setIsGeneratingPrompt(false);
       
       if (error) {
         console.error('Error generating prompt:', error);
@@ -119,7 +123,7 @@ export default function JournalPage() {
       
       if (!data || !data.prompt) {
         console.error('Invalid response format:', data);
-        toast.error('Received invalid response from AI. Please try again.');
+        toast.error('Failed to generate prompt. Please try again.');
         return;
       }
       
@@ -130,10 +134,13 @@ export default function JournalPage() {
         setJournalEntry('✨ ' + data.prompt);
       }
       
-      toast.success('Prompt generated!');
+      const promptSource = data.source === 'fallback' ? '(using fallback prompt)' : '';
+      toast.success(`Prompt generated! ${promptSource}`);
     } catch (error) {
       console.error('Error generating prompt:', error);
       toast.error('Failed to generate prompt. Please try again.');
+      setIsGeneratingPrompt(false);
+      toast.dismiss('generate-prompt');
     }
   };
 
@@ -411,7 +418,12 @@ export default function JournalPage() {
         </div>
         
         <div className="flex gap-2 mt-4 sm:mt-0">
-          <Button variant="outline" className="gap-2" onClick={generatePrompt}>
+          <Button 
+            variant="outline" 
+            className="gap-2" 
+            onClick={generatePrompt}
+            disabled={isGeneratingPrompt}
+          >
             <Sparkles className="h-4 w-4" />
             {isMobile ? "" : "Generate Prompt"}
           </Button>
