@@ -35,7 +35,7 @@ If the user seems down, be understanding and validating. If they're excited, mat
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer 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`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
