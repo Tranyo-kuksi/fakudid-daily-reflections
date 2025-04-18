@@ -326,7 +326,7 @@ export default function JournalPage() {
       {/* Top bar with title, mood and attachment buttons */}
       <div className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b p-4">
         <div className="container max-w-3xl mx-auto">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex-1">
               <Input
                 placeholder="Title your day..."
