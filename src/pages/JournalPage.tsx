@@ -391,7 +391,7 @@ export default function JournalPage() {
       <div className="pt-24 pb-20 min-h-screen">
         <Textarea 
           placeholder="Write about your day..."
-          className="min-h-screen w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
+          className="min-h-[calc(100vh-11rem)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
           value={journalEntry}
           onChange={(e) => setJournalEntry(e.target.value)}
         />
