@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +11,7 @@ import {
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
 
 // Sample prompts
 const PROMPTS = [
@@ -88,15 +88,23 @@ export default function JournalPage() {
     };
   }, [journalEntry, selectedMood]);
 
-  const generatePrompt = () => {
-    const randomIndex = Math.floor(Math.random() * PROMPTS.length);
-    const randomPrompt = PROMPTS[randomIndex];
-    
-    // Add a newline and AI star icon before the prompt if there's existing text
-    if (journalEntry.trim()) {
-      setJournalEntry(journalEntry.trim() + '\n\n✨ ' + randomPrompt);
-    } else {
-      setJournalEntry('✨ ' + randomPrompt);
+  const generatePrompt = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-prompt', {
+        body: { currentEntry: journalEntry }
+      });
+      
+      if (error) throw error;
+      
+      // Add a newline and AI star icon before the prompt if there's existing text
+      if (journalEntry.trim()) {
+        setJournalEntry(journalEntry.trim() + '\n\n✨ ' + data.prompt);
+      } else {
+        setJournalEntry('✨ ' + data.prompt);
+      }
+    } catch (error) {
+      console.error('Error generating prompt:', error);
+      toast.error('Failed to generate prompt');
     }
   };
 
