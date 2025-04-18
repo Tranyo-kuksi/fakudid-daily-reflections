@@ -412,125 +412,125 @@ export default function JournalPage() {
         </div>
       )}
       
-      {/* Controls section */}
+      {/* Controls section with reorganized layout */}
       <div className="mb-4 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
           <div className="flex-1">
             <Input
               placeholder="Title your day..."
-              className="text-lg"
+              className="text-lg w-full"
               value={journalTitle}
               onChange={(e) => setJournalTitle(e.target.value)}
               readOnly={readOnly}
             />
           </div>
           
-          <div className="flex items-center gap-4">
-            {/* Attachment buttons */}
-            <div className="flex gap-2">
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={(e) => handleFileSelected(e, "image")} 
-                accept="image/*" 
-                className="hidden" 
-              />
-              <input 
-                type="file" 
-                ref={audioInputRef} 
-                onChange={(e) => handleFileSelected(e, "music")} 
-                accept="audio/*" 
-                className="hidden" 
-              />
-              
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={handleImageAttachment}
-                      disabled={readOnly}
-                    >
-                      <ImageIcon className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Add Image</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={handleMusicAttachment}
-                      disabled={readOnly}
-                    >
-                      <Music className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Add Music</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            
-            <MoodPickerButton />
-          </div>
+          <MoodPickerButton />
         </div>
-      </div>
 
-      {/* Main content area */}
-      <Textarea 
-        placeholder="Write about your day..."
-        className="min-h-[calc(100vh-300px)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
-        value={journalEntry}
-        onChange={(e) => setJournalEntry(e.target.value)}
-        readOnly={readOnly}
-      />
-
-      {/* Fixed attachments viewer if there are any */}
-      {currentEntry?.attachments && currentEntry.attachments.length > 0 && (
-        <div className="fixed bottom-20 left-0 right-0 bg-background/80 backdrop-blur-sm border-t p-4">
-          <div className="container max-w-3xl mx-auto">
-            <h3 className="text-sm font-medium mb-2">Attachments</h3>
-            <AttachmentViewer 
-              attachments={currentEntry.attachments} 
-              size="medium"
-              onDelete={readOnly ? undefined : handleDeleteAttachment}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Floating prompt generator button - only show for non-readonly entries */}
-      {!readOnly && (
-        <div className="fixed bottom-24 right-8">
+        {/* Moved attachment buttons below mood selector */}
+        <div className="flex gap-2">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={(e) => handleFileSelected(e, "image")} 
+            accept="image/*" 
+            className="hidden" 
+          />
+          <input 
+            type="file" 
+            ref={audioInputRef} 
+            onChange={(e) => handleFileSelected(e, "music")} 
+            accept="audio/*" 
+            className="hidden" 
+          />
+          
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
-                  variant="default"
-                  size="icon"
-                  className="h-12 w-12 rounded-full shadow-lg bg-fakudid-purple hover:bg-fakudid-darkPurple"
-                  onClick={generatePrompt}
-                  disabled={isGeneratingPrompt}
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleImageAttachment}
+                  disabled={readOnly}
                 >
-                  <Sparkles className="h-5 w-5" />
+                  <ImageIcon className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="left">
-                <p>Generate Prompt</p>
+              <TooltipContent>
+                <p>Add Image</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleMusicAttachment}
+                  disabled={readOnly}
+                >
+                  <Music className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add Music</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-      )}
+      </div>
+
+      {/* Main content area with full height textarea */}
+      <div className="relative">
+        <Textarea 
+          placeholder="Write about your day..."
+          className="min-h-[calc(100vh-240px)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
+          value={journalEntry}
+          onChange={(e) => setJournalEntry(e.target.value)}
+          readOnly={readOnly}
+        />
+
+        {/* Fixed attachments viewer if there are any */}
+        {currentEntry?.attachments && currentEntry.attachments.length > 0 && (
+          <div className="fixed bottom-20 left-0 right-0 bg-background/80 backdrop-blur-sm border-t p-4">
+            <div className="container max-w-3xl mx-auto">
+              <h3 className="text-sm font-medium mb-2">Attachments</h3>
+              <AttachmentViewer 
+                attachments={currentEntry.attachments} 
+                size="medium"
+                onDelete={readOnly ? undefined : handleDeleteAttachment}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Floating prompt generator button - overlaying the textarea */}
+        {!readOnly && (
+          <div className="fixed bottom-8 right-8">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="default"
+                    size="icon"
+                    className="h-12 w-12 rounded-full shadow-lg bg-fakudid-purple hover:bg-fakudid-darkPurple"
+                    onClick={generatePrompt}
+                    disabled={isGeneratingPrompt}
+                  >
+                    <Sparkles className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <p>Generate Prompt</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
