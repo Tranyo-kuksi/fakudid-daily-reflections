@@ -32,7 +32,7 @@ serve(async (req) => {
 
 If the user seems down, be understanding and validating. If they're excited, match their energy. Always keep it real.`;
 
-    console.log("Calling OpenAI API with project ID: org-0t2NDqVlHUjjBHFxKM766qVj");
+    console.log("Calling OpenAI API with project ID: proj_vCLdFBDuRNl9bA0VT2NoLgro");
     
     // Get the OpenAI API key from environment variable
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
