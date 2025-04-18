@@ -1,9 +1,9 @@
-
 import { toast } from "@/components/ui/sonner";
 
 export interface JournalEntry {
   id: string;
   date: Date;
+  title: string;
   content: string;
   mood: "dead" | "sad" | "meh" | "good" | "awesome" | null;
   attachments?: {
@@ -75,7 +75,7 @@ export function getEntryByDate(date: Date): JournalEntry | undefined {
 }
 
 // Create a new entry (only if no entry exists for today)
-export function createEntry(content: string, mood: JournalEntry['mood']): JournalEntry | null {
+export function createEntry(title: string, content: string, mood: JournalEntry['mood']): JournalEntry | null {
   const todayEntry = getTodayEntry();
   if (todayEntry) {
     toast.error("You've already created a journal entry for today");
@@ -85,6 +85,7 @@ export function createEntry(content: string, mood: JournalEntry['mood']): Journa
   const newEntry: JournalEntry = {
     id: Date.now().toString(),
     date: new Date(),
+    title,
     content,
     mood,
     attachments: []
@@ -155,17 +156,17 @@ export function addAttachment(
 }
 
 // Autosave functionality - returns true if saved successfully
-export function autosaveEntry(content: string, mood: JournalEntry['mood']): boolean {
+export function autosaveEntry(title: string, content: string, mood: JournalEntry['mood']): boolean {
   // Check if there's already an entry for today
   let todayEntry = getTodayEntry();
   
   if (todayEntry) {
     // Update existing entry
-    updateEntry(todayEntry.id, { content, mood });
+    updateEntry(todayEntry.id, { title, content, mood });
     return true;
-  } else if (content.trim() || mood) {
+  } else if (title.trim() || content.trim() || mood) {
     // Create new entry if there's content or mood
-    createEntry(content, mood);
+    createEntry(title, content, mood);
     return true;
   }
   

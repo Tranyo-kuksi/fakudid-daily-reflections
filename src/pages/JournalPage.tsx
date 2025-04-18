@@ -1,7 +1,7 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, ImageIcon, Music, SendHorizontal, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -14,6 +14,7 @@ import {
 import { toast } from "@/components/ui/sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
+import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
 
 // Sample prompts
 const PROMPTS = [
@@ -30,6 +31,7 @@ const PROMPTS = [
 ];
 
 export default function JournalPage() {
+  const [journalTitle, setJournalTitle] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [showMoodPicker, setShowMoodPicker] = useState(false);
@@ -61,6 +63,7 @@ export default function JournalPage() {
   useEffect(() => {
     const todayEntry = getTodayEntry();
     if (todayEntry) {
+      setJournalTitle(todayEntry.title || "");
       setJournalEntry(todayEntry.content);
       setSelectedMood(todayEntry.mood);
       setEntryId(todayEntry.id);
@@ -68,27 +71,24 @@ export default function JournalPage() {
     }
   }, []);
 
-  // Autosave functionality
+  // Update autosave effect
   useEffect(() => {
-    // Clear any existing timer
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
     }
 
-    // Set a new timer to autosave after 3 seconds of inactivity
-    if (journalEntry.trim() || selectedMood) {
+    if (journalTitle.trim() || journalEntry.trim() || selectedMood) {
       autoSaveTimerRef.current = setTimeout(() => {
-        autosaveEntry(journalEntry, selectedMood as any);
+        autosaveEntry(journalTitle, journalEntry, selectedMood as any);
       }, 3000);
     }
 
-    // Cleanup function
     return () => {
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [journalEntry, selectedMood]);
+  }, [journalTitle, journalEntry, selectedMood]);
 
   const generatePrompt = async () => {
     try {
@@ -129,10 +129,9 @@ export default function JournalPage() {
       return;
     }
     
-    const saved = autosaveEntry(journalEntry.trim(), selectedMood as any);
+    const saved = autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
     
     if (saved) {
-      // Retrieve the entry ID if it's a new entry
       if (!isEditing) {
         const todayEntry = getTodayEntry();
         if (todayEntry) {
@@ -159,7 +158,7 @@ export default function JournalPage() {
         return;
       }
       
-      const saved = autosaveEntry(journalEntry.trim(), selectedMood as any);
+      const saved = autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
       if (!saved) {
         toast.error("Failed to save journal entry. Please try again.");
         return;
@@ -196,7 +195,7 @@ export default function JournalPage() {
         return;
       }
       
-      const saved = autosaveEntry(journalEntry.trim(), selectedMood as any);
+      const saved = autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
       if (!saved) {
         toast.error("Failed to save journal entry. Please try again.");
         return;
@@ -311,6 +310,13 @@ export default function JournalPage() {
         <MoodPickerButton />
       </div>
       
+      <Input
+        placeholder="Title your day..."
+        className="mb-4 text-lg"
+        value={journalTitle}
+        onChange={(e) => setJournalTitle(e.target.value)}
+      />
+      
       <div className="mb-6">
         <Textarea 
           placeholder="Write about your day..."
@@ -319,6 +325,13 @@ export default function JournalPage() {
           onChange={(e) => setJournalEntry(e.target.value)}
         />
       </div>
+
+      {entryId && getTodayEntry()?.attachments && getTodayEntry()?.attachments.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-medium mb-2">Attachments</h3>
+          <AttachmentViewer attachments={getTodayEntry()?.attachments || []} size="medium" />
+        </div>
+      )}
       
       <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between'} items-center`}>
         <div className="flex gap-2">

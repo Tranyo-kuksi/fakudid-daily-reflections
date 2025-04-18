@@ -133,18 +133,23 @@ export default function HistoryPage() {
           filteredEntries.map(entry => (
             <Card key={entry.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between p-4">
-                <p className="font-medium">
-                  {new Date(entry.date).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
+                <div>
+                  <h3 className="font-medium text-lg mb-1">
+                    {entry.title || "Untitled"}
+                  </h3>
+                  <p className="font-medium text-sm text-muted-foreground">
+                    {new Date(entry.date).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </p>
+                </div>
                 <div>{getMoodIcon(entry.mood)}</div>
               </CardHeader>
               <CardContent className="p-4 pt-0">
-                <p className="text-muted-foreground line-clamp-3">{entry.content}</p>
+                <p className="text-muted-foreground line-clamp-2">{entry.content}</p>
                 
                 {entry.attachments && entry.attachments.length > 0 && (
                   <div className="mt-3">
@@ -186,6 +191,12 @@ export default function HistoryPage() {
             <DialogTitle>Edit Journal Entry</DialogTitle>
           </DialogHeader>
           <div className="mt-4">
+            <Input
+              value={selectedEntry?.title || ""}
+              onChange={(e) => setSelectedEntry(prev => prev ? {...prev, title: e.target.value} : prev)}
+              placeholder="Entry title"
+              className="mb-4"
+            />
             <Textarea 
               value={editContent} 
               onChange={(e) => setEditContent(e.target.value)} 
