@@ -19,12 +19,12 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}>
           <div 
             className="absolute inset-0 overflow-auto px-3 py-2 text-sm"
-            style={{ pointerEvents: 'none' }}
+            style={{ pointerEvents: 'none', zIndex: 1 }}
           >
             {renderText(props.value.toString())}
           </div>
           <textarea
-            className="absolute inset-0 resize-none opacity-0 p-3 text-sm"
+            className="relative z-0 w-full h-full resize-none bg-transparent p-3 text-sm focus:outline-none"
             ref={ref}
             {...props}
           />

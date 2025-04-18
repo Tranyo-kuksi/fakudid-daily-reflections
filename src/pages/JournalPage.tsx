@@ -118,6 +118,7 @@ export default function JournalPage() {
       
       if (journalEntry.trim()) {
         // Add a newline, AI star icon, and style the generated prompt differently
+        // Make sure we add proper line breaks
         setJournalEntry(journalEntry.trim() + '\n\n' + 
           `<ai-prompt>✨ ${data.prompt}</ai-prompt>`);
       } else {
@@ -354,7 +355,7 @@ export default function JournalPage() {
               index % 2 === 1 ? (
                 <span 
                   key={index} 
-                  className="text-sm italic text-gray-500"
+                  className="text-sm italic text-gray-500 block mt-2"
                 >
                   {part}
                 </span>
