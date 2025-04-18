@@ -93,6 +93,9 @@ export default function JournalPage() {
 
   const generatePrompt = async () => {
     try {
+      // Show loading toast
+      const loadingToast = toast.loading('Generating prompt...');
+      
       // Get recent entries (last 5 entries, excluding the current one)
       const recentEntries = getAllEntries()
         .slice(0, 5)
@@ -105,7 +108,20 @@ export default function JournalPage() {
         }
       });
       
-      if (error) throw error;
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      if (error) {
+        console.error('Error generating prompt:', error);
+        toast.error('Failed to generate prompt. Please try again.');
+        return;
+      }
+      
+      if (!data || !data.prompt) {
+        console.error('Invalid response format:', data);
+        toast.error('Received invalid response from AI. Please try again.');
+        return;
+      }
       
       // Add a newline and AI star icon before the prompt if there's existing text
       if (journalEntry.trim()) {
@@ -113,9 +129,11 @@ export default function JournalPage() {
       } else {
         setJournalEntry('✨ ' + data.prompt);
       }
+      
+      toast.success('Prompt generated!');
     } catch (error) {
       console.error('Error generating prompt:', error);
-      toast.error('Failed to generate prompt');
+      toast.error('Failed to generate prompt. Please try again.');
     }
   };
 

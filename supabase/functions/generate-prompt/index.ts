@@ -32,37 +32,64 @@ serve(async (req) => {
 
 If the user seems down, be understanding and validating. If they're excited, match their energy. Always keep it real.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer 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`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...(predominantMood ? [{ 
-            role: 'system', 
-            content: `Recent entries suggest a ${predominantMood} mood. Adjust your tone accordingly.`
-          }] : []),
-          { 
-            role: 'user', 
-            content: `Generate a single, focused prompt based on this journal entry: "${currentEntry}"`
-          }
-        ],
-        max_tokens: 100,
-        temperature: 0.8,
-      }),
-    });
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer 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`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...(predominantMood ? [{ 
+              role: 'system', 
+              content: `Recent entries suggest a ${predominantMood} mood. Adjust your tone accordingly.`
+            }] : []),
+            { 
+              role: 'user', 
+              content: `Generate a single, focused prompt based on this journal entry: "${currentEntry}"`
+            }
+          ],
+          max_tokens: 100,
+          temperature: 0.8,
+        }),
+      });
 
-    const data = await response.json();
-    return new Response(JSON.stringify({ prompt: data.choices[0].message.content }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('OpenAI API error:', errorData);
+        throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+      
+      // Make sure we have a valid response before accessing properties
+      if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
+        return new Response(JSON.stringify({ prompt: data.choices[0].message.content }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } else {
+        console.error('Invalid response format from OpenAI:', data);
+        throw new Error('Invalid response format from OpenAI');
+      }
+    } catch (openAiError) {
+      console.error('OpenAI API error:', openAiError);
+      return new Response(JSON.stringify({ 
+        error: 'Failed to generate prompt',
+        details: openAiError.message 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
   } catch (error) {
-    console.error('Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error processing request:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to process request', 
+      details: error.message 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
