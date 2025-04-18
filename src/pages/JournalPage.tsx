@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -117,11 +116,13 @@ export default function JournalPage() {
         return;
       }
       
-      // Add a newline and AI star icon before the prompt if there's existing text
       if (journalEntry.trim()) {
-        setJournalEntry(journalEntry.trim() + '\n\n✨ ' + data.prompt);
+        // Add a newline, AI star icon, and style the generated prompt differently
+        // Make sure we add proper line breaks
+        setJournalEntry(journalEntry.trim() + '\n\n' + 
+          `<ai-prompt>✨ ${data.prompt}</ai-prompt>`);
       } else {
-        setJournalEntry('✨ ' + data.prompt);
+        setJournalEntry(`<ai-prompt>✨ ${data.prompt}</ai-prompt>`);
       }
       
       toast.success(`Prompt generated!`);
@@ -322,124 +323,119 @@ export default function JournalPage() {
   };
 
   return (
-    <div className="w-full h-full relative">
-      {/* Top bar with title, mood and attachment buttons */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b p-4">
-        <div className="container max-w-3xl mx-auto">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Title your day..."
-                className="text-lg"
-                value={journalTitle}
-                onChange={(e) => setJournalTitle(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Attachment buttons */}
-              <div className="flex gap-2">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={(e) => handleFileSelected(e, "image")} 
-                  accept="image/*" 
-                  className="hidden" 
-                />
-                <input 
-                  type="file" 
-                  ref={audioInputRef} 
-                  onChange={(e) => handleFileSelected(e, "music")} 
-                  accept="audio/*" 
-                  className="hidden" 
-                />
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" onClick={handleImageAttachment}>
-                        <ImageIcon className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Add Image</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" onClick={handleMusicAttachment}>
-                        <Music className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Add Music</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <MoodPickerButton />
-            </div>
-          </div>
-        </div>
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6">
+      <div className="mb-4 flex justify-between items-center flex-wrap gap-2">
+        <p className="text-sm text-muted-foreground">
+          {new Date().toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </p>
+        <MoodPickerButton />
       </div>
-
-      {/* Main content area with padding for top bar */}
-      <div className="pt-24 pb-20 min-h-screen">
+      
+      <Input
+        placeholder="Title your day..."
+        className="mb-4 text-lg"
+        value={journalTitle}
+        onChange={(e) => setJournalTitle(e.target.value)}
+      />
+      
+      <div className="mb-6">
         <Textarea 
           placeholder="Write about your day..."
-          className="min-h-[calc(100vh-11rem)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
+          className="min-h-[300px] text-lg p-4 focus:border-fakudid-purple"
           value={journalEntry}
           onChange={(e) => setJournalEntry(e.target.value)}
+          // Add custom styling for AI-generated prompts
+          renderText={(text) => 
+            text.split(/<ai-prompt>(.*?)<\/ai-prompt>/g).map((part, index) => 
+              index % 2 === 1 ? (
+                <span 
+                  key={index} 
+                  className="text-sm italic text-gray-500 block mt-2"
+                >
+                  {part}
+                </span>
+              ) : (
+                <span key={index}>{part}</span>
+              )
+            )
+          }
         />
       </div>
 
-      {/* Fixed attachments viewer if there are any */}
       {entryId && getTodayEntry()?.attachments && getTodayEntry()?.attachments.length > 0 && (
-        <div className="fixed bottom-20 left-0 right-0 bg-background/80 backdrop-blur-sm border-t p-4">
-          <div className="container max-w-3xl mx-auto">
-            <h3 className="text-sm font-medium mb-2">Attachments</h3>
-            <AttachmentViewer 
-              attachments={getTodayEntry()?.attachments || []} 
-              size="medium"
-              onDelete={handleDeleteAttachment}
-            />
-          </div>
+        <div className="mb-6">
+          <h3 className="text-sm font-medium mb-2">Attachments</h3>
+          <AttachmentViewer 
+            attachments={getTodayEntry()?.attachments || []} 
+            size="medium"
+            onDelete={handleDeleteAttachment}
+          />
         </div>
       )}
-
-      {/* Fixed bottom bar with save button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t p-4">
-        <div className="container max-w-3xl mx-auto flex justify-end">
+      
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between'} items-center`}>
+        <div className="flex gap-2">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={(e) => handleFileSelected(e, "image")} 
+            accept="image/*" 
+            className="hidden" 
+          />
+          <input 
+            type="file" 
+            ref={audioInputRef} 
+            onChange={(e) => handleFileSelected(e, "music")} 
+            accept="audio/*" 
+            className="hidden" 
+          />
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={handleImageAttachment}>
+                  <ImageIcon className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add Image</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={handleMusicAttachment}>
+                  <Music className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add Music</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        
+        <div className="flex gap-2 mt-4 sm:mt-0">
+          <Button 
+            variant="outline" 
+            className="gap-2" 
+            onClick={generatePrompt}
+            disabled={isGeneratingPrompt}
+          >
+            <Sparkles className="h-4 w-4" />
+            {isMobile ? "" : "Generate Prompt"}
+          </Button>
           <Button className="bg-fakudid-purple hover:bg-fakudid-darkPurple" onClick={handleSave}>
             {isEditing ? "Update" : "Save"} <SendHorizontal className="ml-2 h-4 w-4" />
           </Button>
         </div>
-      </div>
-
-      {/* Floating prompt generator button */}
-      <div className="fixed bottom-24 right-8">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="default"
-                size="icon"
-                className="h-12 w-12 rounded-full shadow-lg bg-fakudid-purple hover:bg-fakudid-darkPurple"
-                onClick={generatePrompt}
-                disabled={isGeneratingPrompt}
-              >
-                <Sparkles className="h-5 w-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>Generate Prompt</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </div>
     </div>
   );
