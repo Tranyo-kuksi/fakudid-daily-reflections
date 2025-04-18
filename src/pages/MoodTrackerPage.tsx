@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar, ImageIcon, Music } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar, ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
   getAllEntries, 
@@ -19,6 +19,7 @@ export default function MoodTrackerPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [monthlySummary, setMonthlySummary] = useState<{[key: string]: number}>({});
+  const [dominantMood, setDominantMood] = useState<string | null>(null);
   
   useEffect(() => {
     const allEntries = getAllEntries();
@@ -45,6 +46,19 @@ export default function MoodTrackerPage() {
     });
     
     setMonthlySummary(summary);
+    
+    // Determine dominant mood
+    let maxCount = 0;
+    let dominant: string | null = null;
+    
+    Object.entries(summary).forEach(([mood, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        dominant = mood;
+      }
+    });
+    
+    setDominantMood(dominant);
   }, []);
   
   const formatDate = (date: Date): string => {
@@ -187,6 +201,13 @@ export default function MoodTrackerPage() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-xl font-bold">Monthly Summary</CardTitle>
+          {dominantMood && (
+            <p className="text-muted-foreground">
+              You were mostly <span className={`font-semibold ${getMoodColor(dominantMood).replace('bg-', 'text-')}`}>
+                {getMoodLabel(dominantMood)}
+              </span> this month
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4 justify-center">

@@ -29,6 +29,10 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+// Available theme options
+const lightThemes = ["lavender", "mint", "peach", "sky"];
+const darkThemes = ["midnight", "forest", "plum", "ocean"];
+
 export function ThemeProvider({
   children,
   defaultTheme = "system",
@@ -49,6 +53,8 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = window.document.documentElement;
+    
+    // Remove all theme-related classes
     root.classList.remove("light", "dark");
     
     // Remove all theme classes
@@ -58,30 +64,66 @@ export function ThemeProvider({
     ];
     themeClasses.forEach(cls => root.classList.remove(cls));
 
+    // Determine which mode to use (light or dark)
+    let mode: "light" | "dark";
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-
-      root.classList.add(systemTheme);
-      
-      // Add appropriate theme class
-      if (systemTheme === "dark") {
-        root.classList.add(`theme-${darkTheme}`);
-      } else {
-        root.classList.add(`theme-${lightTheme}`);
-      }
-      return;
-    }
-
-    root.classList.add(theme);
-    
-    // Add appropriate theme class
-    if (theme === "dark") {
-      root.classList.add(`theme-${darkTheme}`);
+      mode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     } else {
-      root.classList.add(`theme-${lightTheme}`);
+      mode = theme;
+    }
+    
+    // Add the mode class
+    root.classList.add(mode);
+    
+    // Add the appropriate theme class
+    const themeToApply = mode === "dark" ? darkTheme : lightTheme;
+    root.classList.add(`theme-${themeToApply}`);
+    
+    // Update CSS variables based on the selected theme
+    if (mode === "light") {
+      switch (lightTheme) {
+        case "lavender":
+          // Default lavender theme - no need to change variables
+          break;
+        case "mint":
+          root.style.setProperty("--primary", "152 78% 75%");
+          root.style.setProperty("--accent", "152 78% 60%");
+          break;
+        case "peach":
+          root.style.setProperty("--primary", "32 95% 75%");
+          root.style.setProperty("--accent", "6 78% 60%");
+          break;
+        case "sky":
+          root.style.setProperty("--primary", "200 85% 75%");
+          root.style.setProperty("--accent", "210 78% 60%");
+          break;
+        default:
+          // Reset to default
+          root.style.setProperty("--primary", "260 78% 75%");
+          root.style.setProperty("--accent", "326 78% 60%");
+      }
+    } else {
+      switch (darkTheme) {
+        case "midnight":
+          // Default midnight theme - no need to change variables
+          break;
+        case "forest":
+          root.style.setProperty("--primary", "152 60% 60%");
+          root.style.setProperty("--accent", "120 40% 50%");
+          break;
+        case "plum":
+          root.style.setProperty("--primary", "300 60% 60%");
+          root.style.setProperty("--accent", "326 78% 60%");
+          break;
+        case "ocean":
+          root.style.setProperty("--primary", "200 60% 60%");
+          root.style.setProperty("--accent", "210 78% 60%");
+          break;
+        default:
+          // Reset to default
+          root.style.setProperty("--primary", "260 78% 75%");
+          root.style.setProperty("--accent", "326 78% 60%");
+      }
     }
   }, [theme, lightTheme, darkTheme]);
 
@@ -93,13 +135,17 @@ export function ThemeProvider({
     },
     lightTheme,
     setLightTheme: (theme: string) => {
-      localStorage.setItem("fakudid-light-theme", theme);
-      setLightTheme(theme);
+      if (lightThemes.includes(theme)) {
+        localStorage.setItem("fakudid-light-theme", theme);
+        setLightTheme(theme);
+      }
     },
     darkTheme,
     setDarkTheme: (theme: string) => {
-      localStorage.setItem("fakudid-dark-theme", theme);
-      setDarkTheme(theme);
+      if (darkThemes.includes(theme)) {
+        localStorage.setItem("fakudid-dark-theme", theme);
+        setDarkTheme(theme);
+      }
     }
   };
 
