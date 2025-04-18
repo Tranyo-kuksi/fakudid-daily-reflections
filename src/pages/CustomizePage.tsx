@@ -3,9 +3,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Sparkles } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
 // Define theme options
@@ -24,7 +23,7 @@ const darkThemes = [
 ];
 
 export default function CustomizePage() {
-  const { lightTheme, setLightTheme, darkTheme, setDarkTheme } = useTheme();
+  const { theme, lightTheme, setLightTheme, darkTheme, setDarkTheme } = useTheme();
   
   // Mood customization
   const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
@@ -54,6 +53,16 @@ export default function CustomizePage() {
       [mood]: name
     }));
   };
+
+  const handleThemeSelect = (isLight: boolean, themeId: string) => {
+    if (isLight) {
+      setLightTheme(themeId);
+      toast.success(`Light theme changed to ${themeId}`);
+    } else {
+      setDarkTheme(themeId);
+      toast.success(`Dark theme changed to ${themeId}`);
+    }
+  };
   
   return (
     <div className="max-w-4xl mx-auto">
@@ -67,19 +76,22 @@ export default function CustomizePage() {
             <div>
               <h3 className="text-lg font-medium mb-4">Light Mode Themes</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {lightThemes.map(theme => (
+                {lightThemes.map(themeOption => (
                   <div 
-                    key={theme.id}
-                    className={`relative cursor-pointer rounded-lg p-2 transition-all ${
-                      lightTheme === theme.id ? 'ring-2 ring-primary' : ''
+                    key={themeOption.id}
+                    className={`relative cursor-pointer rounded-lg p-2 transition-all hover:opacity-90 ${
+                      lightTheme === themeOption.id ? 'ring-2 ring-primary shadow-lg scale-105' : 'hover:scale-105'
                     }`}
-                    onClick={() => setLightTheme(theme.id)}
+                    onClick={() => handleThemeSelect(true, themeOption.id)}
                   >
                     <div 
                       className="h-24 rounded-md w-full mb-2" 
-                      style={{ backgroundColor: theme.color }}
+                      style={{ backgroundColor: themeOption.color }}
                     />
-                    <div className="text-center font-medium">{theme.name}</div>
+                    <div className="text-center font-medium">{themeOption.name}</div>
+                    {lightTheme === themeOption.id && (
+                      <div className="absolute top-3 right-3 h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -88,19 +100,22 @@ export default function CustomizePage() {
             <div>
               <h3 className="text-lg font-medium mb-4">Dark Mode Themes</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {darkThemes.map(theme => (
+                {darkThemes.map(themeOption => (
                   <div 
-                    key={theme.id}
-                    className={`relative cursor-pointer rounded-lg p-2 transition-all ${
-                      darkTheme === theme.id ? 'ring-2 ring-primary' : ''
+                    key={themeOption.id}
+                    className={`relative cursor-pointer rounded-lg p-2 transition-all hover:opacity-90 ${
+                      darkTheme === themeOption.id ? 'ring-2 ring-primary shadow-lg scale-105' : 'hover:scale-105'
                     }`}
-                    onClick={() => setDarkTheme(theme.id)}
+                    onClick={() => handleThemeSelect(false, themeOption.id)}
                   >
                     <div 
                       className="h-24 rounded-md w-full mb-2" 
-                      style={{ backgroundColor: theme.color }}
+                      style={{ backgroundColor: themeOption.color }}
                     />
-                    <div className="text-center font-medium">{theme.name}</div>
+                    <div className="text-center font-medium">{themeOption.name}</div>
+                    {darkTheme === themeOption.id && (
+                      <div className="absolute top-3 right-3 h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+                    )}
                   </div>
                 ))}
               </div>

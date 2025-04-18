@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -34,7 +35,7 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: var(--background);
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -72,7 +73,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 260 78% 75%;
-    --sidebar-background: 240 5.9% 10%;
+    --sidebar-background: var(--background);
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -81,6 +82,39 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+}
+
+/* Theme-specific backgrounds */
+.theme-lavender {
+  --background: 260 30% 98%;
+}
+
+.theme-mint {
+  --background: 152 30% 98%;
+}
+
+.theme-peach {
+  --background: 32 30% 98%;
+}
+
+.theme-sky {
+  --background: 200 30% 98%;
+}
+
+.dark.theme-midnight {
+  --background: 240 10% 8%;
+}
+
+.dark.theme-forest {
+  --background: 150 30% 10%;
+}
+
+.dark.theme-plum {
+  --background: 300 30% 10%;
+}
+
+.dark.theme-ocean {
+  --background: 200 70% 8%;
 }
 
 @layer base {
