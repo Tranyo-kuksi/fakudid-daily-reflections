@@ -17,20 +17,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
 
-// Sample prompts
-const PROMPTS = [
-  "What's one thing you're proud of today?",
-  "Describe a moment that made you laugh.",
-  "What's something you're looking forward to?",
-  "What's one thing you'd like to improve about yourself?",
-  "Write about a time you felt truly proud of yourself.",
-  "What's a challenge you're currently facing?",
-  "What made you smile today?",
-  "If you could change one thing about today, what would it be?",
-  "What's something new you learned recently?",
-  "Who made a positive impact on your day and why?"
-];
-
 export default function JournalPage() {
   const [journalTitle, setJournalTitle] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
@@ -42,6 +28,7 @@ export default function JournalPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
+  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
   
   // Custom mood names
   const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
@@ -90,8 +77,6 @@ export default function JournalPage() {
       }
     };
   }, [journalTitle, journalEntry, selectedMood]);
-  
-  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
 
   const generatePrompt = async () => {
     try {
@@ -117,13 +102,17 @@ export default function JournalPage() {
       
       if (error) {
         console.error('Error generating prompt:', error);
-        toast.error('Failed to generate prompt. Please try again.');
+        toast.error('Failed to generate prompt: ' + error.message);
         return;
       }
       
       if (!data || !data.prompt) {
         console.error('Invalid response format:', data);
-        toast.error('Failed to generate prompt. Please try again.');
+        if (data && data.error) {
+          toast.error(`Failed to generate prompt: ${data.error}${data.details ? ` - ${data.details}` : ''}`);
+        } else {
+          toast.error('Failed to generate prompt: Invalid response from the API');
+        }
         return;
       }
       
@@ -134,11 +123,10 @@ export default function JournalPage() {
         setJournalEntry('✨ ' + data.prompt);
       }
       
-      const promptSource = data.source === 'fallback' ? '(using fallback prompt)' : '';
-      toast.success(`Prompt generated! ${promptSource}`);
+      toast.success(`Prompt generated!`);
     } catch (error) {
       console.error('Error generating prompt:', error);
-      toast.error('Failed to generate prompt. Please try again.');
+      toast.error('Failed to generate prompt: ' + (error instanceof Error ? error.message : 'Unknown error'));
       setIsGeneratingPrompt(false);
       toast.dismiss('generate-prompt');
     }
