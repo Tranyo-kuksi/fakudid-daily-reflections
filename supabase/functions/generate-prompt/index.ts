@@ -32,14 +32,20 @@ serve(async (req) => {
 
 If the user seems down, be understanding and validating. If they're excited, match their energy. Always keep it real.`;
 
-    console.log("Calling OpenAI API with project ID: proj_vCLdFBDuRNl9bA0VT2NoLgro");
+    console.log("Calling OpenAI API");
     
     // Get the OpenAI API key from environment variable
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     
     if (!openaiApiKey) {
       console.error("OpenAI API key is not set");
-      throw new Error("OpenAI API key is not set");
+      return new Response(JSON.stringify({ 
+        error: 'OpenAI API key is not configured', 
+        source: 'generate-prompt'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     
     // Make request to OpenAI API
@@ -74,7 +80,14 @@ If the user seems down, be understanding and validating. If they're excited, mat
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      return new Response(JSON.stringify({ 
+        error: `OpenAI API error: ${response.status}`,
+        details: errorText,
+        source: 'generate-prompt'
+      }), {
+        status: response.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
@@ -90,13 +103,20 @@ If the user seems down, be understanding and validating. If they're excited, mat
       });
     } else {
       console.error('Invalid response format from OpenAI:', data);
-      throw new Error('Invalid response format from OpenAI');
+      return new Response(JSON.stringify({ 
+        error: 'Invalid response format from OpenAI',
+        source: 'generate-prompt'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
   } catch (error) {
     console.error('Error processing request:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to process request', 
-      details: error.message 
+      details: error.message,
+      source: 'generate-prompt'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
