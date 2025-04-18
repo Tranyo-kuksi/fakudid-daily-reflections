@@ -88,7 +88,7 @@ export default function JournalPage() {
         return (
           <div key={index} className="flex items-start gap-2 my-4 p-3 bg-muted/50 rounded-lg border border-border">
             <MessageSquare className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
-            <p className="text-muted-foreground italic">{paragraph.substring(2)}</p>
+            <p className="text-xs text-muted-foreground italic">{paragraph.substring(2)}</p>
           </div>
         );
       }
