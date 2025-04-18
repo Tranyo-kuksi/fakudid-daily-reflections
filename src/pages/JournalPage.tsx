@@ -428,7 +428,7 @@ export default function JournalPage() {
           <MoodPickerButton />
         </div>
 
-        {/* Moved attachment buttons below mood selector */}
+        {/* Attachment buttons now below mood selector */}
         <div className="flex gap-2">
           <input 
             type="file" 
