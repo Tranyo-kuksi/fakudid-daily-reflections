@@ -15,26 +15,42 @@ serve(async (req) => {
   try {
     const { currentEntry, recentEntries } = await req.json();
     
-    // Analyze mood from recent entries
+    // Enhanced mood analysis
     const moodIndicators = recentEntries.map(entry => entry.mood).filter(Boolean);
-    const predominantMood = moodIndicators.length > 0 ? 
-      moodIndicators.reduce((a, b) => 
-        moodIndicators.filter(v => v === a).length >= moodIndicators.filter(v => v === b).length ? a : b
-      ) : null;
+    const moodCounts = moodIndicators.reduce((acc, mood) => {
+      acc[mood] = (acc[mood] || 0) + 1;
+      return acc;
+    }, {});
+    
+    // Get mood trend (improving, declining, or stable)
+    const moodTrend = moodIndicators.length >= 2 ? 
+      determineMoodTrend(moodIndicators) : 'unknown';
 
-    let systemPrompt = `You are a chill, understanding AI that matches the user's energy while gently encouraging them to open up. You write in a casual, conversational way that teenagers can relate to. Your responses should:
-- Be single, focused prompts (not multiple questions)
-- Match the user's emotional state but maintain a grounding presence
-- Use casual language and occasional emojis naturally
-- Avoid being overly cheerful when inappropriate
-- Aim to be supportive without being pushy
-- Reference specific things they've mentioned when relevant
+    let systemPrompt = `You are a thoughtful, empathetic AI that helps users explore their thoughts and feelings through journaling. Your role is to:
 
-If the user seems down, be understanding and validating. If they're excited, match their energy. Always keep it real.`;
+1. Create reflective, personally-tailored prompts that encourage deeper self-exploration
+2. Match the user's emotional state while maintaining a grounding presence
+3. Ask thought-provoking questions that help users understand their experiences better
+4. Use natural, conversational language without forced enthusiasm
+5. Be especially attentive to emotional patterns and recurring themes
+
+Guidelines for your responses:
+- Focus on one specific aspect or theme from their entry to explore deeper
+- Frame questions in a way that invites storytelling and reflection
+- Acknowledge emotions without overemphasizing them
+- Maintain authenticity - avoid artificial excitement or forced positivity
+- When appropriate, connect current thoughts/feelings to past experiences
+- Use gentle, open-ended questions that don't pressure or lead
+
+Always keep your prompts single and focused, but make them meaningful and thought-provoking.`;
+
+    // Add mood context to the system prompt
+    if (moodTrend !== 'unknown') {
+      systemPrompt += `\n\nThe user's mood has been ${moodTrend} recently. Consider this context in your response.`;
+    }
 
     console.log("Calling OpenAI API");
     
-    // Get the OpenAI API key from environment variable
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     
     if (!openaiApiKey) {
@@ -48,30 +64,28 @@ If the user seems down, be understanding and validating. If they're excited, mat
       });
     }
     
-    // Make request to OpenAI API - Remove the organization header that's causing issues
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
-        // Removed the problematic OpenAI-Organization header
         'OpenAI-Beta': 'assistants=v2',
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          ...(predominantMood ? [{ 
+          { 
             role: 'system', 
-            content: `Recent entries suggest a ${predominantMood} mood. Adjust your tone accordingly.`
-          }] : []),
+            content: `Recent mood pattern: ${JSON.stringify(moodCounts)}. Use this to provide context-aware prompts.`
+          },
           { 
             role: 'user', 
-            content: `Generate a single, focused prompt based on this journal entry: "${currentEntry || 'No entry yet'}"`
+            content: `Generate a single, thoughtful prompt based on this journal entry: "${currentEntry || 'No entry yet'}"` 
           }
         ],
-        max_tokens: 100,
-        temperature: 0.8,
+        max_tokens: 150,
+        temperature: 0.7, // Slightly lower temperature for more focused responses
       }),
     });
 
@@ -93,8 +107,7 @@ If the user seems down, be understanding and validating. If they're excited, mat
     const data = await response.json();
     console.log("OpenAI API response data:", JSON.stringify(data).substring(0, 200) + "...");
     
-    // Make sure we have a valid response before accessing properties
-    if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
+    if (data?.choices?.[0]?.message) {
       return new Response(JSON.stringify({ 
         prompt: data.choices[0].message.content,
         source: 'openai'
@@ -123,3 +136,24 @@ If the user seems down, be understanding and validating. If they're excited, mat
     });
   }
 });
+
+// Helper function to determine mood trend
+function determineMoodTrend(moods) {
+  const moodValues = {
+    'dead': 1,
+    'sad': 2,
+    'meh': 3,
+    'good': 4,
+    'awesome': 5
+  };
+  
+  const recentMoods = moods.slice(-3); // Look at last 3 moods
+  if (recentMoods.length < 2) return 'unknown';
+  
+  const moodScores = recentMoods.map(mood => moodValues[mood]);
+  const diff = moodScores[moodScores.length - 1] - moodScores[0];
+  
+  if (diff > 0) return 'improving';
+  if (diff < 0) return 'declining';
+  return 'stable';
+}
