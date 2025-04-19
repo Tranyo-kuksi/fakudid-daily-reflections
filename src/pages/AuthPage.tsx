@@ -28,16 +28,23 @@ export default function AuthPage() {
         if (error) throw error;
         navigate("/");
       } else {
-        const { error: signUpError } = await supabase.auth.signUp({
+        // First sign up the user
+        const { error: signUpError, data } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              username,
-            },
-          },
         });
         if (signUpError) throw signUpError;
+
+        // Then update their profile with the username
+        if (data.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ username })
+            .eq('id', data.user.id);
+
+          if (profileError) throw profileError;
+        }
+
         toast.success("Registration successful! Please verify your email.");
       }
     } catch (error: any) {

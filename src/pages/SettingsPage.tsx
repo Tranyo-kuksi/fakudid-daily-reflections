@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,7 @@ import { Flame, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { NavbarContext } from "@/contexts/NavbarContext";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -24,7 +24,8 @@ export default function SettingsPage() {
     email_notifications: true
   });
   
-  const [streak, setStreak] = useState(7);
+  // Get streak from NavBar's calculation
+  const { streak } = useContext(NavbarContext);
   const [language, setLanguage] = useState("en");
   const [subscriptionPlan, setSubscriptionPlan] = useState("free");
   const [darkMode, setDarkMode] = useState(theme === 'dark');
