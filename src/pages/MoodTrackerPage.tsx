@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -196,6 +195,7 @@ export default function MoodTrackerPage() {
   
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Calendar Card */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Mood Tracker</CardTitle>
@@ -227,11 +227,14 @@ export default function MoodTrackerPage() {
           )}
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-nowrap gap-2 justify-start overflow-x-auto pb-2">
             {Object.entries(monthlySummary).map(([mood, count]) => (
-              <div key={mood} className={`p-3 rounded-lg flex items-center gap-2 ${getMoodColor(mood)}`}>
+              <div 
+                key={mood} 
+                className={`p-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap shrink-0 ${getMoodColor(mood)}`}
+              >
                 {getMoodIcon(mood)}
-                <span className="font-medium">{getMoodLabel(mood)}: {count}</span>
+                <span className="text-sm font-medium">{count}</span>
               </div>
             ))}
           </div>
