@@ -19,7 +19,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useJournalPrompts } from "@/hooks/use-journal-prompts";
 
 export default function JournalPage() {
   const [journalTitle, setJournalTitle] = useState("");
@@ -141,60 +140,70 @@ export default function JournalPage() {
     };
   }, [journalTitle, journalEntry, selectedMood, readOnly, isEditing]);
 
-  const { getRandomPrompt } = useJournalPrompts();
-
-  const handlePromptGeneration = async () => {
+  const generatePrompt = async () => {
     if (readOnly) {
       toast.error("Cannot modify past entries");
       return;
     }
-
+    
     try {
       // Show loading state
       setIsGeneratingPrompt(true);
       toast.loading('Generating prompt...', { id: 'generate-prompt' });
+      
+      // Get recent entries (last 5 entries, excluding the current one)
+      const allEntries = await getAllEntries();
+      const recentEntries = allEntries
+        .slice(0, 5)
+        .filter(entry => entry.content !== journalEntry);
 
-      let promptText;
-      if (isSubscribed) {
-        // Premium users get AI-generated prompts
-        const allEntries = await getAllEntries();
-        const recentEntries = allEntries
-          .slice(0, 5)
-          .filter(entry => entry.content !== journalEntry);
-
-        const { data, error } = await supabase.functions.invoke('generate-prompt', {
-          body: { 
-            currentEntry: journalEntry,
-            recentEntries: recentEntries
-          }
-        });
-
-        // Dismiss loading toast
-        toast.dismiss('generate-prompt');
-        setIsGeneratingPrompt(false);
-
-        if (error || !data?.prompt) {
-          console.error('Error generating prompt:', error || 'No prompt returned');
-          toast.error('Failed to generate AI prompt. Please try again.');
+      const { data, error } = await supabase.functions.invoke('generate-prompt', {
+        body: { 
+          currentEntry: journalEntry,
+          recentEntries: recentEntries
+        }
+      });
+      
+      // Dismiss loading toast
+      toast.dismiss('generate-prompt');
+      setIsGeneratingPrompt(false);
+      
+      if (error) {
+        console.error('Error generating prompt:', error);
+        
+        // Check if the error is due to subscription requirement
+        if (error.message.includes('Subscription required') || data?.subscription_required) {
+          toast.error('Premium subscription required for AI prompts', {
+            action: {
+              label: "Subscribe",
+              onClick: () => openCheckout()
+            },
+          });
           return;
         }
-
-        promptText = data.prompt;
-        toast.success('AI prompt generated!');
-      } else {
-        // Free users get pre-written prompts
-        promptText = getRandomPrompt();
-        toast.dismiss('generate-prompt');
-        setIsGeneratingPrompt(false);
-        toast.success('New prompt generated!');
+        
+        toast.error('Failed to generate prompt: ' + error.message);
+        return;
       }
-
-      // Add the prompt to the journal entry
+      
+      if (!data || !data.prompt) {
+        console.error('Invalid response format:', data);
+        if (data && data.error) {
+          toast.error(`Failed to generate prompt: ${data.error}${data.details ? ` - ${data.details}` : ''}`);
+        } else {
+          toast.error('Failed to generate prompt: Invalid response from the API');
+        }
+        return;
+      }
+      
+      // Add a newline and AI star icon before the prompt if there's existing text
       if (journalEntry.trim()) {
-        setJournalEntry(journalEntry.trim() + '\n\n✨ ' + promptText);
+        setJournalEntry(journalEntry.trim() + '\n\n✨ ' + data.prompt);
       } else {
-        setJournalEntry('✨ ' + promptText);
+        setJournalEntry('✨ ' + data.prompt);
       }
+      
+      toast.success(`Prompt generated!`);
     } catch (error) {
       console.error('Error generating prompt:', error);
       toast.error('Failed to generate prompt: ' + (error instanceof Error ? error.message : 'Unknown error'));
@@ -443,14 +452,18 @@ export default function JournalPage() {
               variant="default"
               size="icon"
               className={isSubscribed ? subscriberButtonClass : regularButtonClass}
-              onClick={handlePromptGeneration}
+              onClick={isSubscribed ? generatePrompt : openCheckout}
               disabled={isGeneratingPrompt}
             >
-              <Sparkles className={isSubscribed ? "h-5 w-5 text-amber-900" : "h-5 w-5"} />
+              {isSubscribed ? (
+                <Sparkles className="h-5 w-5 text-amber-900" />
+              ) : (
+                <Lock className="h-5 w-5" />
+              )}
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            {isSubscribed ? "Generate AI Prompt" : "Generate Prompt"}
+            {isSubscribed ? "Generate Prompt" : "Upgrade to Premium"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
