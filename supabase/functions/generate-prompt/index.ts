@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +14,43 @@ serve(async (req) => {
   }
 
   try {
+    // Create Supabase client using the service role key to bypass RLS
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get the user from the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !user) {
+      throw new Error('Invalid user token');
+    }
+
+    // Check if user has an active subscription
+    const { data: subscriber } = await supabase
+      .from('subscribers')
+      .select('subscribed')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    // If subscriber record doesn't exist or subscribed is false, restrict access
+    if (!subscriber?.subscribed) {
+      return new Response(JSON.stringify({ 
+        error: 'Subscription required', 
+        subscription_required: true,
+        source: 'generate-prompt'
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { currentEntry, recentEntries } = await req.json();
     
     // Enhanced mood analysis

@@ -6,15 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut } from "lucide-react";
+import { LogOut, Crown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Switch } from "@/components/ui/switch";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { isSubscribed, subscriptionEnd, openCheckout, openCustomerPortal } = useSubscription();
   
   const [profile, setProfile] = useState({
     username: "",
@@ -23,10 +24,18 @@ export default function SettingsPage() {
   });
   
   const [language, setLanguage] = useState("en");
-  const [subscriptionPlan, setSubscriptionPlan] = useState("free");
   const [loading, setLoading] = useState(true);
-  const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  
+  // Format subscription end date
+  const formatSubscriptionEnd = (dateString: string | null) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }).format(date);
+  };
   
   useEffect(() => {
     if (user) {
@@ -88,43 +97,6 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error("Failed to update profile. Please try again.");
-    }
-  };
-  
-  const handleDeleteAccount = async () => {
-    try {
-      if (!user) return;
-      
-      // First delete the profile data
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.id);
-        
-      if (profileError) {
-        throw profileError;
-      }
-      
-      // Then delete the user account using the auth API
-      try {
-        // Try using admin API
-        const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
-        if (authError) throw authError;
-      } catch (adminError) {
-        // Fallback to user-initiated account deletion
-        console.error('Admin user deletion failed, trying user-initiated deletion', adminError);
-        await supabase.auth.admin.deleteUser(user.id);
-      }
-      
-      // Sign out the user
-      await signOut();
-      
-      toast.success("Your account has been permanently deleted.");
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      toast.error("Failed to delete account. Please try again or contact support.");
-    } finally {
-      setIsDeleteAccountDialogOpen(false);
     }
   };
   
@@ -190,6 +162,73 @@ export default function SettingsPage() {
         
         <Card>
           <CardHeader>
+            <CardTitle>Subscription</CardTitle>
+            <CardDescription>Manage your premium features</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <div className="bg-gradient-to-r from-amber-50 via-yellow-100 to-amber-50 dark:from-amber-950/30 dark:via-yellow-900/30 dark:to-amber-950/30 p-6 rounded-lg border border-amber-200 dark:border-amber-800">
+              {isSubscribed ? (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                    <Crown className="h-5 w-5 text-amber-500" />
+                    <h3 className="text-lg font-medium text-amber-800 dark:text-amber-300">Premium Subscription Active</h3>
+                  </div>
+                  
+                  <p className="text-amber-700 dark:text-amber-400">
+                    Your premium subscription renews on {formatSubscriptionEnd(subscriptionEnd)}.
+                  </p>
+                  
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button 
+                      variant="outline" 
+                      className="border-amber-300 hover:bg-amber-100 dark:border-amber-700 dark:hover:bg-amber-900/50"
+                      onClick={openCustomerPortal}
+                    >
+                      Manage Subscription
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                    <Crown className="h-5 w-5 text-gray-400" />
+                    <h3 className="text-lg font-medium">Upgrade to Premium</h3>
+                  </div>
+                  
+                  <p className="text-muted-foreground">
+                    Unlock AI-powered journal prompts and enhance your journaling experience.
+                  </p>
+                  
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <span className="bg-green-500 rounded-full p-0.5 text-white">✓</span>
+                      <span>Unlimited AI journal prompts</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="bg-green-500 rounded-full p-0.5 text-white">✓</span>
+                      <span>Personalized writing suggestions</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="bg-green-500 rounded-full p-0.5 text-white">✓</span>
+                      <span>Premium support</span>
+                    </li>
+                  </ul>
+                  
+                  <Button
+                    className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-900"
+                    onClick={openCheckout}
+                  >
+                    <Crown className="h-4 w-4 mr-2" />
+                    Upgrade Now - $3.99/month
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
             <CardTitle>App Settings</CardTitle>
             <CardDescription>Customize your journal experience</CardDescription>
           </CardHeader>
@@ -210,19 +249,6 @@ export default function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="subscription">Subscription Plan</Label>
-                <Select value={subscriptionPlan} onValueChange={setSubscriptionPlan}>
-                  <SelectTrigger id="subscription">
-                    <SelectValue placeholder="Select plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="premium">Premium ($4.99/month)</SelectItem>
-                    <SelectItem value="family">Family ($9.99/month)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             
             <div className="space-y-4">
@@ -240,71 +266,7 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Privacy & Data</CardTitle>
-            <CardDescription>Manage how your journal data is used</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="data-backup">Automatic Backups</Label>
-                <p className="text-sm text-muted-foreground">Backup your journal to the cloud</p>
-              </div>
-              <Switch id="data-backup" defaultChecked />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <Button variant="outline" className="justify-start">Export Journal Data</Button>
-              <Button 
-                variant="outline" 
-                className="justify-start text-destructive hover:text-destructive"
-                onClick={() => setIsDeleteAccountDialogOpen(true)}
-              >
-                Delete Account
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-      
-      {/* Delete Account Confirmation Dialog */}
-      <Dialog open={isDeleteAccountDialogOpen} onOpenChange={setIsDeleteAccountDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-destructive">Delete Account</DialogTitle>
-            <DialogDescription>
-              This action is permanent and cannot be undone. All your data, including journal entries, will be permanently deleted.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <p className="text-sm">
-              To confirm, please type <strong className="font-semibold">delete my account</strong> below:
-            </p>
-            <Input
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder="delete my account"
-              className="w-full"
-            />
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteAccountDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteAccount}
-              disabled={deleteConfirmText !== "delete my account"}
-            >
-              Permanently Delete Account
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

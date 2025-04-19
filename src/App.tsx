@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Layout } from "@/components/layout/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { PrivateRoute } from "@/components/auth/PrivateRoute";
 
 // Pages
@@ -28,16 +29,18 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
-              <Route path="/entry/:id" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
-              <Route path="/history" element={<PrivateRoute><Layout><HistoryPage /></Layout></PrivateRoute>} />
-              <Route path="/mood-tracker" element={<PrivateRoute><Layout><MoodTrackerPage /></Layout></PrivateRoute>} />
-              <Route path="/customize" element={<PrivateRoute><Layout><CustomizePage /></Layout></PrivateRoute>} />
-              <Route path="/settings" element={<PrivateRoute><Layout><SettingsPage /></Layout></PrivateRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <SubscriptionProvider>
+              <Routes>
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
+                <Route path="/entry/:id" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
+                <Route path="/history" element={<PrivateRoute><Layout><HistoryPage /></Layout></PrivateRoute>} />
+                <Route path="/mood-tracker" element={<PrivateRoute><Layout><MoodTrackerPage /></Layout></PrivateRoute>} />
+                <Route path="/customize" element={<PrivateRoute><Layout><CustomizePage /></Layout></PrivateRoute>} />
+                <Route path="/settings" element={<PrivateRoute><Layout><SettingsPage /></Layout></PrivateRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </SubscriptionProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, ImageIcon, Music, Sparkles } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, ImageIcon, Music, Sparkles, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { 
   getTodayEntry, 
   autosaveEntry, 
@@ -18,6 +18,7 @@ import { toast } from "@/components/ui/sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 
 export default function JournalPage() {
   const [journalTitle, setJournalTitle] = useState("");
@@ -35,6 +36,8 @@ export default function JournalPage() {
   const [currentEntry, setCurrentEntry] = useState<any>(null);
   const params = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isSubscribed, openCheckout } = useSubscription();
   
   // Custom mood names
   const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
@@ -167,6 +170,18 @@ export default function JournalPage() {
       
       if (error) {
         console.error('Error generating prompt:', error);
+        
+        // Check if the error is due to subscription requirement
+        if (error.message.includes('Subscription required') || data?.subscription_required) {
+          toast.error('Premium subscription required for AI prompts', {
+            action: {
+              label: "Subscribe",
+              onClick: () => openCheckout()
+            },
+          });
+          return;
+        }
+        
         toast.error('Failed to generate prompt: ' + error.message);
         return;
       }
@@ -422,6 +437,39 @@ export default function JournalPage() {
     );
   };
 
+  const PromptButton = () => {
+    // Premium gradient for subscribers
+    const subscriberButtonClass = "h-12 w-12 rounded-full shadow-lg bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 hover:from-amber-400 hover:to-yellow-500 border border-amber-500/50";
+    
+    // Regular button for non-subscribers
+    const regularButtonClass = "h-12 w-12 rounded-full shadow-lg bg-fakudid-purple hover:bg-fakudid-darkPurple";
+    
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="default"
+              size="icon"
+              className={isSubscribed ? subscriberButtonClass : regularButtonClass}
+              onClick={isSubscribed ? generatePrompt : openCheckout}
+              disabled={isGeneratingPrompt}
+            >
+              {isSubscribed ? (
+                <Sparkles className="h-5 w-5 text-amber-900" />
+              ) : (
+                <Lock className="h-5 w-5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            {isSubscribed ? "Generate Prompt" : "Upgrade to Premium"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   return (
     <div className="w-full h-full relative">
       {readOnly && (
@@ -527,24 +575,7 @@ export default function JournalPage() {
         {/* Floating prompt generator button - overlaying the textarea */}
         {!readOnly && (
           <div className="fixed bottom-8 right-8">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="default"
-                    size="icon"
-                    className="h-12 w-12 rounded-full shadow-lg bg-fakudid-purple hover:bg-fakudid-darkPurple"
-                    onClick={generatePrompt}
-                    disabled={isGeneratingPrompt}
-                  >
-                    <Sparkles className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>Generate Prompt</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <PromptButton />
           </div>
         )}
       </div>
