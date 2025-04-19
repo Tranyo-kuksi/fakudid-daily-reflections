@@ -17,7 +17,6 @@ serve(async (req) => {
 
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
   if (!stripeKey) {
-    console.error("Missing STRIPE_SECRET_KEY");
     return new Response(
       JSON.stringify({ error: 'Stripe key not found' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -40,10 +39,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error("No authorization header found");
-      return new Response(
-        JSON.stringify({ error: 'No authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new Error('No authorization header');
     }
     
     const token = authHeader.replace('Bearer ', '');
@@ -53,10 +49,7 @@ serve(async (req) => {
     
     if (userError || !user) {
       console.error("User authentication error:", userError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid user token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new Error('Invalid user token');
     }
     
     console.log("User authenticated:", user.id);
