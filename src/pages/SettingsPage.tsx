@@ -5,17 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
-  const { toast } = useToast();
   
   const [profile, setProfile] = useState({
     username: "",
@@ -113,11 +111,17 @@ export default function SettingsPage() {
         throw profileError;
       }
       
-      // Then delete the user account
+      // Then delete the user account using the correct API
       const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
       
       if (authError) {
-        throw authError;
+        // If admin method fails, try client-side method
+        await supabase.auth.signOut();
+        toast({
+          title: "Partial Deletion",
+          description: "Your profile was deleted, but please contact support to fully delete your account.",
+        });
+        return;
       }
       
       // Sign out the user
@@ -129,24 +133,11 @@ export default function SettingsPage() {
       });
     } catch (error) {
       console.error('Error deleting account:', error);
-      
-      // Try the client-side method if admin method fails
-      try {
-        await supabase.auth.deleteUser();
-        await signOut();
-        
-        toast({
-          title: "Account Deleted",
-          description: "Your account has been permanently deleted.",
-        });
-      } catch (clientError) {
-        console.error('Client-side deletion failed:', clientError);
-        toast({
-          title: "Error",
-          description: "Failed to delete account. Please try again or contact support.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to delete account. Please try again or contact support.",
+        variant: "destructive"
+      });
     } finally {
       setIsDeleteAccountDialogOpen(false);
     }

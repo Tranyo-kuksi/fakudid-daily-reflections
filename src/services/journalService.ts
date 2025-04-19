@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -43,9 +44,10 @@ function saveEntriesToStorage() {
 }
 
 // Get all journal entries for the current user
-export function getAllEntries(): JournalEntry[] {
+export async function getAllEntries(): Promise<JournalEntry[]> {
   // Get current user ID
-  const userId = supabase.auth.getSession().then(({ data }) => data.session?.user?.id);
+  const { data } = await supabase.auth.getSession();
+  const userId = data.session?.user?.id;
   
   // Filter entries by user ID
   return [...journalEntries]
@@ -61,12 +63,13 @@ export function getAllEntries(): JournalEntry[] {
 }
 
 // Get today's entry if it exists for the current user
-export function getTodayEntry(): JournalEntry | undefined {
+export async function getTodayEntry(): Promise<JournalEntry | undefined> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
   // Get current user ID
-  const userId = supabase.auth.getUser().then(({ data }) => data.user?.id);
+  const { data } = await supabase.auth.getUser();
+  const userId = data.user?.id;
   
   return journalEntries.find(entry => {
     const entryDate = new Date(entry.date);
@@ -81,9 +84,10 @@ export function getTodayEntry(): JournalEntry | undefined {
 }
 
 // Get entry by ID (and check user ID if available)
-export function getEntryById(id: string): JournalEntry | undefined {
+export async function getEntryById(id: string): Promise<JournalEntry | undefined> {
   // Get current user ID
-  const userId = supabase.auth.getUser().then(({ data }) => data.user?.id);
+  const { data } = await supabase.auth.getUser();
+  const userId = data.user?.id;
   
   return journalEntries.find(entry => {
     // If entry has no userId, it's from before this change
@@ -95,12 +99,13 @@ export function getEntryById(id: string): JournalEntry | undefined {
 }
 
 // Get entry by date for the current user
-export function getEntryByDate(date: Date): JournalEntry | undefined {
+export async function getEntryByDate(date: Date): Promise<JournalEntry | undefined> {
   const targetDate = new Date(date);
   targetDate.setHours(0, 0, 0, 0);
   
   // Get current user ID
-  const userId = supabase.auth.getUser().then(({ data }) => data.user?.id);
+  const { data } = await supabase.auth.getUser();
+  const userId = data.user?.id;
   
   return journalEntries.find(entry => {
     const entryDate = new Date(entry.date);
@@ -116,7 +121,7 @@ export function getEntryByDate(date: Date): JournalEntry | undefined {
 
 // Create a new entry for the current user
 export async function createEntry(title: string, content: string, mood: JournalEntry['mood']): Promise<JournalEntry | null> {
-  const todayEntry = getTodayEntry();
+  const todayEntry = await getTodayEntry();
   if (todayEntry) {
     toast.error("You've already created a journal entry for today");
     return null;
@@ -172,8 +177,8 @@ export function addAttachment(
   type: "image" | "music", 
   file: File
 ): Promise<JournalEntry | null> {
-  return new Promise((resolve) => {
-    const entry = getEntryById(entryId);
+  return new Promise(async (resolve) => {
+    const entry = await getEntryById(entryId);
     if (!entry) {
       toast.error("Journal entry not found");
       resolve(null);
@@ -224,7 +229,7 @@ export function deleteAttachment(entryId: string, attachmentIndex: number): Jour
 // Autosave functionality - returns true if saved successfully
 export async function autosaveEntry(title: string, content: string, mood: JournalEntry['mood']): Promise<boolean> {
   // Check if there's already an entry for today
-  let todayEntry = getTodayEntry();
+  let todayEntry = await getTodayEntry();
   
   // Get current user ID
   const { data } = await supabase.auth.getUser();
