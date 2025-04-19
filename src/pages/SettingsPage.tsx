@@ -101,7 +101,7 @@ export default function SettingsPage() {
   };
   
   return (
-    <div className="w-full max-w-3xl mx-auto px-4">
+    <div className="w-full max-w-3xl mx-auto px-4 min-w-0 overflow-hidden">
       <h1 className="text-3xl font-bold mb-6 text-center">Settings</h1>
       
       <div className="grid gap-6">
