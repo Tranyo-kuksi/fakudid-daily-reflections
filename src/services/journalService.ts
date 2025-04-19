@@ -1,5 +1,5 @@
-
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface JournalEntry {
   id: string;
@@ -12,12 +12,10 @@ export interface JournalEntry {
     url: string;
     name: string;
   }[];
+  userId?: string;
 }
 
-// In-memory storage for journal entries (in a real app, this would be a database)
-let journalEntries: JournalEntry[] = loadEntriesFromStorage();
-
-// Load entries from localStorage
+// Load entries from localStorage with user ID filtering
 function loadEntriesFromStorage(): JournalEntry[] {
   try {
     const savedEntries = localStorage.getItem('journalEntries');
@@ -31,6 +29,9 @@ function loadEntriesFromStorage(): JournalEntry[] {
   }
 }
 
+// In-memory storage for journal entries (in a real app, this would be a database)
+let journalEntries: JournalEntry[] = loadEntriesFromStorage();
+
 // Save entries to localStorage
 function saveEntriesToStorage() {
   try {
@@ -41,47 +42,89 @@ function saveEntriesToStorage() {
   }
 }
 
-// Get all journal entries
+// Get all journal entries for the current user
 export function getAllEntries(): JournalEntry[] {
-  return [...journalEntries].sort((a, b) => b.date.getTime() - a.date.getTime());
+  // Get current user ID
+  const userId = supabase.auth.getSession().then(({ data }) => data.session?.user?.id);
+  
+  // Filter entries by user ID
+  return [...journalEntries]
+    .filter(entry => {
+      // If entry has no userId, it's from before this change
+      // and we want to maintain backward compatibility
+      if (!entry.userId) return true;
+      
+      // Otherwise, only return entries for the current user
+      return entry.userId === userId;
+    })
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
-// Get today's entry if it exists
+// Get today's entry if it exists for the current user
 export function getTodayEntry(): JournalEntry | undefined {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  return journalEntries.find(entry => {
-    const entryDate = new Date(entry.date);
-    entryDate.setHours(0, 0, 0, 0);
-    return entryDate.getTime() === today.getTime();
-  });
-}
-
-// Get entry by ID
-export function getEntryById(id: string): JournalEntry | undefined {
-  return journalEntries.find(entry => entry.id === id);
-}
-
-// Get entry by date
-export function getEntryByDate(date: Date): JournalEntry | undefined {
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
+  // Get current user ID
+  const userId = supabase.auth.getUser().then(({ data }) => data.user?.id);
   
   return journalEntries.find(entry => {
     const entryDate = new Date(entry.date);
     entryDate.setHours(0, 0, 0, 0);
-    return entryDate.getTime() === targetDate.getTime();
+    
+    // If entry has no userId, it's from before this change
+    if (!entry.userId) return entryDate.getTime() === today.getTime();
+    
+    // Otherwise, only match entries for the current user
+    return entry.userId === userId && entryDate.getTime() === today.getTime();
   });
 }
 
-// Create a new entry (only if no entry exists for today)
-export function createEntry(title: string, content: string, mood: JournalEntry['mood']): JournalEntry | null {
+// Get entry by ID (and check user ID if available)
+export function getEntryById(id: string): JournalEntry | undefined {
+  // Get current user ID
+  const userId = supabase.auth.getUser().then(({ data }) => data.user?.id);
+  
+  return journalEntries.find(entry => {
+    // If entry has no userId, it's from before this change
+    if (!entry.userId) return entry.id === id;
+    
+    // Otherwise, only match entries for the current user
+    return entry.id === id && entry.userId === userId;
+  });
+}
+
+// Get entry by date for the current user
+export function getEntryByDate(date: Date): JournalEntry | undefined {
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0);
+  
+  // Get current user ID
+  const userId = supabase.auth.getUser().then(({ data }) => data.user?.id);
+  
+  return journalEntries.find(entry => {
+    const entryDate = new Date(entry.date);
+    entryDate.setHours(0, 0, 0, 0);
+    
+    // If entry has no userId, it's from before this change
+    if (!entry.userId) return entryDate.getTime() === targetDate.getTime();
+    
+    // Otherwise, only match entries for the current user
+    return entry.userId === userId && entryDate.getTime() === targetDate.getTime();
+  });
+}
+
+// Create a new entry for the current user
+export async function createEntry(title: string, content: string, mood: JournalEntry['mood']): Promise<JournalEntry | null> {
   const todayEntry = getTodayEntry();
   if (todayEntry) {
     toast.error("You've already created a journal entry for today");
     return null;
   }
+  
+  // Get current user ID
+  const { data } = await supabase.auth.getUser();
+  const userId = data.user?.id;
   
   const newEntry: JournalEntry = {
     id: Date.now().toString(),
@@ -89,7 +132,8 @@ export function createEntry(title: string, content: string, mood: JournalEntry['
     title,
     content,
     mood,
-    attachments: []
+    attachments: [],
+    userId
   };
   
   journalEntries.push(newEntry);
@@ -178,9 +222,13 @@ export function deleteAttachment(entryId: string, attachmentIndex: number): Jour
 }
 
 // Autosave functionality - returns true if saved successfully
-export function autosaveEntry(title: string, content: string, mood: JournalEntry['mood']): boolean {
+export async function autosaveEntry(title: string, content: string, mood: JournalEntry['mood']): Promise<boolean> {
   // Check if there's already an entry for today
   let todayEntry = getTodayEntry();
+  
+  // Get current user ID
+  const { data } = await supabase.auth.getUser();
+  const userId = data.user?.id;
   
   if (todayEntry) {
     // Update existing entry
@@ -188,7 +236,18 @@ export function autosaveEntry(title: string, content: string, mood: JournalEntry
     return true;
   } else if (title.trim() || content.trim() || mood) {
     // Create new entry if there's content or mood
-    createEntry(title, content, mood);
+    const newEntry: JournalEntry = {
+      id: Date.now().toString(),
+      date: new Date(),
+      title,
+      content,
+      mood,
+      attachments: [],
+      userId
+    };
+    
+    journalEntries.push(newEntry);
+    saveEntriesToStorage();
     return true;
   }
   

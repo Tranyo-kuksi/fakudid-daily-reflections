@@ -1,4 +1,5 @@
-import { useState, useEffect, useContext } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,15 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useTheme } from "@/components/theme/ThemeProvider";
-import { Flame, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { NavbarContext } from "@/contexts/NavbarContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   
@@ -24,12 +23,11 @@ export default function SettingsPage() {
     email_notifications: true
   });
   
-  // Get streak from NavBar's calculation
-  const { streak } = useContext(NavbarContext);
   const [language, setLanguage] = useState("en");
   const [subscriptionPlan, setSubscriptionPlan] = useState("free");
-  const [darkMode, setDarkMode] = useState(theme === 'dark');
   const [loading, setLoading] = useState(true);
+  const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   
   useEffect(() => {
     if (user) {
@@ -101,9 +99,57 @@ export default function SettingsPage() {
     }
   };
   
-  const handleDarkModeChange = (checked: boolean) => {
-    setDarkMode(checked);
-    setTheme(checked ? 'dark' : 'light');
+  const handleDeleteAccount = async () => {
+    try {
+      if (!user) return;
+      
+      // First delete the profile data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+        
+      if (profileError) {
+        throw profileError;
+      }
+      
+      // Then delete the user account
+      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (authError) {
+        throw authError;
+      }
+      
+      // Sign out the user
+      await signOut();
+      
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      
+      // Try the client-side method if admin method fails
+      try {
+        await supabase.auth.deleteUser();
+        await signOut();
+        
+        toast({
+          title: "Account Deleted",
+          description: "Your account has been permanently deleted.",
+        });
+      } catch (clientError) {
+        console.error('Client-side deletion failed:', clientError);
+        toast({
+          title: "Error",
+          description: "Failed to delete account. Please try again or contact support.",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      setIsDeleteAccountDialogOpen(false);
+    }
   };
   
   return (
@@ -133,13 +179,7 @@ export default function SettingsPage() {
                 <AvatarFallback>{profile.username ? profile.username.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-medium">{profile.username || "Not set"}</h3>
-                  <div className="flex items-center text-orange-500">
-                    <Flame className="h-5 w-5" />
-                    <span className="ml-1">{streak} day streak</span>
-                  </div>
-                </div>
+                <h3 className="text-xl font-medium">{profile.username || "Not set"}</h3>
                 <p className="text-muted-foreground">{profile.email}</p>
               </div>
             </div>
@@ -212,18 +252,6 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-muted-foreground">Toggle between light and dark themes</p>
-                </div>
-                <Switch 
-                  id="dark-mode" 
-                  checked={darkMode}
-                  onCheckedChange={handleDarkModeChange}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
                   <Label htmlFor="notifications">Email Notifications</Label>
                   <p className="text-sm text-muted-foreground">Get reminders to journal daily</p>
                 </div>
@@ -253,11 +281,54 @@ export default function SettingsPage() {
             
             <div className="flex flex-col gap-2">
               <Button variant="outline" className="justify-start">Export Journal Data</Button>
-              <Button variant="outline" className="justify-start text-destructive hover:text-destructive">Delete Account</Button>
+              <Button 
+                variant="outline" 
+                className="justify-start text-destructive hover:text-destructive"
+                onClick={() => setIsDeleteAccountDialogOpen(true)}
+              >
+                Delete Account
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
+      
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog open={isDeleteAccountDialogOpen} onOpenChange={setIsDeleteAccountDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Delete Account</DialogTitle>
+            <DialogDescription>
+              This action is permanent and cannot be undone. All your data, including journal entries, will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <p className="text-sm">
+              To confirm, please type <strong className="font-semibold">delete my account</strong> below:
+            </p>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="delete my account"
+              className="w-full"
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteAccountDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== "delete my account"}
+            >
+              Permanently Delete Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
