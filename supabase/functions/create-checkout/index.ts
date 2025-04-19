@@ -17,6 +17,7 @@ serve(async (req) => {
 
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
   if (!stripeKey) {
+    console.error("Missing STRIPE_SECRET_KEY");
     return new Response(
       JSON.stringify({ error: 'Stripe key not found' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -63,6 +64,7 @@ serve(async (req) => {
       
     if (subscribersError) {
       console.error("Error fetching subscriber:", subscribersError);
+      // Continue even if there's an error, we'll create a new customer if needed
     }
 
     console.log("Subscriber data:", subscribers);

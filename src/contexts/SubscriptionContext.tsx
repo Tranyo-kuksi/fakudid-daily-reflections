@@ -68,6 +68,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const loadingToast = toast.loading('Preparing checkout...');
       
+      console.log('Creating checkout session...');
       const { data, error } = await supabase.functions.invoke('create-checkout');
       
       toast.dismiss(loadingToast);
