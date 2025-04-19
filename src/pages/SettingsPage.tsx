@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch"; 
 import { LogOut, Crown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { Switch } from "@/components/ui/switch";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
@@ -101,7 +101,7 @@ export default function SettingsPage() {
   };
   
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto px-4">
       <h1 className="text-3xl font-bold mb-6 text-center">Settings</h1>
       
       <div className="grid gap-6">
@@ -166,7 +166,7 @@ export default function SettingsPage() {
             <CardDescription>Manage your premium features</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6">
-            <div className="bg-gradient-to-r from-amber-50 via-yellow-100 to-amber-50 dark:from-amber-950/30 dark:via-yellow-900/30 dark:to-amber-950/30 p-6 rounded-lg border border-amber-200 dark:border-amber-800">
+            <div className="bg-gradient-to-r from-amber-50 via-yellow-100 to-amber-50 dark:from-amber-950/30 dark:via-yellow-900/30 dark:to-amber-950/30 p-4 sm:p-6 rounded-lg border border-amber-200 dark:border-amber-800">
               {isSubscribed ? (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-2">

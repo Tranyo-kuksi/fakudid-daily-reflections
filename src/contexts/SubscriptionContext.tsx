@@ -66,28 +66,31 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     try {
-      toast.loading('Preparing checkout...');
+      const loadingToast = toast.loading('Preparing checkout...');
+      
       const { data, error } = await supabase.functions.invoke('create-checkout');
+      
+      toast.dismiss(loadingToast);
       
       if (error) {
         console.error('Error creating checkout:', error);
-        toast.dismiss();
-        toast.error('Failed to create checkout session');
+        toast.error('Failed to create checkout session: ' + error.message);
         return;
       }
       
-      toast.dismiss();
+      if (!data || !data.url) {
+        console.error('Invalid response from create-checkout:', data);
+        toast.error('Failed to create checkout URL. Try again later.');
+        return;
+      }
       
       // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        toast.error('Failed to create checkout URL');
-      }
+      window.location.href = data.url;
     } catch (error) {
       console.error('Error opening checkout:', error);
       toast.dismiss();
-      toast.error('Failed to start checkout process');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error('Failed to start checkout process: ' + errorMessage);
     }
   };
 
@@ -103,20 +106,20 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     try {
-      toast.loading('Preparing customer portal...');
+      const loadingToast = toast.loading('Preparing customer portal...');
+      
       const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      toast.dismiss(loadingToast);
       
       if (error) {
         console.error('Error opening customer portal:', error);
-        toast.dismiss();
-        toast.error('Failed to open customer portal');
+        toast.error('Failed to open customer portal: ' + error.message);
         return;
       }
       
-      toast.dismiss();
-      
       // Redirect to Stripe Customer Portal
-      if (data.url) {
+      if (data?.url) {
         window.location.href = data.url;
       } else {
         toast.error('Failed to create customer portal URL');
@@ -124,7 +127,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error) {
       console.error('Error opening customer portal:', error);
       toast.dismiss();
-      toast.error('Failed to open customer portal');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error('Failed to open customer portal: ' + errorMessage);
     }
   };
 

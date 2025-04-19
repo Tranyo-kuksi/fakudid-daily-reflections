@@ -24,30 +24,48 @@ serve(async (req) => {
   }
 
   try {
+    // For debugging
+    console.log("Starting checkout creation process");
+
     // Create Supabase client using the service role key to bypass RLS
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    
+    console.log("Supabase URL and key available:", !!supabaseUrl, !!supabaseKey);
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get the user from the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error("No authorization header found");
       throw new Error('No authorization header');
     }
     
     const token = authHeader.replace('Bearer ', '');
+    console.log("Authenticating user with token");
+    
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
+      console.error("User authentication error:", userError);
       throw new Error('Invalid user token');
     }
+    
+    console.log("User authenticated:", user.id);
 
     // Check if user already has a Stripe customer ID
-    const { data: subscribers } = await supabase
+    const { data: subscribers, error: subscribersError } = await supabase
       .from('subscribers')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
       .maybeSingle();
+      
+    if (subscribersError) {
+      console.error("Error fetching subscriber:", subscribersError);
+    }
+
+    console.log("Subscriber data:", subscribers);
 
     const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
@@ -57,6 +75,7 @@ serve(async (req) => {
     
     // If no Stripe customer exists, check if customer exists in Stripe
     if (!customerId) {
+      console.log("No customer ID found, checking Stripe for existing customer");
       const customers = await stripe.customers.list({ 
         email: user.email,
         limit: 1 
@@ -64,6 +83,7 @@ serve(async (req) => {
       
       if (customers.data.length > 0) {
         customerId = customers.data[0].id;
+        console.log("Found existing Stripe customer:", customerId);
         
         // Update subscriber record with the found customer ID
         await supabase
@@ -74,11 +94,17 @@ serve(async (req) => {
             stripe_customer_id: customerId,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' });
+      } else {
+        console.log("No existing Stripe customer found, will create one during checkout");
       }
+    } else {
+      console.log("Using existing customer ID:", customerId);
     }
 
     // Create Checkout session
     const origin = req.headers.get('origin') || 'http://localhost:5173';
+    console.log("Creating checkout session with origin:", origin);
+    
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -103,11 +129,14 @@ serve(async (req) => {
       cancel_url: `${origin}/settings?checkout=canceled`,
     });
 
+    console.log("Checkout session created:", session.id);
+
     return new Response(
       JSON.stringify({ url: session.url }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    console.error("Error creating checkout session:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
