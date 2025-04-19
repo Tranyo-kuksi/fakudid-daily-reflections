@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -21,43 +22,47 @@ export default function MoodTrackerPage() {
   const [dominantMood, setDominantMood] = useState<string | null>(null);
   
   useEffect(() => {
-    const allEntries = getAllEntries();
-    setEntries(allEntries);
-    
-    // Calculate monthly mood summary
-    const summary: {[key: string]: number} = {
-      dead: 0,
-      sad: 0,
-      meh: 0,
-      good: 0,
-      awesome: 0
+    const fetchEntries = async () => {
+      const allEntries = await getAllEntries();
+      setEntries(allEntries);
+      
+      // Calculate monthly mood summary
+      const summary: {[key: string]: number} = {
+        dead: 0,
+        sad: 0,
+        meh: 0,
+        good: 0,
+        awesome: 0
+      };
+      
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+      
+      allEntries.forEach(entry => {
+        const entryDate = new Date(entry.date);
+        if (entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear && entry.mood) {
+          summary[entry.mood] = (summary[entry.mood] || 0) + 1;
+        }
+      });
+      
+      setMonthlySummary(summary);
+      
+      // Determine dominant mood
+      let maxCount = 0;
+      let dominant: string | null = null;
+      
+      Object.entries(summary).forEach(([mood, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          dominant = mood;
+        }
+      });
+      
+      setDominantMood(dominant);
     };
     
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-    
-    allEntries.forEach(entry => {
-      const entryDate = new Date(entry.date);
-      if (entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear && entry.mood) {
-        summary[entry.mood] = (summary[entry.mood] || 0) + 1;
-      }
-    });
-    
-    setMonthlySummary(summary);
-    
-    // Determine dominant mood
-    let maxCount = 0;
-    let dominant: string | null = null;
-    
-    Object.entries(summary).forEach(([mood, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        dominant = mood;
-      }
-    });
-    
-    setDominantMood(dominant);
+    fetchEntries();
   }, []);
   
   const formatDate = (date: Date): string => {

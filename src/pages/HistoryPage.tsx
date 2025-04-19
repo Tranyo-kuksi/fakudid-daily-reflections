@@ -23,8 +23,8 @@ export default function HistoryPage() {
 
   // Load all entries
   useEffect(() => {
-    const loadEntries = () => {
-      const allEntries = getAllEntries();
+    const loadEntries = async () => {
+      const allEntries = await getAllEntries();
       setEntries(allEntries);
       setFilteredEntries(allEntries);
     };
@@ -32,7 +32,7 @@ export default function HistoryPage() {
     loadEntries();
     
     // Setup an interval to check for new entries (simulating real-time updates)
-    const intervalId = setInterval(loadEntries, 10000);
+    const intervalId = setInterval(() => loadEntries(), 10000);
     
     return () => clearInterval(intervalId);
   }, []);

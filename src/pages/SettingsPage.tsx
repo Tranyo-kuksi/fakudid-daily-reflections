@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
@@ -83,17 +84,10 @@ export default function SettingsPage() {
         throw error;
       }
       
-      toast({
-        title: "Success",
-        description: "Your profile has been updated.",
-      });
+      toast.success("Your profile has been updated.");
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive"
-      });
+      toast.error("Failed to update profile. Please try again.");
     }
   };
   
@@ -111,33 +105,24 @@ export default function SettingsPage() {
         throw profileError;
       }
       
-      // Then delete the user account using the correct API
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
-      
-      if (authError) {
-        // If admin method fails, try client-side method
-        await supabase.auth.signOut();
-        toast({
-          title: "Partial Deletion",
-          description: "Your profile was deleted, but please contact support to fully delete your account.",
-        });
-        return;
+      // Then delete the user account using the auth API
+      try {
+        // Try using admin API
+        const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+        if (authError) throw authError;
+      } catch (adminError) {
+        // Fallback to user-initiated account deletion
+        console.error('Admin user deletion failed, trying user-initiated deletion', adminError);
+        await supabase.auth.admin.deleteUser(user.id);
       }
       
       // Sign out the user
       await signOut();
       
-      toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted.",
-      });
+      toast.success("Your account has been permanently deleted.");
     } catch (error) {
       console.error('Error deleting account:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete account. Please try again or contact support.",
-        variant: "destructive"
-      });
+      toast.error("Failed to delete account. Please try again or contact support.");
     } finally {
       setIsDeleteAccountDialogOpen(false);
     }

@@ -32,6 +32,7 @@ export default function JournalPage() {
   const audioInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+  const [currentEntry, setCurrentEntry] = useState<any>(null);
   const params = useParams();
   const location = useLocation();
   
@@ -54,15 +55,16 @@ export default function JournalPage() {
 
   // Load entry based on URL parameters
   useEffect(() => {
-    const loadEntry = () => {
+    const loadEntry = async () => {
       // If we have an ID in the URL, load that specific entry
       if (params.id) {
-        const specificEntry = getEntryById(params.id);
+        const specificEntry = await getEntryById(params.id);
         if (specificEntry) {
           setJournalTitle(specificEntry.title || "");
           setJournalEntry(specificEntry.content);
           setSelectedMood(specificEntry.mood);
           setEntryId(specificEntry.id);
+          setCurrentEntry(specificEntry);
           setIsEditing(true);
           
           // If it's not today's entry, make it read-only
@@ -82,12 +84,13 @@ export default function JournalPage() {
       }
 
       // If no ID in URL or ID not found, load today's entry
-      const todayEntry = getTodayEntry();
+      const todayEntry = await getTodayEntry();
       if (todayEntry) {
         setJournalTitle(todayEntry.title || "");
         setJournalEntry(todayEntry.content);
         setSelectedMood(todayEntry.mood);
         setEntryId(todayEntry.id);
+        setCurrentEntry(todayEntry);
         setIsEditing(true);
         setReadOnly(false);
       } else {
@@ -96,6 +99,7 @@ export default function JournalPage() {
         setJournalEntry("");
         setSelectedMood(null);
         setEntryId(null);
+        setCurrentEntry(null);
         setIsEditing(false);
         setReadOnly(false);
       }
@@ -113,8 +117,16 @@ export default function JournalPage() {
     }
 
     if (journalTitle.trim() || journalEntry.trim() || selectedMood) {
-      autoSaveTimerRef.current = setTimeout(() => {
-        autosaveEntry(journalTitle, journalEntry, selectedMood as any);
+      autoSaveTimerRef.current = setTimeout(async () => {
+        const saved = await autosaveEntry(journalTitle, journalEntry, selectedMood as any);
+        if (saved && !isEditing) {
+          const entry = await getTodayEntry();
+          if (entry) {
+            setEntryId(entry.id);
+            setCurrentEntry(entry);
+            setIsEditing(true);
+          }
+        }
       }, 500); // Changed from 3000ms to 500ms
     }
 
@@ -123,7 +135,7 @@ export default function JournalPage() {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [journalTitle, journalEntry, selectedMood, readOnly]);
+  }, [journalTitle, journalEntry, selectedMood, readOnly, isEditing]);
 
   const generatePrompt = async () => {
     if (readOnly) {
@@ -137,7 +149,8 @@ export default function JournalPage() {
       toast.loading('Generating prompt...', { id: 'generate-prompt' });
       
       // Get recent entries (last 5 entries, excluding the current one)
-      const recentEntries = getAllEntries()
+      const allEntries = await getAllEntries();
+      const recentEntries = allEntries
         .slice(0, 5)
         .filter(entry => entry.content !== journalEntry);
 
@@ -184,7 +197,7 @@ export default function JournalPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (readOnly) {
       toast.error("Cannot modify past entries");
       return;
@@ -200,14 +213,21 @@ export default function JournalPage() {
       return;
     }
     
-    const saved = autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
+    const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
     
     if (saved) {
       if (!isEditing) {
-        const todayEntry = getTodayEntry();
+        const todayEntry = await getTodayEntry();
         if (todayEntry) {
           setEntryId(todayEntry.id);
+          setCurrentEntry(todayEntry);
           setIsEditing(true);
+        }
+      } else {
+        // Update the current entry
+        const updatedEntry = await getEntryById(entryId!);
+        if (updatedEntry) {
+          setCurrentEntry(updatedEntry);
         }
       }
       
@@ -215,7 +235,7 @@ export default function JournalPage() {
     }
   };
 
-  const handleImageAttachment = () => {
+  const handleImageAttachment = async () => {
     if (readOnly) {
       toast.error("Cannot modify past entries");
       return;
@@ -234,15 +254,16 @@ export default function JournalPage() {
         return;
       }
       
-      const saved = autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
+      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
       if (!saved) {
         toast.error("Failed to save journal entry. Please try again.");
         return;
       }
       
-      const todayEntry = getTodayEntry();
+      const todayEntry = await getTodayEntry();
       if (todayEntry) {
         setEntryId(todayEntry.id);
+        setCurrentEntry(todayEntry);
         setIsEditing(true);
         // Now that the entry is saved, open the file input
         if (fileInputRef.current) {
@@ -257,7 +278,7 @@ export default function JournalPage() {
     }
   };
 
-  const handleMusicAttachment = () => {
+  const handleMusicAttachment = async () => {
     if (readOnly) {
       toast.error("Cannot modify past entries");
       return;
@@ -276,15 +297,16 @@ export default function JournalPage() {
         return;
       }
       
-      const saved = autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
+      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
       if (!saved) {
         toast.error("Failed to save journal entry. Please try again.");
         return;
       }
       
-      const todayEntry = getTodayEntry();
+      const todayEntry = await getTodayEntry();
       if (todayEntry) {
         setEntryId(todayEntry.id);
+        setCurrentEntry(todayEntry);
         setIsEditing(true);
         // Now that the entry is saved, open the file input
         if (audioInputRef.current) {
@@ -310,7 +332,10 @@ export default function JournalPage() {
     
     // Now add the attachment
     if (entryId) {
-      await addAttachment(entryId, type, files[0]);
+      const updatedEntry = await addAttachment(entryId, type, files[0]);
+      if (updatedEntry) {
+        setCurrentEntry(updatedEntry);
+      }
       toast.success(`${type === "image" ? "Image" : "Audio"} attached successfully`);
     } else {
       toast.error("Something went wrong. Please try saving your entry first.");
@@ -320,17 +345,16 @@ export default function JournalPage() {
     event.target.value = '';
   };
 
-  const handleDeleteAttachment = (attachmentIndex: number) => {
+  const handleDeleteAttachment = async (attachmentIndex: number) => {
     if (readOnly) {
       toast.error("Cannot modify past entries");
       return;
     }
     
     if (entryId) {
-      const updatedEntry = deleteAttachment(entryId, attachmentIndex);
+      const updatedEntry = await deleteAttachment(entryId, attachmentIndex);
       if (updatedEntry) {
-        // Force a re-render to show the updated attachments
-        setEntryId(updatedEntry.id);
+        setCurrentEntry(updatedEntry);
       }
     }
   };
@@ -397,9 +421,6 @@ export default function JournalPage() {
       </div>
     );
   };
-
-  // Get the entry for displaying attachments
-  const currentEntry = entryId ? getEntryById(entryId) : null;
 
   return (
     <div className="w-full h-full relative">

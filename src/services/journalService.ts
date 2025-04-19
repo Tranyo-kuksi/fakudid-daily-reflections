@@ -172,7 +172,7 @@ export function deleteEntry(id: string): boolean {
 }
 
 // Add attachment to an entry
-export function addAttachment(
+export async function addAttachment(
   entryId: string, 
   type: "image" | "music", 
   file: File
@@ -206,8 +206,8 @@ export function addAttachment(
 }
 
 // Delete an attachment from an entry
-export function deleteAttachment(entryId: string, attachmentIndex: number): JournalEntry | null {
-  const entry = getEntryById(entryId);
+export async function deleteAttachment(entryId: string, attachmentIndex: number): Promise<JournalEntry | null> {
+  const entry = await getEntryById(entryId);
   if (!entry || !entry.attachments) {
     return null;
   }
