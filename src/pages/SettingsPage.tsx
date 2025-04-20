@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -166,64 +165,100 @@ export default function SettingsPage() {
             <CardDescription>Manage your premium features</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6">
-            <div className="bg-gradient-to-r from-amber-50 via-yellow-100 to-amber-50 dark:from-amber-950/30 dark:via-yellow-900/30 dark:to-amber-950/30 p-4 sm:p-6 rounded-lg border border-amber-200 dark:border-amber-800 max-w-full">
-              {isSubscribed ? (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-2">
-                    <Crown className="h-5 w-5 text-amber-500" />
-                    <h3 className="text-lg font-medium text-amber-800 dark:text-amber-300">Premium Subscription Active</h3>
-                  </div>
-                  
-                  <p className="text-amber-700 dark:text-amber-400">
-                    Your premium subscription renews on {formatSubscriptionEnd(subscriptionEnd)}.
-                  </p>
-                  
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <Button 
-                      variant="outline" 
-                      className="border-amber-300 hover:bg-amber-100 dark:border-amber-700 dark:hover:bg-amber-900/50"
-                      onClick={openCustomerPortal}
-                    >
-                      Manage Subscription
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4">
+            <div className="bg-gradient-to-r from-amber-50 via-yellow-100 to-amber-50 dark:from-amber-950/30 dark:via-yellow-900/30 dark:to-amber-950/30 p-4 sm:p-6 rounded-lg border border-amber-200 dark:border-amber-800 w-full">
+              {!isSubscribed ? (
+                <div className="flex flex-col gap-4 max-w-md mx-auto">
                   <div className="flex items-center gap-2">
                     <Crown className="h-5 w-5 text-gray-400" />
-                    <h3 className="text-lg font-medium">Upgrade to Premium</h3>
+                    <h3 className="text-lg font-medium">Unlock Premium Features</h3>
                   </div>
                   
-                  <p className="text-muted-foreground break-words">
-                    Unlock AI-powered journal prompts and enhance your journaling experience.
+                  <p className="text-muted-foreground text-sm">
+                    Elevate your journaling experience with AI-powered insights and personalized writing support.
                   </p>
                   
-                  <ul className="space-y-2 text-sm">
+                  <ul className="space-y-2 text-sm text-left pl-4">
                     <li className="flex items-center gap-2">
                       <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                      <span>Unlimited AI journal prompts</span>
+                      <span>Unlimited AI-generated journal prompts</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                      <span>Personalized writing suggestions</span>
+                      <span>Advanced writing suggestions</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                      <span>Premium support</span>
+                      <span>Priority customer support</span>
                     </li>
                   </ul>
                   
                   <Button
-                    className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-900 w-full sm:w-auto"
+                    className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-900 w-full"
                     onClick={openCheckout}
                   >
                     <Crown className="h-4 w-4 mr-2" />
-                    Upgrade Now - $3.99/month
+                    Upgrade Now - Just $3.99/month
                   </Button>
                 </div>
-              )}
+              ) : null}
             </div>
+          
+            {isSubscribed ? (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-amber-500" />
+                  <h3 className="text-lg font-medium text-amber-800 dark:text-amber-300">Premium Subscription Active</h3>
+                </div>
+                
+                <p className="text-amber-700 dark:text-amber-400">
+                  Your premium subscription renews on {formatSubscriptionEnd(subscriptionEnd)}.
+                </p>
+                
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button 
+                    variant="outline" 
+                    className="border-amber-300 hover:bg-amber-100 dark:border-amber-700 dark:hover:bg-amber-900/50"
+                    onClick={openCustomerPortal}
+                  >
+                    Manage Subscription
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-gray-400" />
+                  <h3 className="text-lg font-medium">Upgrade to Premium</h3>
+                </div>
+                
+                <p className="text-muted-foreground break-words">
+                  Unlock AI-powered journal prompts and enhance your journaling experience.
+                </p>
+                
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
+                    <span>Unlimited AI journal prompts</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
+                    <span>Personalized writing suggestions</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
+                    <span>Premium support</span>
+                  </li>
+                </ul>
+                
+                <Button
+                  className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-900 w-full sm:w-auto"
+                  onClick={openCheckout}
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  Upgrade Now - $3.99/month
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
         
