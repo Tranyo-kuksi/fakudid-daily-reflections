@@ -165,22 +165,22 @@ export default function SettingsPage() {
             <CardDescription>Manage your premium features</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6">
-            <div className="bg-gradient-to-r from-amber-50 via-yellow-100 to-amber-50 dark:from-amber-950/30 dark:via-yellow-900/30 dark:to-amber-950/30 p-4 sm:p-6 rounded-lg border border-amber-200 dark:border-amber-800 w-full">
+            <div className="bg-gradient-to-r from-amber-50 via-yellow-100 to-amber-50 dark:from-amber-950/30 dark:via-yellow-900/30 dark:to-amber-950/30 p-4 sm:p-6 rounded-lg border border-amber-200 dark:border-amber-800 w-full max-w-md mx-auto">
               {!isSubscribed ? (
-                <div className="flex flex-col gap-4 max-w-md mx-auto">
+                <div className="flex flex-col gap-3 w-full">
                   <div className="flex items-center gap-2">
                     <Crown className="h-5 w-5 text-gray-400" />
                     <h3 className="text-lg font-medium">Unlock Premium Features</h3>
                   </div>
                   
-                  <p className="text-muted-foreground text-sm">
-                    Elevate your journaling experience with AI-powered insights and personalized writing support.
+                  <p className="text-muted-foreground text-sm text-center">
+                    Elevate your journaling experience with personalized AI support.
                   </p>
                   
-                  <ul className="space-y-2 text-sm text-left pl-4">
+                  <ul className="space-y-2 text-sm text-center pl-4 self-center">
                     <li className="flex items-center gap-2">
                       <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                      <span>Unlimited AI-generated journal prompts</span>
+                      <span>Unlimited AI journal prompts</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
@@ -193,7 +193,7 @@ export default function SettingsPage() {
                   </ul>
                   
                   <Button
-                    className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-900 w-full"
+                    className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-900 w-full mt-2"
                     onClick={openCheckout}
                   >
                     <Crown className="h-4 w-4 mr-2" />
