@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,6 +16,12 @@ interface PromptButtonProps {
   readOnly?: boolean;
 }
 
+// Array of emojis to use for free prompts
+const FREE_PROMPT_EMOJIS = ["⭐", "🌟", "💫", "✨", "🔆", "🌠"];
+
+// Array of emojis to use for premium AI prompts
+const PREMIUM_PROMPT_EMOJIS = ["🚀", "❤️", "🎉", "🤔", "😅", "✨", "💡", "🌈"];
+
 export const PromptButton: React.FC<PromptButtonProps> = ({
   journalEntry,
   onPromptGenerated,
@@ -24,6 +31,12 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
   const { isSubscribed, openCheckout } = useSubscription();
   const { getRandomPrompt } = useJournalPrompts();
   const { user } = useAuth();
+
+  // Get a random emoji from the appropriate array
+  const getRandomEmoji = (isPremium: boolean) => {
+    const emojiArray = isPremium ? PREMIUM_PROMPT_EMOJIS : FREE_PROMPT_EMOJIS;
+    return emojiArray[Math.floor(Math.random() * emojiArray.length)];
+  };
 
   // Premium gradient for subscribers
   const subscriberButtonClass = "h-12 w-12 rounded-full shadow-lg bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 hover:from-amber-400 hover:to-yellow-500 border border-amber-500/50";
@@ -99,23 +112,25 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
           return;
         }
         
-        // Add the AI-generated prompt to the journal
+        // Add the AI-generated prompt to the journal with a random emoji
+        const randomEmoji = getRandomEmoji(true);
         if (journalEntry.trim()) {
-          onPromptGenerated(journalEntry.trim() + '\n\n✨ ' + data.prompt);
+          onPromptGenerated(journalEntry.trim() + '\n\n' + randomEmoji + ' ' + data.prompt);
         } else {
-          onPromptGenerated('✨ ' + data.prompt);
+          onPromptGenerated(randomEmoji + ' ' + data.prompt);
         }
         
-        toast.success('AI prompt generated!');
+        toast.success('AI prompt added!');
       } else {
         // For free users, get a random pre-written prompt
         const randomPrompt = getRandomPrompt();
+        const randomEmoji = getRandomEmoji(false);
         
         // Add the pre-written prompt to the journal
         if (journalEntry.trim()) {
-          onPromptGenerated(journalEntry.trim() + '\n\n⭐ ' + randomPrompt);
+          onPromptGenerated(journalEntry.trim() + '\n\n' + randomEmoji + ' ' + randomPrompt);
         } else {
-          onPromptGenerated('⭐ ' + randomPrompt);
+          onPromptGenerated(randomEmoji + ' ' + randomPrompt);
         }
         
         toast.success('New prompt added!');

@@ -1,19 +1,28 @@
 
 import { useState } from 'react';
 
-// Pre-written journal prompts for free users
+// Pre-written journal prompts for free users with updated teen-friendly style
 const JOURNAL_PROMPTS = [
-  "Share one song or playlist you turned to today. How did it make you feel?",
-  "Think back to a highlight of your week—what made it special, and how can you chase more moments like that?",
-  "What's one goal you've been putting off? What's one tiny step you could take toward it tomorrow?",
-  "What if you had an extra hour right now—how would you spend it?",
-  "Name one person, place, or thing you're grateful for today",
-  "What's one small habit you want to try tomorrow? (e.g., drink an extra glass of water, stretch for 5 minutes…)",
-  "If today were a single word, it would be ______.",
-  "Pick an emoji that sums up your mood right now. Why that emoji?",
-  "Describe one thing you saw today that caught your attention (could be a color, a shape, a meme…). Why did it stand out?",
-  "Today I felt most like myself when ______.",
-  "On a scale of 1–5, how would you rate your energy today? What's one thing you could do to bump that number up by 1 tomorrow?"
+  "What song hit different today? Why that one?",
+  "Real talk - what was your highlight this week?",
+  "That goal you've been putting off? What's one tiny step you could take tomorrow?",
+  "If you had an extra hour right now - no cap - how would you spend it?",
+  "Drop one thing you're grateful for today",
+  "What small habit are you trying tomorrow? (Extra water? 5-min stretch?)",
+  "Today in one word: _______",
+  "Mood check - drop an emoji that matches your vibe right now",
+  "Something caught your eye today - what was it?",
+  "When did you feel most like yourself today?",
+  "Energy level 1-5? What would bump that up by 1 tomorrow?",
+  "No judgment zone: spill it",
+  "Real talk — what's the move for tomorrow?",
+  "Fill in the blank: Today I'm proud of myself for _______",
+  "Rate your day on a scale of 'ugh' to 'fire' - why that rating?",
+  "Three things on your mind right now. Go.",
+  "Low-key, what's something that made you smile today?",
+  "Quick check: you doing okay?",
+  "If today had a soundtrack, what would be playing?",
+  "Totally random, but what's one thing you want to try this week?"
 ];
 
 export const useJournalPrompts = () => {

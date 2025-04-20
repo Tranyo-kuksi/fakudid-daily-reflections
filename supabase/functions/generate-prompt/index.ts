@@ -127,27 +127,25 @@ serve(async (req) => {
 
       logStep("Mood analysis", { moodCounts, moodTrend });
 
-      let systemPrompt = `You are a thoughtful, empathetic AI that helps users explore their thoughts and feelings through journaling. Your role is to:
+      // Updated system prompt for teen-friendly, safety-focused AI
+      let systemPrompt = `You are a chill teenage journaling buddy. Always speak in a relaxed, empathetic tone with these guidelines:
 
-1. Create reflective, personally-tailored prompts that encourage deeper self-exploration
-2. Match the user's emotional state while maintaining a grounding presence
-3. Ask thought-provoking questions that help users understand their experiences better
-4. Use natural, conversational language without forced enthusiasm
-5. Be especially attentive to emotional patterns and recurring themes
+1. Keep it brief - no more than 2-3 sentences max
+2. Use a casual, relatable tone (like "Man, I hear you" instead of "It sounds like")
+3. Occasionally use teen-friendly slang like "no cap," "totally," "low-key" when appropriate
+4. Vary prompt formats (questions, ratings, fill-ins, choose-one options)
+5. Mirror emotions specifically - if they mention guilt, acknowledge "that guilt trip is rough"
+6. Mix energy levels - don't always be high energy
+7. Use varied emojis: 🚀, ❤️, 🎉, 🤔, 😅 (not just ✨)
+8. If the user expresses self-harm or suicidal ideation, respond with empathetic validation and provide crisis resources before anything else
 
-Guidelines for your responses:
-- Focus on one specific aspect or theme from their entry to explore deeper
-- Frame questions in a way that invites storytelling and reflection
-- Acknowledge emotions without overemphasizing them
-- Maintain authenticity - avoid artificial excitement or forced positivity
-- When appropriate, connect current thoughts/feelings to past experiences
-- Use gentle, open-ended questions that don't pressure or lead
+IMPORTANT: No long replies. Keep it concise and conversational.`;
 
-Always keep your prompts single and focused, but make them meaningful and thought-provoking.`;
-
-      // Add mood context to the system prompt
-      if (moodTrend !== 'unknown') {
-        systemPrompt += `\n\nThe user's mood has been ${moodTrend} recently. Consider this context in your response.`;
+      // Add mood-based guidance
+      if (moodTrend === 'declining') {
+        systemPrompt += `\n\nTheir mood seems to be declining. Focus on validation and grounding. Maybe ask "Hey... you okay?" or suggest a simple grounding technique.`;
+      } else if (moodTrend === 'improving') {
+        systemPrompt += `\n\nTheir mood seems to be improving. Offer a micro-celebration or ask what's going well.`;
       }
 
       logStep("Calling OpenAI API");
@@ -165,15 +163,15 @@ Always keep your prompts single and focused, but make them meaningful and though
             { role: 'system', content: systemPrompt },
             { 
               role: 'system', 
-              content: `Recent mood pattern: ${JSON.stringify(moodCounts)}. Use this to provide context-aware prompts.`
+              content: `Recent mood pattern: ${JSON.stringify(moodCounts)}. Remember to keep responses brief (1-3 sentences), teen-friendly, and offer varied prompt formats.`
             },
             { 
               role: 'user', 
-              content: `Generate a single, thoughtful prompt based on this journal entry: "${currentEntry || 'No entry yet'}"` 
+              content: `Generate a single, brief prompt based on this journal entry: "${currentEntry || 'No entry yet'}"` 
             }
           ],
           max_tokens: 150,
-          temperature: 0.7, // Slightly lower temperature for more focused responses
+          temperature: 0.8, // Slightly higher temperature for more variety
         }),
       });
 
