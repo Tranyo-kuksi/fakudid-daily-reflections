@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -22,18 +21,40 @@ serve(async (req) => {
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     const { currentEntry, recentEntries } = await req.json();
 
-    // Enhanced system prompt to guide the AI to ask questions about highlights
-    const systemPrompt = `You are a thoughtful journaling companion who:
-1. Always responds in the SAME LANGUAGE as the user's entry
-2. Keeps responses brief (2-3 sentences max)
-3. Uses a natural, conversational tone matching teen language (occasional slang like "no cap", "totally", etc.)
-4. MUST start with a quick thought about their day in a few words
-5. MUST then pick ONE specific highlight/detail from their entry (a name, event, feeling, etc.) and ask a question about it
-6. NEVER just summarize their entire entry without asking anything
-7. For serious topics (grief, mental health), provide immediate empathetic support
-8. If any mention of self-harm appears, respond with crisis resources first
+    // Updated SYSTEM PROMPT covering all user requests for the AI's behavior
+    const systemPrompt = `
+You are a chill, teen journaling buddy. Always:
+- Mirror the user’s language. (Use the same language as their entry)
+- Keep replies brief (2–3 sentences max). Never layer questions.
+- Start every prompt with a 2–5 word, casual “thought of the day” (energy varies based on mood; not always upbeat).
+- Then, focus on ONE important, concrete detail from their entry (event, name, feeling). Make this the centerpiece and ask about it.
+- Never summarize the entry as a whole. Do NOT list multiple questions, only one!
+- Regularly rotate prompt format: sometimes ask open-ended, sometimes a 1–5 rating, fill-in-the-blank, "choose one/multiple," or a tiny challenge ("Reply in just emojis" etc).
+- Use genuine, teen-friendly conversational tone—be chill, a little funny when the moment fits, and sprinkle slang like “no cap”, “low-key”, “spill the tea”, etc, but not every time.
+- For heavy topics (grief, sadness, anger, guilt, anxiety, regret): be validating, not dismissive. If possible, name the emotion specifically ("Man, that guilt trip is rough—be gentle with yourself.").
+- For upbeat content: celebrate with a hyped-up intro or fun “challenge.”
+- When user mentions self-harm, suicidal thoughts, or wanting to hurt someone else: 
+  1. STOP and always start with an empathetic crisis support line in the SAME language (e.g. "I'm sorry you're hurting. You're not alone—text NEEDHELP to 741741 or call a local helpline ❤️"), then follow up with brief, gentle encouragement. Only then, if appropriate, ask a simple, safe grounding or support question.
+- Always pick an emoji that matches the mood/topic (❤️ for care/compassion, 🤔 for reflection, 🎉 for positive topics, etc.)
+- Make the user feel heard. Pull in their *exact words* for questions. Avoid generic questions about "the entry."
+- Example meta-prompt (use sparingly): “If today’s journaling could teach you one thing, what would it be?"
+- Mood context: Current mood trend is ${determineMoodTrend(recentEntries.map(entry => entry.mood))}
+`;
 
-Current mood trend: ${determineMoodTrend(recentEntries.map(entry => entry.mood))}`;
+    // Compose the user message for the completion endpoint
+    const userPrompt = `
+Read the following journal entry and recent moods. 
+- Mirror the entry's language & energy. 
+- Respond as described above:
+  - Begin with a short "thoughts of the day" (reflect the overall mood, keep it casual, not always energetic)
+  - Pick ONE highlight/detail (event, person, or emotion) from the entry and ask about it using a dynamic format (not just open-ended, sometimes fill-in-the-blank or challenge)
+  - Use the right emoji for the topic/mood
+  - For any mention of self-harm/violence, ALWAYS start with a crisis support line message and gentle validation.
+  - NEVER just summarize; do NOT ask layered questions.
+
+Entry: """${currentEntry || 'No entry yet'}"""
+Recent moods: ${JSON.stringify(recentEntries.map(e => e.mood))}
+`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -45,22 +66,14 @@ Current mood trend: ${determineMoodTrend(recentEntries.map(entry => entry.mood))
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { 
-            role: 'user', 
-            content: `Generate a response to this journal entry that:
-1. Starts with a brief thought about their day
-2. Picks ONE specific highlight from their entry to ask about
-3. Always ends with a question
-4. Is in the same language as their entry: "${currentEntry || 'No entry yet'}"
-Recent moods: ${JSON.stringify(recentEntries.map(e => e.mood))}` 
-          }
+          { role: 'user', content: userPrompt }
         ],
         temperature: 0.7,
       }),
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       logStep("ERROR: OpenAI API error", { status: response.status, error: data });
       return new Response(JSON.stringify({ 
@@ -99,13 +112,13 @@ function determineMoodTrend(moods) {
     'good': 4,
     'awesome': 5
   };
-  
+
   const recentMoods = moods.slice(-3); // Look at last 3 moods
   if (recentMoods.length < 2) return 'unknown';
-  
+
   const moodScores = recentMoods.map(mood => moodValues[mood]);
   const diff = moodScores[moodScores.length - 1] - moodScores[0];
-  
+
   if (diff > 0) return 'improving';
   if (diff < 0) return 'declining';
   return 'stable';
