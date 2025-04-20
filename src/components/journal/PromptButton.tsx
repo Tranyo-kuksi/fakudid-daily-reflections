@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import { useJournalPrompts } from "@/hooks/use-journal-prompts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { getAllEntries } from "@/services/journalService";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PromptButtonProps {
   journalEntry: string;
@@ -23,6 +23,7 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
   const [isGeneratingPrompt, setIsGeneratingPrompt] = React.useState(false);
   const { isSubscribed, openCheckout } = useSubscription();
   const { getRandomPrompt } = useJournalPrompts();
+  const { user } = useAuth();
 
   // Premium gradient for subscribers
   const subscriberButtonClass = "h-12 w-12 rounded-full shadow-lg bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 hover:from-amber-400 hover:to-yellow-500 border border-amber-500/50";
@@ -36,27 +37,28 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
       return;
     }
 
+    if (!user) {
+      toast.error("You must be logged in to generate prompts");
+      return;
+    }
+
     try {
       if (isSubscribed) {
-        // Show loading state for AI prompt
         setIsGeneratingPrompt(true);
         toast.loading('Generating prompt...', { id: 'generate-prompt' });
         
-        // Get recent entries for context
         const allEntries = await getAllEntries();
         const recentEntries = allEntries
           .slice(0, 5)
           .filter(entry => entry.content !== journalEntry);
 
-        // Make sure we have the latest auth token
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session) {
+        // Get fresh session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.access_token) {
           toast.dismiss('generate-prompt');
           setIsGeneratingPrompt(false);
-          toast.error('You must be logged in to generate AI prompts');
+          toast.error('Session expired. Please sign in again.');
           return;
         }
 
@@ -64,6 +66,9 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
           body: { 
             currentEntry: journalEntry,
             recentEntries: recentEntries
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
           }
         });
         
