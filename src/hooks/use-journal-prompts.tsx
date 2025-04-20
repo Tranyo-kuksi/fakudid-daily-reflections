@@ -1,28 +1,28 @@
 
 import { useState } from 'react';
 
-// Pre-written journal prompts for free users with updated teen-friendly style
+// Updated prompts with more empathetic and varied tones
 const JOURNAL_PROMPTS = [
-  "What song hit different today? Why that one?",
-  "Real talk - what was your highlight this week?",
-  "That goal you've been putting off? What's one tiny step you could take tomorrow?",
-  "If you had an extra hour right now - no cap - how would you spend it?",
-  "Drop one thing you're grateful for today",
-  "What small habit are you trying tomorrow? (Extra water? 5-min stretch?)",
-  "Today in one word: _______",
-  "Mood check - drop an emoji that matches your vibe right now",
-  "Something caught your eye today - what was it?",
-  "When did you feel most like yourself today?",
-  "Energy level 1-5? What would bump that up by 1 tomorrow?",
-  "No judgment zone: spill it",
-  "Real talk — what's the move for tomorrow?",
-  "Fill in the blank: Today I'm proud of myself for _______",
-  "Rate your day on a scale of 'ugh' to 'fire' - why that rating?",
-  "Three things on your mind right now. Go.",
-  "Low-key, what's something that made you smile today?",
-  "Quick check: you doing okay?",
-  "If today had a soundtrack, what would be playing?",
-  "Totally random, but what's one thing you want to try this week?"
+  "Real talk - what's on your mind?",
+  "Something's different today - what changed?",
+  "Drop the truth - no filter needed",
+  "That feeling you can't shake - what's it about?",
+  "Three words about right now. Go.",
+  "Low-key, what's bugging you?",
+  "Something you need to get off your chest?",
+  "Fill in: Today made me feel ___ because ___",
+  "Real quick - you doing okay?",
+  "That thing keeping you up - what is it?",
+  "Someone on your mind? Why them?",
+  "What's the move tomorrow?",
+  "Unfiltered moment - what's actually going on?",
+  "That gut feeling - what's it telling you?",
+  "Quick check-in: where's your head at?",
+  "Something you're not saying - what is it?",
+  "Need to vent? Go for it.",
+  "That stress you're carrying - where's it from?",
+  "One thing you'd change about today?",
+  "Real talk - what do you need right now?"
 ];
 
 export const useJournalPrompts = () => {
