@@ -3,6 +3,15 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { toast } from "@/components/ui/sonner";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface SubscriptionContextType {
   isSubscribed: boolean;
@@ -30,6 +39,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
+  const [showConfigDialog, setShowConfigDialog] = useState(false);
   const { user, session } = useAuth();
 
   // Helper to ensure we have a valid session
@@ -195,6 +205,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
           return;
         }
         
+        // Special case for portal configuration error
+        if (data.configuration_required) {
+          console.log('Stripe Portal needs configuration');
+          setShowConfigDialog(true);
+          return;
+        }
+        
         toast.error(`Customer portal failed: ${data.details || data.error}`);
         return;
       }
@@ -258,6 +275,44 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       }}
     >
       {children}
+      
+      {/* Portal Configuration Dialog */}
+      <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Stripe Customer Portal Setup Required</DialogTitle>
+            <DialogDescription>
+              The Stripe Customer Portal has not been configured in your Stripe Dashboard. You need to configure it before users can manage their subscriptions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm">
+              Please follow these steps:
+            </p>
+            <ol className="list-decimal pl-5 text-sm space-y-2">
+              <li>Go to the Stripe Dashboard</li>
+              <li>Navigate to Settings → Billing → Customer Portal</li>
+              <li>Configure the basic settings for your Customer Portal</li>
+              <li>Save your changes</li>
+              <li>Return to this app to manage subscriptions</li>
+            </ol>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setShowConfigDialog(false)}>
+              Close
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => {
+                window.open('https://dashboard.stripe.com/test/settings/billing/portal', '_blank');
+                setShowConfigDialog(false);
+              }}
+            >
+              Open Stripe Dashboard
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SubscriptionContext.Provider>
   );
 };

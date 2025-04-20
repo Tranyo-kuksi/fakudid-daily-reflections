@@ -140,6 +140,19 @@ serve(async (req) => {
         stack: stripeError.stack
       });
       
+      // Special handling for unconfigured portal error
+      if (stripeError.message && stripeError.message.includes('No configuration provided')) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Stripe Customer Portal not configured', 
+            details: 'The Stripe Customer Portal has not been configured in the Stripe Dashboard. Please configure it at https://dashboard.stripe.com/test/settings/billing/portal',
+            configuration_required: true,
+            type: stripeError.type
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ 
           error: 'Failed to create customer portal session', 
@@ -162,4 +175,3 @@ serve(async (req) => {
     );
   }
 });
-
