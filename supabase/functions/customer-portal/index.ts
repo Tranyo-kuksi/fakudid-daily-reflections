@@ -23,15 +23,27 @@ serve(async (req) => {
   try {
     logStep("Function started");
     
+    // Load all required environment variables
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const returnUrl = Deno.env.get('RETURN_URL');
     
-    if (!stripeKey || !supabaseUrl || !supabaseKey) {
-      const missingVars = []
+    // Log environment variable presence (not values)
+    console.log('customer-portal env:', {
+      stripeKey: !!stripeKey,
+      supabaseUrl: !!supabaseUrl,
+      supabaseKey: !!supabaseKey,
+      returnUrl: !!returnUrl
+    });
+
+    // Validate all required environment variables
+    if (!stripeKey || !supabaseUrl || !supabaseKey || !returnUrl) {
+      const missingVars = [];
       if (!stripeKey) missingVars.push('STRIPE_SECRET_KEY');
       if (!supabaseUrl) missingVars.push('SUPABASE_URL');
       if (!supabaseKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
+      if (!returnUrl) missingVars.push('RETURN_URL');
       
       const errorMsg = `Missing required environment variables: ${missingVars.join(', ')}`;
       logStep("ERROR", { error: errorMsg });
@@ -129,26 +141,39 @@ serve(async (req) => {
       });
       
       if (subscriptions.data.length === 0) {
-        // No active subscription, but we'll still let them access the portal
-        // as they might have a canceled subscription they want to reactivate
         logStep("No active subscription found, but proceeding to portal");
       }
 
-      const origin = req.headers.get('origin') || 'http://localhost:5173';
-      const session = await stripe.billingPortal.sessions.create({
-        customer: customerId,
-        return_url: `${origin}/settings`,
-      });
-      
-      logStep("Created billing portal session", { 
-        sessionId: session.id,
-        url: session.url
-      });
+      try {
+        const session = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: returnUrl,
+        });
+        
+        logStep("Created billing portal session", { 
+          sessionId: session.id,
+          url: session.url
+        });
 
-      return new Response(
-        JSON.stringify({ url: session.url }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+        return new Response(
+          JSON.stringify({ url: session.url }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (stripeError) {
+        console.error('Stripe portal error:', stripeError);
+        logStep("Stripe portal error", { 
+          message: stripeError.message,
+          type: stripeError.type
+        });
+        
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to create customer portal session', 
+            details: stripeError.message 
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     } catch (stripeError) {
       console.error('Stripe API error:', stripeError);
       logStep("Stripe API error", { 
