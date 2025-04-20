@@ -3,25 +3,25 @@ import { useState } from 'react';
 
 // Updated prompts with more question-focused and conversational tone
 const JOURNAL_PROMPTS = [
-  "What's on your mind today? Spill it.",
+  "What's on your mind today?",
   "Something changed today - what was it?",
-  "Real talk - what's bugging you right now?",
+  "What's troubling you right now?",
   "That feeling you can't shake - what's it about?",
   "Three words to describe today. Why those?",
-  "Low-key, what's one win from today?",
-  "Something you need to get off your chest?",
+  "What's one positive moment from today?",
+  "Something you need to express?",
   "Fill in: Today made me feel ___ because ___",
-  "You doing okay? What do you need right now?",
+  "How are you doing? What do you need right now?",
   "What's keeping you up at night lately?",
   "Someone on your mind? Why them?",
-  "What's the move for tomorrow? Any plans?",
-  "That gut feeling - what's it telling you?",
-  "Quick check-in: what's the best part of today?",
+  "What are your plans for tomorrow?",
+  "What is your intuition telling you?",
+  "What was the best part of today?",
   "Something you're not saying out loud - what is it?",
-  "Need to vent? What's been frustrating you?",
-  "That stress you're carrying - where's it from?",
+  "What's been frustrating you?",
+  "Where is your stress coming from?",
   "One thing you'd change about today? Why?",
-  "Low-key proud of yourself for what today?",
+  "What are you proud of yourself for today?",
   "What's one small thing you're grateful for?"
 ];
 
