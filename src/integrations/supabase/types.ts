@@ -14,6 +14,7 @@ export type Database = {
           created_at: string
           email_notifications: boolean | null
           id: string
+          plan: Database["public"]["Enums"]["subscription_plan"]
           updated_at: string
           username: string | null
         }
@@ -21,6 +22,7 @@ export type Database = {
           created_at?: string
           email_notifications?: boolean | null
           id: string
+          plan?: Database["public"]["Enums"]["subscription_plan"]
           updated_at?: string
           username?: string | null
         }
@@ -28,6 +30,7 @@ export type Database = {
           created_at?: string
           email_notifications?: boolean | null
           id?: string
+          plan?: Database["public"]["Enums"]["subscription_plan"]
           updated_at?: string
           username?: string | null
         }
@@ -41,7 +44,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_plan: "free" | "premium"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -156,6 +159,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_plan: ["free", "premium"],
+    },
   },
 } as const

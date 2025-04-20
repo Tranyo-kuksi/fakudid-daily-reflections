@@ -15,42 +15,79 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-  if (!stripeKey) {
-    return new Response(
-      JSON.stringify({ error: 'Stripe key not found' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
   try {
-    // Create Supabase client using the service role key to bypass RLS
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    // Fetch environment variables
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    // Log for debugging
+    console.log("Environment variables check:");
+    console.log("- Stripe key available:", !!stripeKey);
+    console.log("- Supabase URL available:", !!supabaseUrl);
+    console.log("- Supabase service role key available:", !!supabaseKey);
+    
+    if (!stripeKey) {
+      console.error("STRIPE_SECRET_KEY is not set in environment variables");
+      return new Response(
+        JSON.stringify({ error: 'Stripe key not found', details: 'Please configure STRIPE_SECRET_KEY in edge function secrets' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error("SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not set in environment variables");
+      return new Response(
+        JSON.stringify({ error: 'Supabase credentials not found', details: 'Please configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in edge function secrets' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get the user from the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header');
+      console.error("No authorization header found");
+      return new Response(
+        JSON.stringify({ error: 'No authorization header', details: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
-      throw new Error('Invalid user token');
+      console.error("User authentication error:", userError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid user token', details: userError?.message || 'Authentication failed' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Check if the user already exists in the subscribers table
-    const { data: subscriber } = await supabase
+    const { data: subscriber, error: subscriberError } = await supabase
       .from('subscribers')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
       .maybeSingle();
     
+    if (subscriberError) {
+      console.error("Error fetching subscriber:", subscriberError);
+      return new Response(
+        JSON.stringify({ error: 'Database error', details: subscriberError.message || 'Error fetching subscriber information' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     if (!subscriber?.stripe_customer_id) {
-      throw new Error('No Stripe customer found');
+      console.error("No Stripe customer found for user:", user.id);
+      return new Response(
+        JSON.stringify({ error: 'No Stripe customer found', details: 'You do not have an active subscription' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const stripe = new Stripe(stripeKey, {
@@ -59,19 +96,30 @@ serve(async (req) => {
 
     const origin = req.headers.get('origin') || 'http://localhost:5173';
     
-    // Create a portal session for managing subscription
-    const session = await stripe.billingPortal.sessions.create({
-      customer: subscriber.stripe_customer_id,
-      return_url: `${origin}/settings`,
-    });
+    try {
+      // Create a portal session for managing subscription
+      const session = await stripe.billingPortal.sessions.create({
+        customer: subscriber.stripe_customer_id,
+        return_url: `${origin}/settings`,
+      });
 
-    return new Response(
-      JSON.stringify({ url: session.url }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      console.log("Portal session created:", session.id);
+      
+      return new Response(
+        JSON.stringify({ url: session.url }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (stripeError) {
+      console.error("Error creating Stripe portal session:", stripeError);
+      return new Response(
+        JSON.stringify({ error: 'Stripe portal error', details: stripeError.message || 'Error creating customer portal' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
   } catch (error) {
+    console.error("Unexpected error in customer-portal:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Server error', details: error.message || 'Unexpected error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

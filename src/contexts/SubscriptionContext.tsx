@@ -49,6 +49,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
       
+      // If we got a specific error from the edge function
+      if (data.error) {
+        console.error('Subscription check error:', data.error, data.details);
+        toast.error(`Subscription check failed: ${data.details || data.error}`);
+        return;
+      }
+      
       setIsSubscribed(data.subscribed);
       setSubscriptionEnd(data.subscription_end);
     } catch (error) {
@@ -76,6 +83,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (error) {
         console.error('Error creating checkout:', error);
         toast.error('Failed to create checkout session: ' + error.message);
+        return;
+      }
+      
+      // If we got a specific error from the edge function
+      if (data.error) {
+        console.error('Checkout error:', data.error, data.details);
+        toast.error(`Checkout failed: ${data.details || data.error}`);
         return;
       }
       
@@ -116,6 +130,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (error) {
         console.error('Error opening customer portal:', error);
         toast.error('Failed to open customer portal: ' + error.message);
+        return;
+      }
+      
+      // If we got a specific error from the edge function
+      if (data.error) {
+        console.error('Customer portal error:', data.error, data.details);
+        toast.error(`Customer portal failed: ${data.details || data.error}`);
         return;
       }
       
