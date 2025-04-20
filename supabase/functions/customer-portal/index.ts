@@ -80,115 +80,81 @@ serve(async (req) => {
     
     logStep("User authenticated", { id: user.id, email: user.email });
 
-    try {
-      // First check if we have a customer ID in our database
-      const { data: subscriber, error: subscriberError } = await supabase
-        .from('subscribers')
-        .select('stripe_customer_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-        
-      logStep("Checked subscribers table", { 
-        found: !!subscriber?.stripe_customer_id,
-        error: subscriberError?.message 
+    // Check subscribers table for customer ID
+    const { data: subscriber, error: subscriberError } = await supabase
+      .from('subscribers')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    logStep("Checked subscribers table", { 
+      found: !!subscriber?.stripe_customer_id,
+      error: subscriberError?.message 
+    });
+    
+    let customerId = subscriber?.stripe_customer_id;
+    
+    // If no customer ID in our database, check Stripe
+    if (!customerId) {
+      const customers = await stripe.customers.list({
+        email: user.email,
+        limit: 1,
       });
       
-      let customerId = subscriber?.stripe_customer_id;
+      logStep("Checked Stripe for customers", { count: customers.data.length });
       
-      // If no customer ID in our database, check Stripe
-      if (!customerId) {
-        const customers = await stripe.customers.list({
-          email: user.email,
-          limit: 1,
-        });
-        
-        logStep("Checked Stripe for customers", { count: customers.data.length });
-        
-        if (customers.data.length === 0) {
-          return new Response(
-            JSON.stringify({ 
-              error: 'No Stripe customer found', 
-              details: 'You need to subscribe first before managing a subscription'
-            }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        customerId = customers.data[0].id;
-        
-        // Update our database with the found customer ID
-        await supabase
-          .from('subscribers')
-          .upsert({
-            user_id: user.id,
-            email: user.email,
-            stripe_customer_id: customerId,
-            updated_at: new Date().toISOString()
-          });
-          
-        logStep("Updated subscribers table with Stripe customer ID");
-      }
-
-      // Now check if this customer has any active subscriptions
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customerId,
-        status: 'active',
-        limit: 1
-      });
-      
-      logStep("Checked for active subscriptions", { 
-        hasActive: subscriptions.data.length > 0 
-      });
-      
-      if (subscriptions.data.length === 0) {
-        logStep("No active subscription found, but proceeding to portal");
-      }
-
-      try {
-        const session = await stripe.billingPortal.sessions.create({
-          customer: customerId,
-          return_url: returnUrl,
-        });
-        
-        logStep("Created billing portal session", { 
-          sessionId: session.id,
-          url: session.url
-        });
-
-        return new Response(
-          JSON.stringify({ url: session.url }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      } catch (stripeError) {
-        console.error('Stripe portal error:', stripeError);
-        logStep("Stripe portal error", { 
-          message: stripeError.message,
-          type: stripeError.type
-        });
-        
+      if (customers.data.length === 0) {
         return new Response(
           JSON.stringify({ 
-            error: 'Failed to create customer portal session', 
-            details: stripeError.message 
+            error: 'No Stripe customer found', 
+            details: 'You need to subscribe first before managing a subscription'
           }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      
+      customerId = customers.data[0].id;
+    }
+
+    // Create Stripe Billing Portal session
+    try {
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: returnUrl,
+      });
+      
+      logStep("Created billing portal session", { 
+        sessionId: session.id,
+        url: session.url
+      });
+
+      return new Response(
+        JSON.stringify({ url: session.url }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     } catch (stripeError) {
-      console.error('Stripe API error:', stripeError);
-      logStep("Stripe API error", { 
+      console.error('Stripe portal session error:', stripeError);
+      logStep("Stripe portal session error", { 
         message: stripeError.message,
-        type: stripeError.type
+        type: stripeError.type,
+        stack: stripeError.stack
       });
       
       return new Response(
-        JSON.stringify({ error: 'Failed to create customer portal session', details: stripeError.message }),
+        JSON.stringify({ 
+          error: 'Failed to create customer portal session', 
+          details: stripeError.message,
+          type: stripeError.type
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
   } catch (error) {
-    console.error('Server error:', error);
-    logStep("Server error", { message: error.message });
+    console.error('Unexpected server error:', error);
+    logStep("Server error", { 
+      message: error.message,
+      stack: error.stack
+    });
     
     return new Response(
       JSON.stringify({ error: 'Internal server error', details: error.message }),
@@ -196,3 +162,4 @@ serve(async (req) => {
     );
   }
 });
+
