@@ -21,7 +21,7 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
   readOnly = false
 }) => {
   const [isGeneratingPrompt, setIsGeneratingPrompt] = React.useState(false);
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, openCheckout } = useSubscription();
   const { getRandomPrompt } = useJournalPrompts();
 
   // Premium gradient for subscribers
@@ -60,7 +60,19 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
         
         if (error) {
           console.error('Error generating prompt:', error);
-          toast.error('Failed to generate prompt: ' + error.message);
+          
+          // Check for subscription required error
+          if (data?.subscription_required) {
+            toast.error('Premium subscription required for AI prompts', {
+              action: {
+                label: 'Upgrade',
+                onClick: () => openCheckout()
+              }
+            });
+            return;
+          }
+          
+          toast.error('Failed to generate prompt: ' + (error.message || 'Unknown error'));
           return;
         }
         

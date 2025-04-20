@@ -9,6 +9,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function for consistent logging
+const logStep = (step, details = null) => {
+  console.log(`[CUSTOMER-PORTAL] ${step}${details ? ': ' + JSON.stringify(details) : ''}`);
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -16,19 +21,22 @@ serve(async (req) => {
   }
 
   try {
+    logStep("Function started");
+
     // Fetch environment variables
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    // Log for debugging
-    console.log("Environment variables check:");
-    console.log("- Stripe key available:", !!stripeKey);
-    console.log("- Supabase URL available:", !!supabaseUrl);
-    console.log("- Supabase service role key available:", !!supabaseKey);
+    // Log environment variable status
+    logStep("Environment variables", {
+      stripeKeyAvailable: !!stripeKey,
+      supabaseUrlAvailable: !!supabaseUrl,
+      supabaseKeyAvailable: !!supabaseKey
+    });
     
     if (!stripeKey) {
-      console.error("STRIPE_SECRET_KEY is not set in environment variables");
+      logStep("ERROR: STRIPE_SECRET_KEY is not set");
       return new Response(
         JSON.stringify({ error: 'Stripe key not found', details: 'Please configure STRIPE_SECRET_KEY in edge function secrets' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -36,7 +44,7 @@ serve(async (req) => {
     }
     
     if (!supabaseUrl || !supabaseKey) {
-      console.error("SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not set in environment variables");
+      logStep("ERROR: SUPABASE credentials missing");
       return new Response(
         JSON.stringify({ error: 'Supabase credentials not found', details: 'Please configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in edge function secrets' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -49,7 +57,7 @@ serve(async (req) => {
     // Get the user from the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error("No authorization header found");
+      logStep("ERROR: No authorization header");
       return new Response(
         JSON.stringify({ error: 'No authorization header', details: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -57,15 +65,18 @@ serve(async (req) => {
     }
     
     const token = authHeader.replace('Bearer ', '');
+    logStep("Authenticating user with token");
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
-      console.error("User authentication error:", userError);
+      logStep("ERROR: User authentication failed", userError);
       return new Response(
         JSON.stringify({ error: 'Invalid user token', details: userError?.message || 'Authentication failed' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Check if the user already exists in the subscribers table
     const { data: subscriber, error: subscriberError } = await supabase
@@ -75,7 +86,7 @@ serve(async (req) => {
       .maybeSingle();
     
     if (subscriberError) {
-      console.error("Error fetching subscriber:", subscriberError);
+      logStep("ERROR: Failed to fetch subscriber data", subscriberError);
       return new Response(
         JSON.stringify({ error: 'Database error', details: subscriberError.message || 'Error fetching subscriber information' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -83,13 +94,14 @@ serve(async (req) => {
     }
     
     if (!subscriber?.stripe_customer_id) {
-      console.error("No Stripe customer found for user:", user.id);
+      logStep("ERROR: No Stripe customer ID found for user", { userId: user.id });
       return new Response(
         JSON.stringify({ error: 'No Stripe customer found', details: 'You do not have an active subscription' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    logStep("Found Stripe customer", { customerId: subscriber.stripe_customer_id });
     const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     });
@@ -98,26 +110,31 @@ serve(async (req) => {
     
     try {
       // Create a portal session for managing subscription
+      logStep("Creating portal session");
       const session = await stripe.billingPortal.sessions.create({
         customer: subscriber.stripe_customer_id,
         return_url: `${origin}/settings`,
       });
 
-      console.log("Portal session created:", session.id);
+      logStep("Portal session created", { sessionId: session.id });
       
       return new Response(
         JSON.stringify({ url: session.url }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (stripeError) {
-      console.error("Error creating Stripe portal session:", stripeError);
+      logStep("ERROR: Stripe API error", { 
+        message: stripeError.message, 
+        type: stripeError.type,
+        code: stripeError.code 
+      });
       return new Response(
         JSON.stringify({ error: 'Stripe portal error', details: stripeError.message || 'Error creating customer portal' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
   } catch (error) {
-    console.error("Unexpected error in customer-portal:", error);
+    logStep("UNEXPECTED ERROR", { message: error.message });
     return new Response(
       JSON.stringify({ error: 'Server error', details: error.message || 'Unexpected error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
