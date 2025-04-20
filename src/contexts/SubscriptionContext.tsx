@@ -146,11 +146,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
 
-    if (!isSubscribed) {
-      toast.error('You don\'t have an active subscription to manage');
-      return;
-    }
-
     try {
       const loadingToast = toast.loading('Preparing customer portal...');
       
@@ -161,7 +156,21 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
       
-      const { data, error } = await supabase.functions.invoke('customer-portal');
+      // Get a fresh token to ensure we're authenticated
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) {
+        toast.dismiss(loadingToast);
+        toast.error('Session expired. Please sign in again.');
+        return;
+      }
+      
+      console.log('Creating customer portal session with token:', currentSession.access_token.substring(0, 10) + '...');
+      
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`
+        }
+      });
       
       toast.dismiss(loadingToast);
       
@@ -172,8 +181,20 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       
       // If we got a specific error from the edge function
-      if (data.error) {
+      if (data && data.error) {
         console.error('Customer portal error:', data.error, data.details);
+        
+        // If the user doesn't have a subscription yet
+        if (data.error === 'No Stripe customer found') {
+          toast.error('You need to subscribe first before managing your subscription', {
+            action: {
+              label: 'Subscribe',
+              onClick: () => openCheckout()
+            }
+          });
+          return;
+        }
+        
         toast.error(`Customer portal failed: ${data.details || data.error}`);
         return;
       }
