@@ -1,25 +1,26 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 240 5.9% 95%;
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
+    --card: 240 5.9% 95%;
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 100%;
+    --popover: 240 5.9% 95%;
     --popover-foreground: 222.2 84% 4.9%;
 
     --primary: 260 78% 75%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 210 40% 90%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 210 40% 90%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
     --accent: 326 78% 60%;
@@ -149,3 +150,4 @@
     @apply bg-background text-foreground transition-colors duration-300;
   }
 }
+
