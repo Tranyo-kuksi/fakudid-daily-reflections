@@ -48,6 +48,18 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
           .slice(0, 5)
           .filter(entry => entry.content !== journalEntry);
 
+        // Make sure we have the latest auth token
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+          toast.dismiss('generate-prompt');
+          setIsGeneratingPrompt(false);
+          toast.error('You must be logged in to generate AI prompts');
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke('generate-prompt', {
           body: { 
             currentEntry: journalEntry,

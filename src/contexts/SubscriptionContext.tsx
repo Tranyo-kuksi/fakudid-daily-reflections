@@ -32,6 +32,19 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
   const { user, session } = useAuth();
 
+  // Helper to ensure we have a valid session
+  const ensureValidSession = async () => {
+    if (!session) {
+      // Get the latest session
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        return false;
+      }
+      return true;
+    }
+    return true;
+  };
+
   const checkSubscription = async () => {
     if (!user || !session) {
       setIsSubscribed(false);
@@ -41,11 +54,21 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       setIsCheckingSubscription(true);
+      
+      const hasValidSession = await ensureValidSession();
+      if (!hasValidSession) {
+        console.error('No valid session for checking subscription');
+        toast.error('Authentication error: Please sign in again');
+        setIsCheckingSubscription(false);
+        return;
+      }
+      
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) {
         console.error('Error checking subscription:', error);
         toast.error('Failed to check subscription status');
+        setIsCheckingSubscription(false);
         return;
       }
       
@@ -53,6 +76,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (data.error) {
         console.error('Subscription check error:', data.error, data.details);
         toast.error(`Subscription check failed: ${data.details || data.error}`);
+        setIsCheckingSubscription(false);
         return;
       }
       
@@ -74,6 +98,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const loadingToast = toast.loading('Preparing checkout...');
+      
+      const hasValidSession = await ensureValidSession();
+      if (!hasValidSession) {
+        toast.dismiss(loadingToast);
+        toast.error('Authentication error: Please sign in again');
+        return;
+      }
       
       console.log('Creating checkout session...');
       const { data, error } = await supabase.functions.invoke('create-checkout');
@@ -122,6 +153,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const loadingToast = toast.loading('Preparing customer portal...');
+      
+      const hasValidSession = await ensureValidSession();
+      if (!hasValidSession) {
+        toast.dismiss(loadingToast);
+        toast.error('Authentication error: Please sign in again');
+        return;
+      }
       
       const { data, error } = await supabase.functions.invoke('customer-portal');
       
