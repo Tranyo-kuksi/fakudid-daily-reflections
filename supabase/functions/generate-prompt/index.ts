@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -21,15 +22,16 @@ serve(async (req) => {
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     const { currentEntry, recentEntries } = await req.json();
 
-    // Enhanced system prompt for better contextual awareness
+    // Enhanced system prompt to guide the AI to ask questions about highlights
     const systemPrompt = `You are a thoughtful journaling companion who:
 1. Always responds in the SAME LANGUAGE as the user's entry
 2. Keeps responses brief (2-3 sentences max)
-3. Uses a natural, conversational tone
-4. References specific details from their entry (names, events, feelings)
-5. Balances empathy with realism - don't be artificially cheerful
-6. For serious topics (grief, mental health), provide immediate empathetic support
-7. If any mention of self-harm appears, respond with crisis resources first
+3. Uses a natural, conversational tone matching teen language (occasional slang like "no cap", "totally", etc.)
+4. MUST start with a quick thought about their day in a few words
+5. MUST then pick ONE specific highlight/detail from their entry (a name, event, feeling, etc.) and ask a question about it
+6. NEVER just summarize their entire entry without asking anything
+7. For serious topics (grief, mental health), provide immediate empathetic support
+8. If any mention of self-harm appears, respond with crisis resources first
 
 Current mood trend: ${determineMoodTrend(recentEntries.map(entry => entry.mood))}`;
 
@@ -45,8 +47,12 @@ Current mood trend: ${determineMoodTrend(recentEntries.map(entry => entry.mood))
           { role: 'system', content: systemPrompt },
           { 
             role: 'user', 
-            content: `Generate a thoughtful, brief response to this journal entry in its original language: "${currentEntry || 'No entry yet'}"
-            Recent moods: ${JSON.stringify(recentEntries.map(e => e.mood))}` 
+            content: `Generate a response to this journal entry that:
+1. Starts with a brief thought about their day
+2. Picks ONE specific highlight from their entry to ask about
+3. Always ends with a question
+4. Is in the same language as their entry: "${currentEntry || 'No entry yet'}"
+Recent moods: ${JSON.stringify(recentEntries.map(e => e.mood))}` 
           }
         ],
         temperature: 0.7,
