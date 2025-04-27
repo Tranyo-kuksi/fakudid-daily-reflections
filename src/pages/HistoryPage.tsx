@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,7 +39,7 @@ export default function HistoryPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Filter entries based on search query in both content, title and date
+    // Filter entries based on search query in both content and title
     const filtered = entries.filter(entry => 
       entry.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (entry.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,7 +92,7 @@ export default function HistoryPage() {
     navigate(`/entry/${entry.id}`);
   };
 
-  // Update highlightSearchText to be reusable
+  // New function to highlight search terms in text
   const highlightSearchText = (text: string) => {
     if (!searchQuery.trim() || !text) return text;
     
