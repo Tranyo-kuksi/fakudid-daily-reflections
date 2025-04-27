@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
 import { Mail } from "lucide-react";
 
-type AuthMode = "login" | "register" | "forgotPassword" | "resetPassword";
+type AuthMode = "login" | "register" | "forgotPassword";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>("login");

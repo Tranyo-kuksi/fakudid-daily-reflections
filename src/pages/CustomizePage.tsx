@@ -90,7 +90,7 @@ export default function CustomizePage() {
                     onClick={() => handleThemeSelect(true, themeOption.id)}
                   >
                     <div 
-                      className="h-24 rounded-md w-full mb-2 shadow-md" 
+                      className="h-24 rounded-md w-full mb-2 shadow-inner" 
                       style={{ 
                         background: themeOption.gradient,
                         boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)"
@@ -124,7 +124,7 @@ export default function CustomizePage() {
                     onClick={() => handleThemeSelect(false, themeOption.id)}
                   >
                     <div 
-                      className="h-24 rounded-md w-full mb-2 shadow-md" 
+                      className="h-24 rounded-md w-full mb-2 shadow-inner" 
                       style={{ 
                         backgroundColor: themeOption.color,
                         boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3)"

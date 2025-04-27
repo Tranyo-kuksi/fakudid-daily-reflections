@@ -13,26 +13,6 @@ import {
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
 
-// Helper function to highlight search terms
-const HighlightedText = ({ text, highlight }: { text: string, highlight: string }) => {
-  if (!highlight.trim()) {
-    return <span>{text}</span>;
-  }
-
-  const regex = new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-  const parts = text.split(regex);
-
-  return (
-    <span>
-      {parts.map((part, i) => 
-        regex.test(part) ? 
-          <span key={i} className="bg-yellow-200 dark:bg-yellow-800">{part}</span> : 
-          <span key={i}>{part}</span>
-      )}
-    </span>
-  );
-};
-
 export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -59,14 +39,11 @@ export default function HistoryPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Filter entries based on search query (including title now)
+    // Filter entries based on search query
     const filtered = entries.filter(entry => 
-      (entry.content.toLowerCase().includes(searchQuery.toLowerCase())) || 
-      (entry.title && entry.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      entry.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       new Date(entry.date).toLocaleDateString().includes(searchQuery)
     );
-    
     setFilteredEntries(filtered);
   };
 
@@ -110,6 +87,7 @@ export default function HistoryPage() {
   };
 
   const navigateToEntry = (entry: JournalEntry) => {
+    // Change from ?id= to /entry/:id for clearer routing
     navigate(`/entry/${entry.id}`);
   };
 
@@ -119,7 +97,7 @@ export default function HistoryPage() {
       
       <form onSubmit={handleSearch} className="flex gap-2 mb-8">
         <Input
-          placeholder="Search entries by title, text or date..."
+          placeholder="Search entries by text or date..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -140,11 +118,7 @@ export default function HistoryPage() {
               <CardHeader className="flex flex-row items-center justify-between p-4">
                 <div>
                   <h3 className="font-medium text-lg mb-1">
-                    {entry.title ? (
-                      <HighlightedText text={entry.title} highlight={searchQuery} />
-                    ) : (
-                      "Untitled"
-                    )}
+                    {entry.title || "Untitled"}
                   </h3>
                   <p className="font-medium text-sm text-muted-foreground">
                     {new Date(entry.date).toLocaleDateString('en-US', { 
@@ -159,10 +133,8 @@ export default function HistoryPage() {
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <p className="text-muted-foreground">
-                  <HighlightedText 
-                    text={truncateText(entry.content, 50)} 
-                    highlight={searchQuery} 
-                  />
+                  {truncateText(entry.content, 50)}
+                  <span className="bg-gradient-to-r from-transparent to-background inline-block w-8 ml-1"></span>
                 </p>
                 
                 {entry.attachments && entry.attachments.some(a => a.type === 'image') && (

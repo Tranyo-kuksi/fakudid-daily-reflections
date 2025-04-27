@@ -87,40 +87,57 @@ export function ThemeProvider({
     const themeToApply = mode === "dark" ? darkTheme : lightTheme;
     root.classList.add(`theme-${themeToApply}`);
     
-    // Apply theme CSS variables and gradients
+    // Apply theme CSS variables
     if (mode === "light") {
-      // Reset all previous styles first
+      // Reset default variables first
       root.style.removeProperty("--primary");
       root.style.removeProperty("--accent");
-      root.style.removeProperty("--background");
       
-      // Apply the gradient as a direct background style
+      // Set the background gradient directly on the document root element
+      // This is crucial for the gradients to be visible
       if (themeToApply === "lavender") {
-        document.body.style.background = themeGradients.lavender;
-        document.body.style.backgroundAttachment = "fixed";
-        root.style.setProperty("--primary", "260 50% 70%");
-        root.style.setProperty("--accent", "326 50% 55%");
+        root.style.setProperty("--background", "240 30% 97%");  // Fallback for components using HSL
+        root.style.background = themeGradients.lavender;
       } else if (themeToApply === "mint") {
-        document.body.style.background = themeGradients.mint;
-        document.body.style.backgroundAttachment = "fixed";
-        root.style.setProperty("--primary", "152 50% 60%");
-        root.style.setProperty("--accent", "152 50% 50%");
+        root.style.setProperty("--background", "152 20% 96%"); 
+        root.style.background = themeGradients.mint;
       } else if (themeToApply === "peach") {
-        document.body.style.background = themeGradients.peach;
-        document.body.style.backgroundAttachment = "fixed";
-        root.style.setProperty("--primary", "32 70% 65%");
-        root.style.setProperty("--accent", "6 50% 55%");
+        root.style.setProperty("--background", "32 20% 96%");
+        root.style.background = themeGradients.peach;
       } else if (themeToApply === "sky") {
-        document.body.style.background = themeGradients.sky;
-        document.body.style.backgroundAttachment = "fixed";
-        root.style.setProperty("--primary", "200 60% 65%");
-        root.style.setProperty("--accent", "210 50% 55%");
+        root.style.setProperty("--background", "200 20% 96%");
+        root.style.background = themeGradients.sky;
       }
       
+      // Apply more pronounced gradients that are more visible
+      document.body.style.backgroundAttachment = "fixed";
+      document.body.style.height = "100vh";
+      document.body.style.margin = "0";
+      
+      // Now apply other theme-specific colors based on the selected theme
+      switch (themeToApply) {
+        case "lavender":
+          root.style.setProperty("--primary", "260 50% 70%");
+          root.style.setProperty("--accent", "326 50% 55%");
+          break;
+        case "mint":
+          root.style.setProperty("--primary", "152 50% 60%");
+          root.style.setProperty("--accent", "152 50% 50%");
+          break;
+        case "peach":
+          root.style.setProperty("--primary", "32 70% 65%");
+          root.style.setProperty("--accent", "6 50% 55%");
+          break;
+        case "sky":
+          root.style.setProperty("--primary", "200 60% 65%");
+          root.style.setProperty("--accent", "210 50% 55%");
+          break;
+      }
     } else {
-      // Reset body background for dark mode
-      document.body.style.removeProperty("background");
-      document.body.style.removeProperty("backgroundAttachment");
+      // Reset default variables first
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--accent");
+      root.style.removeProperty("background");
       
       // Apply dark theme variables
       switch (darkTheme) {
@@ -146,6 +163,11 @@ export function ThemeProvider({
           break;
       }
     }
+    
+    // Force a repaint to ensure theme changes are applied consistently
+    document.body.style.display = 'none';
+    document.body.offsetHeight; // Trigger a reflow
+    document.body.style.display = '';
     
     console.log(`Applied theme: ${mode} - ${themeToApply}`);
   }, [theme, lightTheme, darkTheme]);
