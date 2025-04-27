@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +25,8 @@ export default function JournalPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [entryId, setEntryId] = useState<string | null>(null);
   const [readOnly, setReadOnly] = useState(false);
+  const [highlightedContent, setHighlightedContent] = useState<React.ReactNode | null>(null);
+  const [highlightedTitle, setHighlightedTitle] = useState<React.ReactNode | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +35,8 @@ export default function JournalPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isSubscribed, openCheckout } = useSubscription();
+  const searchParams = new URLSearchParams(location.search);
+  const searchQuery = searchParams.get('search');
 
   // Custom mood names
   const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
@@ -50,6 +55,19 @@ export default function JournalPage() {
     }
   }, []);
 
+  // Function to highlight search terms in text
+  const highlightSearchText = (text: string) => {
+    if (!searchQuery || !text) return text;
+    
+    const parts = text.split(new RegExp(`(${searchQuery})`, 'gi'));
+    
+    return parts.map((part, i) => 
+      part.toLowerCase() === searchQuery.toLowerCase() 
+        ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-900">{part}</mark> 
+        : part
+    );
+  };
+
   // Load entry based on URL parameters
   useEffect(() => {
     const loadEntry = async () => {
@@ -59,6 +77,16 @@ export default function JournalPage() {
         if (specificEntry) {
           setJournalTitle(specificEntry.title || "");
           setJournalEntry(specificEntry.content);
+          
+          // If search query exists, create highlighted versions
+          if (searchQuery) {
+            setHighlightedTitle(specificEntry.title ? highlightSearchText(specificEntry.title) : "");
+            setHighlightedContent(highlightSearchText(specificEntry.content));
+          } else {
+            setHighlightedTitle(null);
+            setHighlightedContent(null);
+          }
+          
           setSelectedMood(specificEntry.mood);
           setEntryId(specificEntry.id);
           setCurrentEntry(specificEntry);
@@ -103,7 +131,7 @@ export default function JournalPage() {
     };
 
     loadEntry();
-  }, [params.id, location.pathname]);
+  }, [params.id, location.pathname, searchQuery]);
 
   // Update autosave effect with shorter delay (500ms instead of 3000ms)
   useEffect(() => {
@@ -294,13 +322,19 @@ export default function JournalPage() {
       <div className="mb-4 space-y-4">
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            <Input
-              placeholder="Title your day..."
-              className="text-lg w-full"
-              value={journalTitle}
-              onChange={(e) => setJournalTitle(e.target.value)}
-              readOnly={readOnly}
-            />
+            {readOnly && highlightedTitle ? (
+              <div className="text-lg w-full border rounded-md p-2">
+                {highlightedTitle || "Untitled"}
+              </div>
+            ) : (
+              <Input
+                placeholder="Title your day..."
+                className="text-lg w-full"
+                value={journalTitle}
+                onChange={(e) => setJournalTitle(e.target.value)}
+                readOnly={readOnly}
+              />
+            )}
           </div>
           
           <MoodPicker
@@ -332,13 +366,19 @@ export default function JournalPage() {
       </div>
 
       <div className="relative">
-        <Textarea 
-          placeholder="Write about your day..."
-          className="min-h-[calc(100vh-240px)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
-          value={journalEntry}
-          onChange={(e) => setJournalEntry(e.target.value)}
-          readOnly={readOnly}
-        />
+        {readOnly && highlightedContent ? (
+          <div className="min-h-[calc(100vh-240px)] w-full resize-none text-lg p-4 border rounded-md whitespace-pre-wrap">
+            {highlightedContent}
+          </div>
+        ) : (
+          <Textarea 
+            placeholder="Write about your day..."
+            className="min-h-[calc(100vh-240px)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
+            value={journalEntry}
+            onChange={(e) => setJournalEntry(e.target.value)}
+            readOnly={readOnly}
+          />
+        )}
 
         {!readOnly && (
           <div className="fixed bottom-8 right-8">

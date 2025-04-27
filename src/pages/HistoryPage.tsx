@@ -88,11 +88,15 @@ export default function HistoryPage() {
   };
 
   const navigateToEntry = (entry: JournalEntry) => {
-    // Change from ?id= to /entry/:id for clearer routing
-    navigate(`/entry/${entry.id}`);
+    // Pass search query to entry view for highlighting
+    if (searchQuery.trim()) {
+      navigate(`/entry/${entry.id}?search=${encodeURIComponent(searchQuery)}`);
+    } else {
+      navigate(`/entry/${entry.id}`);
+    }
   };
 
-  // New function to highlight search terms in text
+  // Function to highlight search terms in text
   const highlightSearchText = (text: string) => {
     if (!searchQuery.trim() || !text) return text;
     

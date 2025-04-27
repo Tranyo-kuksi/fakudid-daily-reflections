@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,10 +11,7 @@ import {
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
-
-interface MoodTrackerPageProps {
-  // No props needed for now
-}
+import { useLocation } from "react-router-dom";
 
 export default function MoodTrackerPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -22,6 +20,9 @@ export default function MoodTrackerPage() {
   const [monthlySummary, setMonthlySummary] = useState<{[key: string]: number}>({});
   const [dominantMood, setDominantMood] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const searchQuery = searchParams.get('search') || "";
   
   useEffect(() => {
     const fetchEntries = async () => {
@@ -155,7 +156,25 @@ export default function MoodTrackerPage() {
   };
 
   const viewFullEntry = (entryId: string) => {
-    navigate(`/entry/${entryId}`);
+    // Pass search query to the entry view if present
+    if (searchQuery) {
+      navigate(`/entry/${entryId}?search=${encodeURIComponent(searchQuery)}`);
+    } else {
+      navigate(`/entry/${entryId}`);
+    }
+  };
+  
+  // New function to highlight search terms in text
+  const highlightSearchText = (text: string | null) => {
+    if (!searchQuery.trim() || !text) return text;
+    
+    const parts = text.split(new RegExp(`(${searchQuery})`, 'gi'));
+    
+    return parts.map((part, i) => 
+      part.toLowerCase() === searchQuery.toLowerCase() 
+        ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-900">{part}</mark> 
+        : part
+    );
   };
   
   const renderCalendarDays = () => {
@@ -266,7 +285,7 @@ export default function MoodTrackerPage() {
               <div className="space-y-4 py-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Mood:</span>
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
+                  <div className={`flex items-center justify-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
                     {getMoodIcon(selectedEntry.mood)}
                     <span>{getMoodLabel(selectedEntry.mood)}</span>
                   </div>
@@ -275,7 +294,11 @@ export default function MoodTrackerPage() {
                 <div>
                   <p className="font-medium mb-2">Journal Entry:</p>
                   <div className="bg-muted/30 p-4 rounded-md whitespace-pre-wrap">
-                    {selectedEntry.content || <span className="text-muted-foreground italic">No content for this day</span>}
+                    {searchQuery && selectedEntry.content ? (
+                      highlightSearchText(selectedEntry.content)
+                    ) : (
+                      selectedEntry.content || <span className="text-muted-foreground italic">No content for this day</span>
+                    )}
                   </div>
                 </div>
                 
