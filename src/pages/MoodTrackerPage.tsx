@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -166,7 +165,9 @@ export default function MoodTrackerPage() {
   
   // New function to highlight search terms in text
   const highlightSearchText = (text: string | null) => {
-    if (!searchQuery.trim() || !text) return text;
+    const searchQuery = location.search ? new URLSearchParams(location.search).get('search') : null;
+    
+    if (!searchQuery?.trim() || !text) return text;
     
     const parts = text.split(new RegExp(`(${searchQuery})`, 'gi'));
     
@@ -287,7 +288,7 @@ export default function MoodTrackerPage() {
                   <span className="font-medium">Mood:</span>
                   <div className={`flex items-center justify-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
                     {getMoodIcon(selectedEntry.mood)}
-                    <span className="flex items-center justify-center">{getMoodLabel(selectedEntry.mood)}</span>
+                    <span className="flex-1 text-center">{getMoodLabel(selectedEntry.mood)}</span>
                   </div>
                 </div>
                 
