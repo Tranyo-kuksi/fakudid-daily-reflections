@@ -93,7 +93,8 @@ export function ThemeProvider({
       root.style.removeProperty("--primary");
       root.style.removeProperty("--accent");
       
-      // Important: Set background as an actual style property for gradients
+      // Set the background gradient directly on the document root element
+      // This is crucial for the gradients to be visible
       if (themeToApply === "lavender") {
         root.style.setProperty("--background", "240 30% 97%");  // Fallback for components using HSL
         root.style.background = themeGradients.lavender;
@@ -107,6 +108,11 @@ export function ThemeProvider({
         root.style.setProperty("--background", "200 20% 96%");
         root.style.background = themeGradients.sky;
       }
+      
+      // Apply more pronounced gradients that are more visible
+      document.body.style.backgroundAttachment = "fixed";
+      document.body.style.height = "100vh";
+      document.body.style.margin = "0";
       
       // Now apply other theme-specific colors based on the selected theme
       switch (themeToApply) {

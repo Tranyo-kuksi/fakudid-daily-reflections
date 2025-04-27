@@ -91,7 +91,10 @@ export default function CustomizePage() {
                   >
                     <div 
                       className="h-24 rounded-md w-full mb-2 shadow-inner" 
-                      style={{ background: themeOption.gradient }}
+                      style={{ 
+                        background: themeOption.gradient,
+                        boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)"
+                      }}
                     />
                     <div className="text-center font-medium">{themeOption.name}</div>
                     {lightTheme === themeOption.id && (
@@ -122,7 +125,10 @@ export default function CustomizePage() {
                   >
                     <div 
                       className="h-24 rounded-md w-full mb-2 shadow-inner" 
-                      style={{ backgroundColor: themeOption.color }}
+                      style={{ 
+                        backgroundColor: themeOption.color,
+                        boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3)"
+                      }}
                     />
                     <div className="text-center font-medium">{themeOption.name}</div>
                     {darkTheme === themeOption.id && (
