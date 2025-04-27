@@ -7,12 +7,12 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, CheckCircle } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
-// Define theme options
+// Define theme options with gradients for visual representation
 const lightThemes = [
-  { id: "lavender", name: "Lavender", color: "#E6E6FA" },
-  { id: "mint", name: "Mint", color: "#F5FFFA" },
-  { id: "peach", name: "Peach", color: "#FFDAB9" },
-  { id: "sky", name: "Sky Blue", color: "#E0F7FA" }
+  { id: "lavender", name: "Lavender", gradient: "linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%)" },
+  { id: "mint", name: "Mint", gradient: "linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%)" },
+  { id: "peach", name: "Peach", gradient: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)" },
+  { id: "sky", name: "Sky Blue", gradient: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)" }
 ];
 
 const darkThemes = [
@@ -90,8 +90,8 @@ export default function CustomizePage() {
                     onClick={() => handleThemeSelect(true, themeOption.id)}
                   >
                     <div 
-                      className="h-24 rounded-md w-full mb-2" 
-                      style={{ backgroundColor: themeOption.color }}
+                      className="h-24 rounded-md w-full mb-2 shadow-inner" 
+                      style={{ background: themeOption.gradient }}
                     />
                     <div className="text-center font-medium">{themeOption.name}</div>
                     {lightTheme === themeOption.id && (
@@ -121,7 +121,7 @@ export default function CustomizePage() {
                     onClick={() => handleThemeSelect(false, themeOption.id)}
                   >
                     <div 
-                      className="h-24 rounded-md w-full mb-2" 
+                      className="h-24 rounded-md w-full mb-2 shadow-inner" 
                       style={{ backgroundColor: themeOption.color }}
                     />
                     <div className="text-center font-medium">{themeOption.name}</div>
