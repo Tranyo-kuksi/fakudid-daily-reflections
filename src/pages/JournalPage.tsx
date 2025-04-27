@@ -62,7 +62,7 @@ export default function JournalPage() {
     const parts = text.split(new RegExp(`(${searchQuery})`, 'gi'));
     
     return parts.map((part, i) => 
-      part.toLowerCase() === searchQuery.toLowerCase() 
+      part.toLowerCase() === searchQuery?.toLowerCase() 
         ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-900">{part}</mark> 
         : part
     );
@@ -71,6 +71,8 @@ export default function JournalPage() {
   // Load entry based on URL parameters
   useEffect(() => {
     const loadEntry = async () => {
+      console.log("Loading entry with search query:", searchQuery);
+      
       // If we have an ID in the URL, load that specific entry
       if (params.id) {
         const specificEntry = await getEntryById(params.id);
@@ -80,6 +82,7 @@ export default function JournalPage() {
           
           // If search query exists, create highlighted versions
           if (searchQuery) {
+            console.log("Highlighting search term:", searchQuery);
             setHighlightedTitle(specificEntry.title ? highlightSearchText(specificEntry.title) : "");
             setHighlightedContent(highlightSearchText(specificEntry.content));
           } else {
@@ -131,7 +134,7 @@ export default function JournalPage() {
     };
 
     loadEntry();
-  }, [params.id, location.pathname, searchQuery]);
+  }, [params.id, location.search]);
 
   // Update autosave effect with shorter delay (500ms instead of 3000ms)
   useEffect(() => {
@@ -315,6 +318,11 @@ export default function JournalPage() {
         <div className="bg-yellow-100 dark:bg-yellow-900 p-3 mb-4 rounded-md">
           <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium text-center">
             This is a past entry. You are viewing it in read-only mode.
+            {searchQuery && 
+              <span className="ml-2">
+                Showing results for: <strong>{searchQuery}</strong>
+              </span>
+            }
           </p>
         </div>
       )}

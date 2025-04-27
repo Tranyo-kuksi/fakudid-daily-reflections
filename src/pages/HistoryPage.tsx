@@ -61,6 +61,7 @@ export default function HistoryPage() {
         setEntries(updatedEntries);
         setFilteredEntries(filteredEntries.filter(e => e.id !== selectedEntry.id));
         setIsDeleteDialogOpen(false);
+        toast.success("Entry deleted successfully");
       }
     }
   };
@@ -88,8 +89,9 @@ export default function HistoryPage() {
   };
 
   const navigateToEntry = (entry: JournalEntry) => {
-    // Pass search query to entry view for highlighting
+    // Always pass search query to entry view for highlighting
     if (searchQuery.trim()) {
+      console.log("Navigating to entry with search:", searchQuery);
       navigate(`/entry/${entry.id}?search=${encodeURIComponent(searchQuery)}`);
     } else {
       navigate(`/entry/${entry.id}`);
