@@ -39,9 +39,10 @@ export default function HistoryPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Filter entries based on search query
+    // Filter entries based on search query in both content and title
     const filtered = entries.filter(entry => 
       entry.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (entry.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       new Date(entry.date).toLocaleDateString().includes(searchQuery)
     );
     setFilteredEntries(filtered);
@@ -91,13 +92,26 @@ export default function HistoryPage() {
     navigate(`/entry/${entry.id}`);
   };
 
+  // New function to highlight search terms in text
+  const highlightSearchText = (text: string) => {
+    if (!searchQuery.trim() || !text) return text;
+    
+    const parts = text.split(new RegExp(`(${searchQuery})`, 'gi'));
+    
+    return parts.map((part, i) => 
+      part.toLowerCase() === searchQuery.toLowerCase() 
+        ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-900">{part}</mark> 
+        : part
+    );
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">Journal History</h1>
       
       <form onSubmit={handleSearch} className="flex gap-2 mb-8">
         <Input
-          placeholder="Search entries by text or date..."
+          placeholder="Search entries by text, title or date..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
@@ -118,7 +132,9 @@ export default function HistoryPage() {
               <CardHeader className="flex flex-row items-center justify-between p-4">
                 <div>
                   <h3 className="font-medium text-lg mb-1">
-                    {entry.title || "Untitled"}
+                    {searchQuery && entry.title 
+                      ? highlightSearchText(entry.title) 
+                      : entry.title || "Untitled"}
                   </h3>
                   <p className="font-medium text-sm text-muted-foreground">
                     {new Date(entry.date).toLocaleDateString('en-US', { 
@@ -133,7 +149,9 @@ export default function HistoryPage() {
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <p className="text-muted-foreground">
-                  {truncateText(entry.content, 50)}
+                  {searchQuery 
+                    ? highlightSearchText(truncateText(entry.content, 50)) 
+                    : truncateText(entry.content, 50)}
                   <span className="bg-gradient-to-r from-transparent to-background inline-block w-8 ml-1"></span>
                 </p>
                 

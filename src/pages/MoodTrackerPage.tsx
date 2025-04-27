@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,6 +8,8 @@ import {
   JournalEntry 
 } from "@/services/journalService";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 
 interface MoodTrackerPageProps {
   // No props needed for now
@@ -20,6 +21,7 @@ export default function MoodTrackerPage() {
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [monthlySummary, setMonthlySummary] = useState<{[key: string]: number}>({});
   const [dominantMood, setDominantMood] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchEntries = async () => {
@@ -151,6 +153,10 @@ export default function MoodTrackerPage() {
     
     setSelectedEntry(entryForDate || null);
   };
+
+  const viewFullEntry = (entryId: string) => {
+    navigate(`/entry/${entryId}`);
+  };
   
   const renderCalendarDays = () => {
     const today = new Date();
@@ -255,35 +261,46 @@ export default function MoodTrackerPage() {
             </DialogTitle>
           </DialogHeader>
           
-          {selectedEntry ? (
-            <div className="space-y-4 py-2">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Mood:</span>
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
-                  {getMoodIcon(selectedEntry.mood)}
-                  <span>{getMoodLabel(selectedEntry.mood)}</span>
+          <ScrollArea className="max-h-[60vh]">
+            {selectedEntry ? (
+              <div className="space-y-4 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Mood:</span>
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
+                    {getMoodIcon(selectedEntry.mood)}
+                    <span>{getMoodLabel(selectedEntry.mood)}</span>
+                  </div>
                 </div>
-              </div>
-              
-              <div>
-                <p className="font-medium mb-2">Journal Entry:</p>
-                <div className="bg-muted/30 p-4 rounded-md whitespace-pre-wrap">
-                  {selectedEntry.content || <span className="text-muted-foreground italic">No content for this day</span>}
-                </div>
-              </div>
-              
-              {selectedEntry.attachments && selectedEntry.attachments.length > 0 && (
+                
                 <div>
-                  <p className="font-medium mb-2">Attachments:</p>
-                  <AttachmentViewer attachments={selectedEntry.attachments} size="medium" />
+                  <p className="font-medium mb-2">Journal Entry:</p>
+                  <div className="bg-muted/30 p-4 rounded-md whitespace-pre-wrap">
+                    {selectedEntry.content || <span className="text-muted-foreground italic">No content for this day</span>}
+                  </div>
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="py-8 text-center text-muted-foreground">
-              <p>No journal entry for this day</p>
-            </div>
-          )}
+                
+                {selectedEntry.attachments && selectedEntry.attachments.length > 0 && (
+                  <div>
+                    <p className="font-medium mb-2">Attachments:</p>
+                    <AttachmentViewer attachments={selectedEntry.attachments} size="medium" />
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-4">
+                  <button 
+                    onClick={() => viewFullEntry(selectedEntry.id)}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    View Full Entry
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                <p>No journal entry for this day</p>
+              </div>
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
