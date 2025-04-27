@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -111,6 +110,25 @@ export default function HistoryPage() {
     );
   };
 
+  // Function to get entry preview that includes search term
+  const getEntryPreview = (entry: JournalEntry): string => {
+    if (!searchQuery.trim() || !entry.content) return truncateText(entry.content, 50);
+    
+    // Find the position of the search term in the content
+    const position = entry.content.toLowerCase().indexOf(searchQuery.toLowerCase());
+    
+    // If the term is not found or is near the beginning, use the default truncation
+    if (position === -1 || position < 25) {
+      return truncateText(entry.content, 50);
+    }
+    
+    // Otherwise, extract a section around the first occurrence of the search term
+    const start = Math.max(0, position - 20);
+    const preview = (start > 0 ? '...' : '') + entry.content.substring(start, position + searchQuery.length + 30) + '...';
+    
+    return preview;
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">Journal History</h1>
@@ -156,9 +174,8 @@ export default function HistoryPage() {
               <CardContent className="p-4 pt-0">
                 <p className="text-muted-foreground">
                   {searchQuery 
-                    ? highlightSearchText(truncateText(entry.content, 50)) 
+                    ? highlightSearchText(getEntryPreview(entry)) 
                     : truncateText(entry.content, 50)}
-                  <span className="bg-gradient-to-r from-transparent to-background inline-block w-8 ml-1"></span>
                 </p>
                 
                 {entry.attachments && entry.attachments.some(a => a.type === 'image') && (

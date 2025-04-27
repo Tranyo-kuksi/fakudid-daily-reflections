@@ -163,7 +163,7 @@ export default function MoodTrackerPage() {
     }
   };
   
-  // New function to highlight search terms in text
+  // Function to highlight search terms in text
   const highlightSearchText = (text: string | null) => {
     const searchQuery = location.search ? new URLSearchParams(location.search).get('search') : null;
     
@@ -286,9 +286,9 @@ export default function MoodTrackerPage() {
               <div className="space-y-4 py-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Mood:</span>
-                  <div className={`flex items-center justify-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
                     {getMoodIcon(selectedEntry.mood)}
-                    <span className="flex-1 text-center">{getMoodLabel(selectedEntry.mood)}</span>
+                    <span className="text-center w-full">{getMoodLabel(selectedEntry.mood)}</span>
                   </div>
                 </div>
                 
