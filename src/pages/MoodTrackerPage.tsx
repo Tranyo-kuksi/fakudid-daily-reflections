@@ -1,18 +1,15 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar, ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   getAllEntries, 
   JournalEntry 
 } from "@/services/journalService";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
-
-interface MoodTrackerPageProps {
-  // No props needed for now
-}
+import { useNavigate } from "react-router-dom";
 
 export default function MoodTrackerPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -20,6 +17,7 @@ export default function MoodTrackerPage() {
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [monthlySummary, setMonthlySummary] = useState<{[key: string]: number}>({});
   const [dominantMood, setDominantMood] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchEntries = async () => {
@@ -151,6 +149,10 @@ export default function MoodTrackerPage() {
     
     setSelectedEntry(entryForDate || null);
   };
+
+  const navigateToEntry = (entryId: string) => {
+    navigate(`/entry/${entryId}`);
+  };
   
   const renderCalendarDays = () => {
     const today = new Date();
@@ -278,6 +280,18 @@ export default function MoodTrackerPage() {
                   <AttachmentViewer attachments={selectedEntry.attachments} size="medium" />
                 </div>
               )}
+
+              <DialogFooter>
+                <Button 
+                  onClick={() => {
+                    if (selectedEntry) {
+                      navigateToEntry(selectedEntry.id);
+                    }
+                  }}
+                >
+                  View Full Entry
+                </Button>
+              </DialogFooter>
             </div>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
