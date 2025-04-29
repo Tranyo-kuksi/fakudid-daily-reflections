@@ -4,8 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, CheckCircle } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, CheckCircle, Trash2, Plus, LayoutGrid } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { Badge } from "@/components/ui/badge";
+import { Toggle } from "@/components/ui/toggle";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 // Define theme options with gradients for visual representation
 const lightThemes = [
@@ -22,6 +26,37 @@ const darkThemes = [
   { id: "ocean", name: "Ocean", color: "#1F3A5F" }
 ];
 
+// Template section colors
+const templateColors = [
+  { id: 'workout', name: 'Workout', color: 'from-orange-500 to-red-500' },
+  { id: 'mindfulness', name: 'Mindfulness', color: 'from-purple-500 to-violet-500' },
+  { id: 'reading', name: 'Reading', color: 'from-blue-500 to-indigo-500' },
+  { id: 'hydration', name: 'Hydration', color: 'from-cyan-400 to-blue-500' },
+  { id: 'sleep', name: 'Sleep', color: 'from-blue-600 to-indigo-600' },
+  { id: 'social', name: 'Social', color: 'from-pink-500 to-rose-500' },
+  { id: 'screenTime', name: 'Screen Time', color: 'from-green-500 to-emerald-500' },
+  { id: 'creative', name: 'Creative', color: 'from-yellow-500 to-amber-500' },
+  { id: 'productivity', name: 'Productivity', color: 'from-orange-500 to-amber-500' },
+  { id: 'selfCare', name: 'Self-Care', color: 'from-rose-400 to-pink-500' }
+];
+
+interface TemplateField {
+  id: string;
+  name: string;
+  type: 'tags' | 'counter';
+  tags?: string[];
+  counterMax?: number;
+  multiSelect?: boolean;
+}
+
+interface TemplateSection {
+  id: string;
+  name: string;
+  fields: TemplateField[];
+  color: string;
+  enabled: boolean;
+}
+
 export default function CustomizePage() {
   const { theme, lightTheme, setLightTheme, darkTheme, setDarkTheme } = useTheme();
   
@@ -34,6 +69,121 @@ export default function CustomizePage() {
     awesome: "Fucking AWESOME"
   });
   
+  // Template customization
+  const [templateSections, setTemplateSections] = useLocalStorage<TemplateSection[]>(
+    'fakudid-template-sections',
+    [
+      {
+        id: 'workout',
+        name: 'Workout',
+        color: 'workout',
+        enabled: true,
+        fields: [
+          {
+            id: 'workout-equipment',
+            name: 'Equipment',
+            type: 'tags',
+            tags: ['weights', 'bodyweight', 'machines', 'bands'],
+            multiSelect: true
+          },
+          {
+            id: 'workout-duration',
+            name: 'Duration',
+            type: 'tags',
+            tags: ['30min', '45min', '1hr', '3sets'],
+            multiSelect: true
+          },
+          {
+            id: 'workout-exercises',
+            name: 'Exercises',
+            type: 'tags',
+            tags: ['cardio', 'strength', 'flexibility', 'hiit'],
+            multiSelect: true
+          }
+        ]
+      },
+      {
+        id: 'mindfulness',
+        name: 'Prayer/Mindfulness',
+        color: 'mindfulness',
+        enabled: true,
+        fields: [
+          {
+            id: 'mindfulness-practice',
+            name: 'Did you pray/meditate?',
+            type: 'tags',
+            tags: ['yes', 'no'],
+            multiSelect: false
+          },
+          {
+            id: 'mindfulness-duration',
+            name: 'Duration',
+            type: 'tags',
+            tags: ['5min', '20min', '30min'],
+            multiSelect: false
+          },
+          {
+            id: 'mindfulness-mood',
+            name: 'Mood after',
+            type: 'tags',
+            tags: ['calm', 'refreshed', 'distracted'],
+            multiSelect: true
+          }
+        ]
+      },
+      {
+        id: 'reading',
+        name: 'Reading/Learning',
+        color: 'reading',
+        enabled: true,
+        fields: [
+          {
+            id: 'reading-did',
+            name: 'Did you read?',
+            type: 'tags',
+            tags: ['yes', 'no'],
+            multiSelect: false
+          },
+          {
+            id: 'reading-format',
+            name: 'Format',
+            type: 'tags',
+            tags: ['book', 'article', 'podcast'],
+            multiSelect: true
+          },
+          {
+            id: 'reading-time',
+            name: 'Time spent',
+            type: 'tags',
+            tags: ['10min', '30min', '1hr'],
+            multiSelect: false
+          }
+        ]
+      },
+      {
+        id: 'hydration',
+        name: 'Hydration',
+        color: 'hydration',
+        enabled: true,
+        fields: [
+          {
+            id: 'hydration-amount',
+            name: 'Amount',
+            type: 'tags',
+            tags: ['1cup', '2cups', '3cups', '4cups', '5cups'],
+            multiSelect: false
+          }
+        ]
+      }
+    ]
+  );
+  
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
+  const [editingSectionName, setEditingSectionName] = useState("");
+  const [editingFieldName, setEditingFieldName] = useState("");
+  const [editingTagName, setEditingTagName] = useState("");
+
   // Load stored mood names
   useEffect(() => {
     const storedMoodNames = localStorage.getItem("fakudid-mood-names");
@@ -62,6 +212,188 @@ export default function CustomizePage() {
       setDarkTheme(themeId);
       toast.success(`Dark theme changed to ${themeId}`);
     }
+  };
+
+  // Template section management
+  const addNewSection = () => {
+    const newId = `section-${Date.now()}`;
+    const newSection: TemplateSection = {
+      id: newId,
+      name: "New Section",
+      color: templateColors[0].id,
+      enabled: true,
+      fields: []
+    };
+    
+    setTemplateSections([...templateSections, newSection]);
+    setActiveSectionId(newId);
+    setEditingSectionName("New Section");
+    toast.success("New section added");
+  };
+
+  const updateSectionName = (sectionId: string) => {
+    if (!editingSectionName.trim()) {
+      toast.error("Section name cannot be empty");
+      return;
+    }
+    
+    setTemplateSections(templateSections.map(section => 
+      section.id === sectionId
+        ? { ...section, name: editingSectionName }
+        : section
+    ));
+    
+    toast.success("Section name updated");
+  };
+
+  const deleteSection = (sectionId: string) => {
+    setTemplateSections(templateSections.filter(section => section.id !== sectionId));
+    if (activeSectionId === sectionId) {
+      setActiveSectionId(null);
+    }
+    toast.success("Section deleted");
+  };
+
+  const toggleSectionEnabled = (sectionId: string) => {
+    setTemplateSections(templateSections.map(section => 
+      section.id === sectionId
+        ? { ...section, enabled: !section.enabled }
+        : section
+    ));
+  };
+
+  const updateSectionColor = (sectionId: string, colorId: string) => {
+    setTemplateSections(templateSections.map(section => 
+      section.id === sectionId
+        ? { ...section, color: colorId }
+        : section
+    ));
+  };
+
+  // Field management
+  const addFieldToSection = (sectionId: string) => {
+    const section = templateSections.find(s => s.id === sectionId);
+    if (!section) return;
+    
+    const newFieldId = `${sectionId}-field-${Date.now()}`;
+    const newField: TemplateField = {
+      id: newFieldId,
+      name: "New Field",
+      type: 'tags',
+      tags: [],
+      multiSelect: true
+    };
+    
+    setTemplateSections(templateSections.map(s => 
+      s.id === sectionId
+        ? { ...s, fields: [...s.fields, newField] }
+        : s
+    ));
+    
+    setActiveFieldId(newFieldId);
+    setEditingFieldName("New Field");
+    toast.success("New field added");
+  };
+
+  const updateFieldName = (sectionId: string, fieldId: string) => {
+    if (!editingFieldName.trim()) {
+      toast.error("Field name cannot be empty");
+      return;
+    }
+    
+    setTemplateSections(templateSections.map(section => 
+      section.id === sectionId
+        ? {
+            ...section,
+            fields: section.fields.map(field => 
+              field.id === fieldId
+                ? { ...field, name: editingFieldName }
+                : field
+            )
+          }
+        : section
+    ));
+    
+    toast.success("Field name updated");
+  };
+
+  const deleteField = (sectionId: string, fieldId: string) => {
+    setTemplateSections(templateSections.map(section => 
+      section.id === sectionId
+        ? {
+            ...section,
+            fields: section.fields.filter(field => field.id !== fieldId)
+          }
+        : section
+    ));
+    
+    if (activeFieldId === fieldId) {
+      setActiveFieldId(null);
+    }
+    
+    toast.success("Field deleted");
+  };
+
+  // Tag management
+  const addTagToField = (sectionId: string, fieldId: string) => {
+    if (!editingTagName.trim()) {
+      toast.error("Tag name cannot be empty");
+      return;
+    }
+    
+    setTemplateSections(templateSections.map(section => 
+      section.id === sectionId
+        ? {
+            ...section,
+            fields: section.fields.map(field => 
+              field.id === fieldId
+                ? { 
+                    ...field, 
+                    tags: [...(field.tags || []), editingTagName]
+                  }
+                : field
+            )
+          }
+        : section
+    ));
+    
+    setEditingTagName("");
+    toast.success("Tag added");
+  };
+
+  const deleteTag = (sectionId: string, fieldId: string, tagIndex: number) => {
+    setTemplateSections(templateSections.map(section => 
+      section.id === sectionId
+        ? {
+            ...section,
+            fields: section.fields.map(field => 
+              field.id === fieldId && field.tags
+                ? { 
+                    ...field, 
+                    tags: field.tags.filter((_, i) => i !== tagIndex)
+                  }
+                : field
+            )
+          }
+        : section
+    ));
+    
+    toast.success("Tag deleted");
+  };
+
+  const toggleMultiSelect = (sectionId: string, fieldId: string) => {
+    setTemplateSections(templateSections.map(section => 
+      section.id === sectionId
+        ? {
+            ...section,
+            fields: section.fields.map(field => 
+              field.id === fieldId
+                ? { ...field, multiSelect: !field.multiSelect }
+                : field
+            )
+          }
+        : section
+    ));
   };
   
   // Determine if we're currently in light or dark mode
@@ -213,6 +545,261 @@ export default function CustomizePage() {
               >
                 Save Mood Names
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <LayoutGrid className="h-5 w-5" />
+                Customize Templates
+              </CardTitle>
+              <CardDescription>Create and modify journal template sections</CardDescription>
+            </div>
+            <Button onClick={addNewSection} size="sm" className="gap-1">
+              <Plus size={16} /> Add Section
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4">
+              {/* Left sidebar - Section list */}
+              <div className="border rounded-md p-4 space-y-2 h-[400px] overflow-y-auto">
+                <h3 className="font-medium text-sm mb-3">Template Sections</h3>
+                {templateSections.map(section => (
+                  <div 
+                    key={section.id}
+                    className={`p-2 rounded-md cursor-pointer flex items-center justify-between ${
+                      activeSectionId === section.id 
+                        ? 'bg-primary/10 border border-primary/30'
+                        : 'hover:bg-accent'
+                    }`}
+                    onClick={() => {
+                      setActiveSectionId(section.id);
+                      setActiveFieldId(null);
+                      setEditingSectionName(section.name);
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Toggle
+                        pressed={section.enabled}
+                        onPressedChange={() => toggleSectionEnabled(section.id)}
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className={`w-2 h-2 rounded-full ${section.enabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                      </Toggle>
+                      <span className={section.enabled ? 'font-medium' : 'text-muted-foreground'}>{section.name}</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteSection(section.id);
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Middle - Section details */}
+              <div className="border rounded-md p-4 h-[400px] overflow-y-auto">
+                {activeSectionId ? (
+                  <div className="space-y-4">
+                    <h3 className="font-medium mb-3">Section Settings</h3>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Section Name</label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={editingSectionName}
+                          onChange={(e) => setEditingSectionName(e.target.value)}
+                          placeholder="Section name"
+                        />
+                        <Button 
+                          size="sm" 
+                          onClick={() => updateSectionName(activeSectionId)}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Color</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {templateColors.map(color => (
+                          <div
+                            key={color.id}
+                            className={`w-8 h-8 rounded-full bg-gradient-to-r ${color.color} cursor-pointer ${
+                              templateSections.find(s => s.id === activeSectionId)?.color === color.id
+                                ? 'ring-2 ring-primary'
+                                : ''
+                            }`}
+                            onClick={() => updateSectionColor(activeSectionId, color.id)}
+                            title={color.name}
+                          ></div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 border-t">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">Fields</h4>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => addFieldToSection(activeSectionId)}
+                        >
+                          <Plus size={14} className="mr-1" /> Add Field
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-2 max-h-[180px] overflow-y-auto">
+                        {templateSections.find(s => s.id === activeSectionId)?.fields.map(field => (
+                          <div
+                            key={field.id}
+                            className={`p-2 rounded-md border cursor-pointer ${
+                              activeFieldId === field.id
+                                ? 'border-primary bg-primary/10'
+                                : 'border-border hover:bg-accent'
+                            }`}
+                            onClick={() => {
+                              setActiveFieldId(field.id);
+                              setEditingFieldName(field.name);
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span>{field.name}</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteField(activeSectionId, field.id);
+                                }}
+                              >
+                                <Trash2 size={14} />
+                              </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {field.tags?.map((tag, i) => (
+                                <Badge key={i} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    Select a section to edit
+                  </div>
+                )}
+              </div>
+              
+              {/* Right - Field details */}
+              <div className="border rounded-md p-4 h-[400px] overflow-y-auto">
+                {activeFieldId && activeSectionId ? (
+                  <div className="space-y-4">
+                    <h3 className="font-medium mb-3">Field Settings</h3>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Field Name</label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={editingFieldName}
+                          onChange={(e) => setEditingFieldName(e.target.value)}
+                          placeholder="Field name"
+                        />
+                        <Button 
+                          size="sm" 
+                          onClick={() => updateFieldName(activeSectionId, activeFieldId)}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">Selection Type</label>
+                        <ToggleGroup type="single" value={
+                          templateSections.find(s => s.id === activeSectionId)
+                            ?.fields.find(f => f.id === activeFieldId)?.multiSelect ? "multi" : "single"
+                        }>
+                          <ToggleGroupItem value="single" onClick={() => toggleMultiSelect(activeSectionId, activeFieldId)}>
+                            Single
+                          </ToggleGroupItem>
+                          <ToggleGroupItem value="multi" onClick={() => toggleMultiSelect(activeSectionId, activeFieldId)}>
+                            Multiple
+                          </ToggleGroupItem>
+                        </ToggleGroup>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 border-t">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">Tags</h4>
+                      </div>
+                      
+                      <div className="space-y-2 mb-3">
+                        <div className="flex gap-2">
+                          <Input 
+                            value={editingTagName}
+                            onChange={(e) => setEditingTagName(e.target.value)}
+                            placeholder="New tag name"
+                          />
+                          <Button 
+                            size="sm"
+                            onClick={() => addTagToField(activeSectionId, activeFieldId)}
+                            disabled={!editingTagName.trim()}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 max-h-[160px] overflow-y-auto">
+                        {templateSections.find(s => s.id === activeSectionId)
+                          ?.fields.find(f => f.id === activeFieldId)
+                          ?.tags?.map((tag, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 border rounded-md"
+                          >
+                            <span>{tag}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => deleteTag(activeSectionId, activeFieldId, index)}
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    {activeSectionId 
+                      ? "Select a field to edit"
+                      : "Select a section first"
+                    }
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -17,6 +17,9 @@ import { MoodPicker } from "@/components/journal/MoodPicker";
 import { AttachmentControls } from "@/components/journal/AttachmentControls";
 import { PromptButton } from "@/components/journal/PromptButton";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid } from "lucide-react";
+import { TemplateDialog } from "@/components/templates/TemplateDialog";
 
 export default function JournalPage() {
   const [journalTitle, setJournalTitle] = useState("");
@@ -27,6 +30,7 @@ export default function JournalPage() {
   const [readOnly, setReadOnly] = useState(false);
   const [highlightedContent, setHighlightedContent] = useState<React.ReactNode | null>(null);
   const [highlightedTitle, setHighlightedTitle] = useState<React.ReactNode | null>(null);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
@@ -164,6 +168,31 @@ export default function JournalPage() {
       }
     };
   }, [journalTitle, journalEntry, selectedMood, readOnly, isEditing]);
+
+  // Listen for template insertion events
+  useEffect(() => {
+    const handleTemplateInserted = () => {
+      const content = localStorage.getItem('current-journal-content');
+      if (content) {
+        setJournalEntry(content);
+        localStorage.removeItem('current-journal-content');
+        setIsTemplateDialogOpen(false);
+      }
+    };
+
+    window.addEventListener('template-inserted', handleTemplateInserted);
+    return () => {
+      window.removeEventListener('template-inserted', handleTemplateInserted);
+    };
+  }, []);
+
+  // Save current content before opening template dialog
+  const openTemplateDialog = () => {
+    if (journalEntry) {
+      localStorage.setItem('current-journal-content', journalEntry);
+    }
+    setIsTemplateDialogOpen(true);
+  };
 
   const handleSave = async () => {
     if (readOnly) {
@@ -353,14 +382,28 @@ export default function JournalPage() {
           />
         </div>
 
-        <AttachmentControls
-          onImageClick={handleImageAttachment}
-          onMusicClick={handleMusicAttachment}
-          fileInputRef={fileInputRef}
-          audioInputRef={audioInputRef}
-          onFileSelected={handleFileSelected}
-          readOnly={readOnly}
-        />
+        <div className="flex justify-between items-center">
+          <AttachmentControls
+            onImageClick={handleImageAttachment}
+            onMusicClick={handleMusicAttachment}
+            fileInputRef={fileInputRef}
+            audioInputRef={audioInputRef}
+            onFileSelected={handleFileSelected}
+            readOnly={readOnly}
+          />
+
+          {!readOnly && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={openTemplateDialog}
+              className="flex items-center gap-2"
+            >
+              <LayoutGrid size={16} />
+              Template
+            </Button>
+          )}
+        </div>
 
         {currentEntry?.attachments && currentEntry.attachments.length > 0 && (
           <div className="bg-background p-4 rounded-md border">
@@ -398,6 +441,11 @@ export default function JournalPage() {
           </div>
         )}
       </div>
+
+      <TemplateDialog 
+        isOpen={isTemplateDialogOpen}
+        onClose={() => setIsTemplateDialogOpen(false)}
+      />
     </div>
   );
 }
