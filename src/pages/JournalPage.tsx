@@ -384,14 +384,22 @@ export default function JournalPage() {
     };
   }, [journalTitle, journalEntry, selectedMood, templateData, readOnly, isEditing, editMode, entryId]);
 
-  // Listen for template insertion events
+  // Listen for template insertion events with styling
   useEffect(() => {
     const handleTemplateInserted = () => {
       const content = localStorage.getItem('current-journal-content');
       const templateValues = localStorage.getItem('current-template-values');
       
       if (content) {
-        setJournalEntry(content);
+        // Extract the template portion (everything after the last double newline)
+        const parts = content.split('\n\n');
+        const existingContent = journalEntry;
+        const templateContent = parts[parts.length - 1];
+        
+        // Style the template content differently by wrapping it in a special div
+        const styledTemplateContent = `\n\n<div class="template-content">${templateContent}</div>`;
+        setJournalEntry(existingContent + styledTemplateContent);
+        
         localStorage.removeItem('current-journal-content');
       }
       
@@ -403,11 +411,18 @@ export default function JournalPage() {
       setIsTemplateDialogOpen(false);
     };
 
+    const handleTemplateAutosave = (event: CustomEvent<{ templateValues: any }>) => {
+      setTemplateData(event.detail.templateValues);
+    };
+
     window.addEventListener('template-inserted', handleTemplateInserted);
+    window.addEventListener('template-autosave', handleTemplateAutosave as EventListener);
+    
     return () => {
       window.removeEventListener('template-inserted', handleTemplateInserted);
+      window.removeEventListener('template-autosave', handleTemplateAutosave as EventListener);
     };
-  }, []);
+  }, [journalEntry]);
 
   // Save current content before opening template dialog
   const openTemplateDialog = () => {
@@ -580,6 +595,15 @@ export default function JournalPage() {
         onEdit={toggleEditMode}
         entryId={entryId || undefined}
       />
+      
+      <style jsx>{`
+        .template-content {
+          color: #8B5CF6; /* Vivid purple color for template text */
+          border-left: 3px solid #8B5CF6;
+          padding-left: 10px;
+          margin: 10px 0;
+        }
+      `}</style>
     </div>
   );
 }
