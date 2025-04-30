@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,8 @@ import {
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
+import { TemplateDialog } from "@/components/templates/TemplateDialog";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 
 export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,7 +20,10 @@ export default function HistoryPage() {
   const [filteredEntries, setFilteredEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [viewingTemplateEntry, setViewingTemplateEntry] = useState<JournalEntry | null>(null);
   const navigate = useNavigate();
+  const { isSubscribed } = useSubscription();
 
   // Load all entries
   useEffect(() => {
@@ -96,6 +100,19 @@ export default function HistoryPage() {
     } else {
       navigate(`/entry/${entry.id}`);
     }
+  };
+
+  // Function to view template data from a specific entry
+  const viewTemplateData = (entry: JournalEntry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!entry.templateData || Object.keys(entry.templateData.sections).length === 0) {
+      toast.info("No template data for this entry");
+      return;
+    }
+    
+    setViewingTemplateEntry(entry);
+    setIsTemplateDialogOpen(true);
   };
 
   // Function to highlight search terms in text
@@ -188,9 +205,12 @@ export default function HistoryPage() {
                   )}
                   
                   {entry.templateData && Object.keys(entry.templateData.sections).length > 0 && (
-                    <div className="flex items-center gap-1">
+                    <div 
+                      className="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors"
+                      onClick={(e) => viewTemplateData(entry, e)}
+                    >
                       <LayoutGrid className="h-4 w-4" />
-                      <span>Templates</span>
+                      <span>View Templates</span>
                     </div>
                   )}
                 </div>
@@ -236,6 +256,18 @@ export default function HistoryPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Template Viewer Dialog */}
+      {viewingTemplateEntry && (
+        <TemplateDialog
+          isOpen={isTemplateDialogOpen}
+          onClose={() => setIsTemplateDialogOpen(false)}
+          initialValues={viewingTemplateEntry.templateData}
+          readOnly={true}
+          onEdit={() => navigate(`/entry/${viewingTemplateEntry.id}`)}
+          entryId={viewingTemplateEntry.id}
+        />
+      )}
     </div>
   );
 }
