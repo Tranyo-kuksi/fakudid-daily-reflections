@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -868,3 +869,14 @@ export default function CustomizePage() {
                       >
                         <Sparkles className="mr-2 h-4 w-4" /> Upgrade to Premium
                       </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </div>
+  );
+}
