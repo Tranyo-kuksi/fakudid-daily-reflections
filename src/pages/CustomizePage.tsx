@@ -1,15 +1,16 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, CheckCircle, Trash2, Plus, LayoutGrid } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, CheckCircle, Trash2, Plus, LayoutGrid, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Badge } from "@/components/ui/badge";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 
 // Define theme options with gradients for visual representation
 const lightThemes = [
@@ -59,6 +60,7 @@ interface TemplateSection {
 
 export default function CustomizePage() {
   const { theme, lightTheme, setLightTheme, darkTheme, setDarkTheme } = useTheme();
+  const { isSubscribed, openCheckout } = useSubscription();
   
   // Mood customization
   const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
@@ -402,408 +404,467 @@ export default function CustomizePage() {
     : theme;
   
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Customize Themes</CardTitle>
-            <CardDescription>Personalize the look and feel of your journal</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium mb-4">Light Mode Themes</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {lightThemes.map(themeOption => (
-                  <div 
-                    key={themeOption.id}
-                    className={`relative cursor-pointer rounded-lg p-2 transition-all hover:opacity-90 ${
-                      lightTheme === themeOption.id ? 'ring-2 ring-primary shadow-lg scale-105' : 'hover:scale-105'
-                    }`}
-                    onClick={() => handleThemeSelect(true, themeOption.id)}
-                  >
-                    <div 
-                      className="h-24 rounded-md w-full mb-2 shadow-inner" 
-                      style={{ 
-                        background: themeOption.gradient,
-                        boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)"
-                      }}
-                    />
-                    <div className="text-center font-medium">{themeOption.name}</div>
-                    {lightTheme === themeOption.id && (
-                      <div className="absolute top-3 right-3">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
-                    {currentMode === 'light' && lightTheme === themeOption.id && (
-                      <div className="absolute bottom-8 left-0 right-0 text-center text-xs font-medium text-primary">
-                        Active
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-medium mb-4">Dark Mode Themes</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {darkThemes.map(themeOption => (
-                  <div 
-                    key={themeOption.id}
-                    className={`relative cursor-pointer rounded-lg p-2 transition-all hover:opacity-90 ${
-                      darkTheme === themeOption.id ? 'ring-2 ring-primary shadow-lg scale-105' : 'hover:scale-105'
-                    }`}
-                    onClick={() => handleThemeSelect(false, themeOption.id)}
-                  >
-                    <div 
-                      className="h-24 rounded-md w-full mb-2 shadow-inner" 
-                      style={{ 
-                        backgroundColor: themeOption.color,
-                        boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3)"
-                      }}
-                    />
-                    <div className="text-center font-medium">{themeOption.name}</div>
-                    {darkTheme === themeOption.id && (
-                      <div className="absolute top-3 right-3">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
-                    {currentMode === 'dark' && darkTheme === themeOption.id && (
-                      <div className="absolute bottom-8 left-0 right-0 text-center text-xs font-medium text-primary">
-                        Active
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Customize Moods</CardTitle>
-            <CardDescription>Personalize how you express your feelings</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Skull className="h-8 w-8 text-mood-dead" />
-                  <Input 
-                    value={moodNames.dead}
-                    onChange={(e) => handleMoodNameChange('dead', e.target.value)}
-                    maxLength={20}
-                    placeholder="Dead Inside"
-                  />
+    <div className="max-w-4xl mx-auto pb-8">
+      <div className="space-y-6">
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="themes">
+            <AccordionTrigger className="py-4 px-5 bg-card rounded-lg hover:no-underline hover:bg-accent/50 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 flex items-center justify-center">
+                  <span className="text-white font-medium">T</span>
                 </div>
-                
-                <div className="flex items-center gap-3">
-                  <FrownIcon className="h-8 w-8 text-mood-sad" />
-                  <Input 
-                    value={moodNames.sad}
-                    onChange={(e) => handleMoodNameChange('sad', e.target.value)}
-                    maxLength={20}
-                    placeholder="Shity"
-                  />
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <MehIcon className="h-8 w-8 text-mood-meh" />
-                  <Input 
-                    value={moodNames.meh}
-                    onChange={(e) => handleMoodNameChange('meh', e.target.value)}
-                    maxLength={20}
-                    placeholder="Meh"
-                  />
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <SmileIcon className="h-8 w-8 text-mood-good" />
-                  <Input 
-                    value={moodNames.good}
-                    onChange={(e) => handleMoodNameChange('good', e.target.value)}
-                    maxLength={20}
-                    placeholder="Pretty Good"
-                  />
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <PartyPopper className="h-8 w-8 text-mood-awesome" />
-                  <Input 
-                    value={moodNames.awesome}
-                    onChange={(e) => handleMoodNameChange('awesome', e.target.value)}
-                    maxLength={20}
-                    placeholder="Fucking AWESOME"
-                  />
+                <div className="text-left">
+                  <h3 className="font-medium">Customize Themes</h3>
+                  <p className="text-sm text-muted-foreground">Change the look and feel of your journal</p>
                 </div>
               </div>
-              
-              <Button 
-                className="mt-4 w-full md:w-auto bg-fakudid-purple hover:bg-fakudid-darkPurple"
-                onClick={saveMoodNames}
-              >
-                Save Mood Names
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <LayoutGrid className="h-5 w-5" />
-                Customize Templates
-              </CardTitle>
-              <CardDescription>Create and modify journal template sections</CardDescription>
-            </div>
-            <Button onClick={addNewSection} size="sm" className="gap-1">
-              <Plus size={16} /> Add Section
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
-              {/* Left sidebar - Section list */}
-              <div className="border rounded-md p-4 space-y-2 h-[400px] overflow-y-auto">
-                <h3 className="font-medium text-sm mb-3">Template Sections</h3>
-                {templateSections.map(section => (
-                  <div 
-                    key={section.id}
-                    className={`p-2 rounded-md cursor-pointer flex items-center justify-between ${
-                      activeSectionId === section.id 
-                        ? 'bg-primary/10 border border-primary/30'
-                        : 'hover:bg-accent'
-                    }`}
-                    onClick={() => {
-                      setActiveSectionId(section.id);
-                      setActiveFieldId(null);
-                      setEditingSectionName(section.name);
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Toggle
-                        pressed={section.enabled}
-                        onPressedChange={() => toggleSectionEnabled(section.id)}
-                        size="sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className={`w-2 h-2 rounded-full ${section.enabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                      </Toggle>
-                      <span className={section.enabled ? 'font-medium' : 'text-muted-foreground'}>{section.name}</span>
+            </AccordionTrigger>
+            <AccordionContent className="px-1 pt-4">
+              <Card>
+                <CardContent className="p-6 space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Light Mode Themes</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {lightThemes.map(themeOption => (
+                        <div 
+                          key={themeOption.id}
+                          className={`relative cursor-pointer rounded-lg p-2 transition-all hover:opacity-90 ${
+                            lightTheme === themeOption.id ? 'ring-2 ring-primary shadow-lg scale-105' : 'hover:scale-105'
+                          }`}
+                          onClick={() => handleThemeSelect(true, themeOption.id)}
+                        >
+                          <div 
+                            className="h-24 rounded-md w-full mb-2 shadow-inner" 
+                            style={{ 
+                              background: themeOption.gradient,
+                              boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)"
+                            }}
+                          />
+                          <div className="text-center font-medium">{themeOption.name}</div>
+                          {lightTheme === themeOption.id && (
+                            <div className="absolute top-3 right-3">
+                              <CheckCircle className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
+                          {currentMode === 'light' && lightTheme === themeOption.id && (
+                            <div className="absolute bottom-8 left-0 right-0 text-center text-xs font-medium text-primary">
+                              Active
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteSection(section.id);
-                      }}
-                    >
-                      <Trash2 size={14} />
-                    </Button>
                   </div>
-                ))}
+                  
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Dark Mode Themes</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {darkThemes.map(themeOption => (
+                        <div 
+                          key={themeOption.id}
+                          className={`relative cursor-pointer rounded-lg p-2 transition-all hover:opacity-90 ${
+                            darkTheme === themeOption.id ? 'ring-2 ring-primary shadow-lg scale-105' : 'hover:scale-105'
+                          }`}
+                          onClick={() => handleThemeSelect(false, themeOption.id)}
+                        >
+                          <div 
+                            className="h-24 rounded-md w-full mb-2 shadow-inner" 
+                            style={{ 
+                              backgroundColor: themeOption.color,
+                              boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3)"
+                            }}
+                          />
+                          <div className="text-center font-medium">{themeOption.name}</div>
+                          {darkTheme === themeOption.id && (
+                            <div className="absolute top-3 right-3">
+                              <CheckCircle className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
+                          {currentMode === 'dark' && darkTheme === themeOption.id && (
+                            <div className="absolute bottom-8 left-0 right-0 text-center text-xs font-medium text-primary">
+                              Active
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="moods" className="mt-3">
+            <AccordionTrigger className="py-4 px-5 bg-card rounded-lg hover:no-underline hover:bg-accent/50 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 flex items-center justify-center">
+                  <span className="text-white font-medium">M</span>
+                </div>
+                <div className="text-left">
+                  <h3 className="font-medium">Customize Moods</h3>
+                  <p className="text-sm text-muted-foreground">Personalize how you express your feelings</p>
+                </div>
               </div>
-              
-              {/* Middle - Section details */}
-              <div className="border rounded-md p-4 h-[400px] overflow-y-auto">
-                {activeSectionId ? (
+            </AccordionTrigger>
+            <AccordionContent className="px-1 pt-4">
+              <Card>
+                <CardContent className="p-6">
                   <div className="space-y-4">
-                    <h3 className="font-medium mb-3">Section Settings</h3>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Section Name</label>
-                      <div className="flex gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3">
+                        <Skull className="h-8 w-8 text-mood-dead" />
                         <Input 
-                          value={editingSectionName}
-                          onChange={(e) => setEditingSectionName(e.target.value)}
-                          placeholder="Section name"
+                          value={moodNames.dead}
+                          onChange={(e) => handleMoodNameChange('dead', e.target.value)}
+                          maxLength={20}
+                          placeholder="Dead Inside"
                         />
-                        <Button 
-                          size="sm" 
-                          onClick={() => updateSectionName(activeSectionId)}
-                        >
-                          Save
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Color</label>
-                      <div className="flex gap-2 flex-wrap">
-                        {templateColors.map(color => (
-                          <div
-                            key={color.id}
-                            className={`w-8 h-8 rounded-full bg-gradient-to-r ${color.color} cursor-pointer ${
-                              templateSections.find(s => s.id === activeSectionId)?.color === color.id
-                                ? 'ring-2 ring-primary'
-                                : ''
-                            }`}
-                            onClick={() => updateSectionColor(activeSectionId, color.id)}
-                            title={color.name}
-                          ></div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="pt-4 border-t">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">Fields</h4>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => addFieldToSection(activeSectionId)}
-                        >
-                          <Plus size={14} className="mr-1" /> Add Field
-                        </Button>
                       </div>
                       
-                      <div className="space-y-2 max-h-[180px] overflow-y-auto">
-                        {templateSections.find(s => s.id === activeSectionId)?.fields.map(field => (
-                          <div
-                            key={field.id}
-                            className={`p-2 rounded-md border cursor-pointer ${
-                              activeFieldId === field.id
-                                ? 'border-primary bg-primary/10'
-                                : 'border-border hover:bg-accent'
-                            }`}
-                            onClick={() => {
-                              setActiveFieldId(field.id);
-                              setEditingFieldName(field.name);
-                            }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span>{field.name}</span>
+                      <div className="flex items-center gap-3">
+                        <FrownIcon className="h-8 w-8 text-mood-sad" />
+                        <Input 
+                          value={moodNames.sad}
+                          onChange={(e) => handleMoodNameChange('sad', e.target.value)}
+                          maxLength={20}
+                          placeholder="Shity"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <MehIcon className="h-8 w-8 text-mood-meh" />
+                        <Input 
+                          value={moodNames.meh}
+                          onChange={(e) => handleMoodNameChange('meh', e.target.value)}
+                          maxLength={20}
+                          placeholder="Meh"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <SmileIcon className="h-8 w-8 text-mood-good" />
+                        <Input 
+                          value={moodNames.good}
+                          onChange={(e) => handleMoodNameChange('good', e.target.value)}
+                          maxLength={20}
+                          placeholder="Pretty Good"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <PartyPopper className="h-8 w-8 text-mood-awesome" />
+                        <Input 
+                          value={moodNames.awesome}
+                          onChange={(e) => handleMoodNameChange('awesome', e.target.value)}
+                          maxLength={20}
+                          placeholder="Fucking AWESOME"
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      className="mt-4 w-full md:w-auto bg-fakudid-purple hover:bg-fakudid-darkPurple"
+                      onClick={saveMoodNames}
+                    >
+                      Save Mood Names
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="templates" className="mt-3">
+            <AccordionTrigger className="py-4 px-5 bg-card rounded-lg hover:no-underline hover:bg-accent/50 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-emerald-400 flex items-center justify-center">
+                  <span className="text-white font-medium">T</span>
+                </div>
+                <div className="text-left">
+                  <h3 className="font-medium">Customize Templates</h3>
+                  <p className="text-sm text-muted-foreground">Create and modify journal template sections</p>
+                </div>
+                {!isSubscribed && (
+                  <Badge variant="outline" className="ml-2 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">
+                    Premium
+                  </Badge>
+                )}
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-1 pt-4">
+              {isSubscribed ? (
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <LayoutGrid className="h-5 w-5" />
+                        Customize Templates
+                      </CardTitle>
+                      <CardDescription>Create and modify journal template sections</CardDescription>
+                    </div>
+                    <Button onClick={addNewSection} size="sm" className="gap-1">
+                      <Plus size={16} /> Add Section
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {/* Left sidebar - Section list */}
+                      <div className="border rounded-md p-4 h-auto">
+                        <h3 className="font-medium text-sm mb-3">Template Sections</h3>
+                        <div className="space-y-2">
+                          {templateSections.map(section => (
+                            <div 
+                              key={section.id}
+                              className={`p-2 rounded-md cursor-pointer flex items-center justify-between ${
+                                activeSectionId === section.id 
+                                  ? 'bg-primary/10 border border-primary/30'
+                                  : 'hover:bg-accent'
+                              }`}
+                              onClick={() => {
+                                setActiveSectionId(section.id);
+                                setActiveFieldId(null);
+                                setEditingSectionName(section.name);
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Toggle
+                                  pressed={section.enabled}
+                                  onPressedChange={() => toggleSectionEnabled(section.id)}
+                                  size="sm"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div className={`w-2 h-2 rounded-full ${section.enabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                </Toggle>
+                                <span className={section.enabled ? 'font-medium' : 'text-muted-foreground'}>{section.name}</span>
+                              </div>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteField(activeSectionId, field.id);
+                                  deleteSection(section.id);
                                 }}
                               >
                                 <Trash2 size={14} />
                               </Button>
                             </div>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {field.tags?.map((tag, i) => (
-                                <Badge key={i} variant="outline" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    Select a section to edit
-                  </div>
-                )}
-              </div>
-              
-              {/* Right - Field details */}
-              <div className="border rounded-md p-4 h-[400px] overflow-y-auto">
-                {activeFieldId && activeSectionId ? (
-                  <div className="space-y-4">
-                    <h3 className="font-medium mb-3">Field Settings</h3>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Field Name</label>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={editingFieldName}
-                          onChange={(e) => setEditingFieldName(e.target.value)}
-                          placeholder="Field name"
-                        />
-                        <Button 
-                          size="sm" 
-                          onClick={() => updateFieldName(activeSectionId, activeFieldId)}
-                        >
-                          Save
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">Selection Type</label>
-                        <ToggleGroup type="single" value={
-                          templateSections.find(s => s.id === activeSectionId)
-                            ?.fields.find(f => f.id === activeFieldId)?.multiSelect ? "multi" : "single"
-                        }>
-                          <ToggleGroupItem value="single" onClick={() => toggleMultiSelect(activeSectionId, activeFieldId)}>
-                            Single
-                          </ToggleGroupItem>
-                          <ToggleGroupItem value="multi" onClick={() => toggleMultiSelect(activeSectionId, activeFieldId)}>
-                            Multiple
-                          </ToggleGroupItem>
-                        </ToggleGroup>
-                      </div>
-                    </div>
-                    
-                    <div className="pt-4 border-t">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">Tags</h4>
-                      </div>
-                      
-                      <div className="space-y-2 mb-3">
-                        <div className="flex gap-2">
-                          <Input 
-                            value={editingTagName}
-                            onChange={(e) => setEditingTagName(e.target.value)}
-                            placeholder="New tag name"
-                          />
-                          <Button 
-                            size="sm"
-                            onClick={() => addTagToField(activeSectionId, activeFieldId)}
-                            disabled={!editingTagName.trim()}
-                          >
-                            Add
-                          </Button>
+                          ))}
                         </div>
                       </div>
                       
-                      <div className="space-y-2 max-h-[160px] overflow-y-auto">
-                        {templateSections.find(s => s.id === activeSectionId)
-                          ?.fields.find(f => f.id === activeFieldId)
-                          ?.tags?.map((tag, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-2 border rounded-md"
-                          >
-                            <span>{tag}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => deleteTag(activeSectionId, activeFieldId, index)}
-                            >
-                              <Trash2 size={14} />
-                            </Button>
+                      {/* Middle - Section details */}
+                      <div className="border rounded-md p-4 h-auto">
+                        {activeSectionId ? (
+                          <div className="space-y-4">
+                            <h3 className="font-medium mb-3">Section Settings</h3>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Section Name</label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  value={editingSectionName}
+                                  onChange={(e) => setEditingSectionName(e.target.value)}
+                                  placeholder="Section name"
+                                />
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => updateSectionName(activeSectionId)}
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Color</label>
+                              <div className="flex gap-2 flex-wrap">
+                                {templateColors.map(color => (
+                                  <div
+                                    key={color.id}
+                                    className={`w-8 h-8 rounded-full bg-gradient-to-r ${color.color} cursor-pointer ${
+                                      templateSections.find(s => s.id === activeSectionId)?.color === color.id
+                                        ? 'ring-2 ring-primary'
+                                        : ''
+                                    }`}
+                                    onClick={() => updateSectionColor(activeSectionId, color.id)}
+                                    title={color.name}
+                                  ></div>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div className="pt-4 border-t">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium">Fields</h4>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => addFieldToSection(activeSectionId)}
+                                >
+                                  <Plus size={14} className="mr-1" /> Add Field
+                                </Button>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                {templateSections.find(s => s.id === activeSectionId)?.fields.map(field => (
+                                  <div
+                                    key={field.id}
+                                    className={`p-2 rounded-md border cursor-pointer ${
+                                      activeFieldId === field.id
+                                        ? 'border-primary bg-primary/10'
+                                        : 'border-border hover:bg-accent'
+                                    }`}
+                                    onClick={() => {
+                                      setActiveFieldId(field.id);
+                                      setEditingFieldName(field.name);
+                                    }}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span>{field.name}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          deleteField(activeSectionId, field.id);
+                                        }}
+                                      >
+                                        <Trash2 size={14} />
+                                      </Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {field.tags?.map((tag, i) => (
+                                        <Badge key={i} variant="outline" className="text-xs">
+                                          {tag}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                        ))}
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                            Select a section to edit
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Right - Field details */}
+                      <div className="border rounded-md p-4 h-auto">
+                        {activeFieldId && activeSectionId ? (
+                          <div className="space-y-4">
+                            <h3 className="font-medium mb-3">Field Settings</h3>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Field Name</label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  value={editingFieldName}
+                                  onChange={(e) => setEditingFieldName(e.target.value)}
+                                  placeholder="Field name"
+                                />
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => updateFieldName(activeSectionId, activeFieldId)}
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">Selection Type</label>
+                                <ToggleGroup type="single" value={
+                                  templateSections.find(s => s.id === activeSectionId)
+                                    ?.fields.find(f => f.id === activeFieldId)?.multiSelect ? "multi" : "single"
+                                }>
+                                  <ToggleGroupItem value="single" onClick={() => toggleMultiSelect(activeSectionId, activeFieldId)}>
+                                    Single
+                                  </ToggleGroupItem>
+                                  <ToggleGroupItem value="multi" onClick={() => toggleMultiSelect(activeSectionId, activeFieldId)}>
+                                    Multiple
+                                  </ToggleGroupItem>
+                                </ToggleGroup>
+                              </div>
+                            </div>
+                            
+                            <div className="pt-4 border-t">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium">Tags</h4>
+                              </div>
+                              
+                              <div className="space-y-2 mb-3">
+                                <div className="flex gap-2">
+                                  <Input 
+                                    value={editingTagName}
+                                    onChange={(e) => setEditingTagName(e.target.value)}
+                                    placeholder="New tag name"
+                                  />
+                                  <Button 
+                                    size="sm"
+                                    onClick={() => addTagToField(activeSectionId, activeFieldId)}
+                                    disabled={!editingTagName.trim()}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                {templateSections.find(s => s.id === activeSectionId)
+                                  ?.fields.find(f => f.id === activeFieldId)
+                                  ?.tags?.map((tag, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center justify-between p-2 border rounded-md"
+                                  >
+                                    <span>{tag}</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6"
+                                      onClick={() => deleteTag(activeSectionId, activeFieldId, index)}
+                                    >
+                                      <Trash2 size={14} />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                            {activeSectionId 
+                              ? "Select a field to edit"
+                              : "Select a section first"
+                            }
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    {activeSectionId 
-                      ? "Select a field to edit"
-                      : "Select a section first"
-                    }
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="py-8 text-center space-y-5">
+                      <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
+                      <div>
+                        <h2 className="text-2xl font-semibold mb-2">Premium Feature</h2>
+                        <p className="text-muted-foreground max-w-md mx-auto">
+                          Custom journal templates are available exclusively for premium users. 
+                          Upgrade your account to create, customize and manage journal templates.
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={openCheckout}
+                        className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+                        size="lg"
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" /> Upgrade to Premium
+                      </Button>

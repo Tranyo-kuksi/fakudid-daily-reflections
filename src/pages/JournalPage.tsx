@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,10 +17,12 @@ import { AttachmentControls } from "@/components/journal/AttachmentControls";
 import { PromptButton } from "@/components/journal/PromptButton";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Sparkles } from "lucide-react";
 import { TemplateDialog } from "@/components/templates/TemplateDialog";
 
 export default function JournalPage() {
+  // ... keep existing code (variable declarations and state)
+
   const [journalTitle, setJournalTitle] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -393,15 +394,27 @@ export default function JournalPage() {
           />
 
           {!readOnly && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={openTemplateDialog}
-              className="flex items-center gap-2"
-            >
-              <LayoutGrid size={16} />
-              Template
-            </Button>
+            isSubscribed ? (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={openTemplateDialog}
+                className="flex items-center gap-2"
+              >
+                <LayoutGrid size={16} />
+                Template
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={openCheckout}
+                className="flex items-center gap-2"
+              >
+                <Sparkles size={16} className="text-amber-500" />
+                <span className="text-amber-600 dark:text-amber-400">Premium Templates</span>
+              </Button>
+            )
           )}
         </div>
 
