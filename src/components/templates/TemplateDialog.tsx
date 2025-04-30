@@ -31,19 +31,21 @@ export const TemplateDialog: React.FC<TemplateDialogProps> = ({
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         {isSubscribed ? (
           <div className="space-y-4">
-            {readOnly && onEdit && (
+            {readOnly && (
               <div className="bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-md flex justify-between items-center">
                 <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                  You are viewing a past entry's template data in read-only mode.
+                  You are viewing a past entry's template data.
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onEdit}
-                  className="ml-2 border-yellow-500 text-yellow-700 dark:text-yellow-300"
-                >
-                  Edit Entry
-                </Button>
+                {onEdit && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onEdit}
+                    className="ml-2 border-yellow-500 text-yellow-700 dark:text-yellow-300"
+                  >
+                    Edit Entry
+                  </Button>
+                )}
               </div>
             )}
             <TemplateManager 

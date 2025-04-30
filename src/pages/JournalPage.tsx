@@ -22,7 +22,7 @@ import { LayoutGrid, Sparkles, Save, Edit, X } from "lucide-react";
 import { TemplateDialog } from "@/components/templates/TemplateDialog";
 
 export default function JournalPage() {
-  // ... keep existing code (variable declarations and state)
+  
 
   const [journalTitle, setJournalTitle] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
@@ -348,7 +348,8 @@ export default function JournalPage() {
     setIsTemplateDialogOpen(true);
   };
 
-  // Update autosave effect to include template data and handle entry ID properly
+  
+
   useEffect(() => {
     if (readOnly && !editMode) return; // Don't autosave if in read-only mode and not editing
     
@@ -406,6 +407,20 @@ export default function JournalPage() {
     window.addEventListener('template-inserted', handleTemplateInserted);
     return () => {
       window.removeEventListener('template-inserted', handleTemplateInserted);
+    };
+  }, []);
+
+  // Listen for template updates
+  useEffect(() => {
+    const handleTemplateUpdated = (event: any) => {
+      if (event.detail && event.detail.templateValues) {
+        setTemplateData(event.detail.templateValues);
+      }
+    };
+
+    window.addEventListener('template-updated', handleTemplateUpdated);
+    return () => {
+      window.removeEventListener('template-updated', handleTemplateUpdated);
     };
   }, []);
 
@@ -490,40 +505,26 @@ export default function JournalPage() {
             readOnly={readOnly && !editMode}
           />
 
-          {readOnly && !editMode ? (
-            (isSubscribed && templateData && Object.keys(templateData.sections).length > 0) && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={viewTemplateData}
-                className="flex items-center gap-2"
-              >
-                <LayoutGrid size={16} />
-                View Template Data
-              </Button>
-            )
+          {isSubscribed ? (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={openTemplateDialog}
+              className="flex items-center gap-2"
+            >
+              <LayoutGrid size={16} />
+              Template
+            </Button>
           ) : (
-            isSubscribed ? (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={openTemplateDialog}
-                className="flex items-center gap-2"
-              >
-                <LayoutGrid size={16} />
-                Template
-              </Button>
-            ) : (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={openCheckout}
-                className="flex items-center gap-2"
-              >
-                <Sparkles size={16} className="text-amber-500" />
-                <span className="text-amber-600 dark:text-amber-400">Premium Templates</span>
-              </Button>
-            )
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={openCheckout}
+              className="flex items-center gap-2"
+            >
+              <Sparkles size={16} className="text-amber-500" />
+              <span className="text-amber-600 dark:text-amber-400">Premium Templates</span>
+            </Button>
           )}
         </div>
 

@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { TemplateSection } from './TemplateSection';
-import { Button } from '@/components/ui/button';
-import { LayoutTemplate, Save, Edit } from 'lucide-react';
+import { LayoutTemplate } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 export interface TemplateState {
@@ -36,6 +35,13 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }
   }, [initialValues]);
   
+  // Effect to save template values whenever they change
+  useEffect(() => {
+    if (!readOnly) {
+      saveTemplateValues();
+    }
+  }, [templateValues, readOnly]);
+  
   const toggleSection = (sectionId: string) => {
     if (openSections.includes(sectionId)) {
       setOpenSections(openSections.filter(id => id !== sectionId));
@@ -61,18 +67,14 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     });
   };
 
-  const insertTemplateToJournal = () => {
-    const journalText = generateTemplateText(templateValues, templateSections);
-    const currentContent = localStorage.getItem('current-journal-content') || '';
-    localStorage.setItem('current-journal-content', currentContent + '\n\n' + journalText);
-    
+  const saveTemplateValues = () => {
     // Save the template values to use later when saving the journal entry
     localStorage.setItem('current-template-values', JSON.stringify(templateValues));
     
     // Dispatch an event to notify JournalPage component
-    window.dispatchEvent(new CustomEvent('template-inserted'));
-    
-    toast.success("Template inserted into journal");
+    window.dispatchEvent(new CustomEvent('template-updated', { 
+      detail: { templateValues } 
+    }));
   };
 
   return (
@@ -80,22 +82,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-medium">
           {readOnly ? "Template Data" : "Journal Templates"}
-          {readOnly && onEdit && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="ml-2" 
-              onClick={onEdit}
-            >
-              <Edit size={16} className="mr-1" /> Edit
-            </Button>
-          )}
         </h2>
-        {!readOnly && (
-          <Button onClick={insertTemplateToJournal} variant="default">
-            <Save size={16} className="mr-1" /> Insert into Journal
-          </Button>
-        )}
       </div>
       
       <div className="space-y-3">
