@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Trash2, ImageIcon } from "lucide-react";
+import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Trash2, ImageIcon, LayoutGrid } from "lucide-react";
 import { 
   getAllEntries, 
   deleteEntry,
@@ -178,12 +179,21 @@ export default function HistoryPage() {
                     : truncateText(entry.content, 50)}
                 </p>
                 
-                {entry.attachments && entry.attachments.some(a => a.type === 'image') && (
-                  <div className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
-                    <ImageIcon className="h-4 w-4" />
-                    <span>Has images</span>
-                  </div>
-                )}
+                <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
+                  {entry.attachments && entry.attachments.some(a => a.type === 'image') && (
+                    <div className="flex items-center gap-1">
+                      <ImageIcon className="h-4 w-4" />
+                      <span>Images</span>
+                    </div>
+                  )}
+                  
+                  {entry.templateData && Object.keys(entry.templateData.sections).length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <LayoutGrid className="h-4 w-4" />
+                      <span>Templates</span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
               <CardFooter className="p-4 pt-0 flex justify-end gap-2">
                 <Button 

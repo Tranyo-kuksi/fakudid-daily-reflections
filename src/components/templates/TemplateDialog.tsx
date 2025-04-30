@@ -5,20 +5,37 @@ import { TemplateManager } from './TemplateManager';
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { SparklesIcon } from "lucide-react";
+import { TemplateState } from './TemplateManager';
 
 interface TemplateDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  initialValues?: TemplateState;
+  readOnly?: boolean;
+  onEdit?: () => void;
+  entryId?: string;
 }
 
-export const TemplateDialog: React.FC<TemplateDialogProps> = ({ isOpen, onClose }) => {
+export const TemplateDialog: React.FC<TemplateDialogProps> = ({ 
+  isOpen, 
+  onClose, 
+  initialValues,
+  readOnly = false,
+  onEdit,
+  entryId
+}) => {
   const { isSubscribed, openCheckout } = useSubscription();
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         {isSubscribed ? (
-          <TemplateManager />
+          <TemplateManager 
+            initialValues={initialValues} 
+            readOnly={readOnly} 
+            onEdit={onEdit}
+            entryId={entryId}
+          />
         ) : (
           <div className="py-8 text-center space-y-4">
             <SparklesIcon className="mx-auto h-12 w-12 text-primary" />

@@ -8,7 +8,8 @@ import {
   addAttachment,
   deleteAttachment,
   getAllEntries,
-  getEntryById
+  getEntryById,
+  updateEntry
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
@@ -17,7 +18,7 @@ import { AttachmentControls } from "@/components/journal/AttachmentControls";
 import { PromptButton } from "@/components/journal/PromptButton";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Sparkles } from "lucide-react";
+import { LayoutGrid, Sparkles, Save, Edit, X } from "lucide-react";
 import { TemplateDialog } from "@/components/templates/TemplateDialog";
 
 export default function JournalPage() {
@@ -29,9 +30,11 @@ export default function JournalPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [entryId, setEntryId] = useState<string | null>(null);
   const [readOnly, setReadOnly] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [highlightedContent, setHighlightedContent] = useState<React.ReactNode | null>(null);
   const [highlightedTitle, setHighlightedTitle] = useState<React.ReactNode | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [templateData, setTemplateData] = useState<{ sections: Record<string, string[]> } | undefined>(undefined);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
@@ -98,6 +101,7 @@ export default function JournalPage() {
           setSelectedMood(specificEntry.mood);
           setEntryId(specificEntry.id);
           setCurrentEntry(specificEntry);
+          setTemplateData(specificEntry.templateData);
           setIsEditing(true);
           
           // If it's not today's entry, make it read-only
@@ -108,8 +112,10 @@ export default function JournalPage() {
           
           if (entryDate.getTime() !== today.getTime()) {
             setReadOnly(true);
+            setEditMode(false);
           } else {
             setReadOnly(false);
+            setEditMode(false);
           }
           
           return;
@@ -124,8 +130,10 @@ export default function JournalPage() {
         setSelectedMood(todayEntry.mood);
         setEntryId(todayEntry.id);
         setCurrentEntry(todayEntry);
+        setTemplateData(todayEntry.templateData);
         setIsEditing(true);
         setReadOnly(false);
+        setEditMode(false);
       } else {
         // Reset the form for a new entry
         setJournalTitle("");
@@ -133,17 +141,19 @@ export default function JournalPage() {
         setSelectedMood(null);
         setEntryId(null);
         setCurrentEntry(null);
+        setTemplateData(undefined);
         setIsEditing(false);
         setReadOnly(false);
+        setEditMode(false);
       }
     };
 
     loadEntry();
   }, [params.id, location.search]);
 
-  // Update autosave effect with shorter delay (500ms instead of 3000ms)
+  // Update autosave effect to include template data
   useEffect(() => {
-    if (readOnly) return; // Don't autosave if in read-only mode
+    if (readOnly && !editMode) return; // Don't autosave if in read-only mode and not editing
     
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
@@ -151,7 +161,7 @@ export default function JournalPage() {
 
     if (journalTitle.trim() || journalEntry.trim() || selectedMood) {
       autoSaveTimerRef.current = setTimeout(async () => {
-        const saved = await autosaveEntry(journalTitle, journalEntry, selectedMood as any);
+        const saved = await autosaveEntry(journalTitle, journalEntry, selectedMood as any, templateData);
         if (saved && !isEditing) {
           const entry = await getTodayEntry();
           if (entry) {
@@ -160,7 +170,7 @@ export default function JournalPage() {
             setIsEditing(true);
           }
         }
-      }, 500); // Changed from 3000ms to 500ms
+      }, 500);
     }
 
     return () => {
@@ -168,17 +178,25 @@ export default function JournalPage() {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [journalTitle, journalEntry, selectedMood, readOnly, isEditing]);
+  }, [journalTitle, journalEntry, selectedMood, templateData, readOnly, isEditing, editMode]);
 
   // Listen for template insertion events
   useEffect(() => {
     const handleTemplateInserted = () => {
       const content = localStorage.getItem('current-journal-content');
+      const templateValues = localStorage.getItem('current-template-values');
+      
       if (content) {
         setJournalEntry(content);
         localStorage.removeItem('current-journal-content');
-        setIsTemplateDialogOpen(false);
       }
+      
+      if (templateValues) {
+        setTemplateData(JSON.parse(templateValues));
+        localStorage.removeItem('current-template-values');
+      }
+      
+      setIsTemplateDialogOpen(false);
     };
 
     window.addEventListener('template-inserted', handleTemplateInserted);
@@ -195,9 +213,23 @@ export default function JournalPage() {
     setIsTemplateDialogOpen(true);
   };
 
+  // Toggle edit mode for past entries
+  const toggleEditMode = () => {
+    if (!readOnly) return;
+    
+    if (editMode) {
+      // If exiting edit mode, save changes
+      handleSave();
+      setEditMode(false);
+    } else {
+      // Entering edit mode
+      setEditMode(true);
+    }
+  };
+
   const handleSave = async () => {
-    if (readOnly) {
-      toast.error("Cannot modify past entries");
+    if (readOnly && !editMode) {
+      toast.error("Cannot modify past entries without entering edit mode");
       return;
     }
     
@@ -211,7 +243,26 @@ export default function JournalPage() {
       return;
     }
     
-    const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
+    let saved = false;
+    
+    if (editMode && entryId) {
+      // Update existing entry in edit mode
+      const updatedEntry = updateEntry(entryId, {
+        title: journalTitle,
+        content: journalEntry,
+        mood: selectedMood as any,
+        templateData
+      });
+      
+      if (updatedEntry) {
+        setCurrentEntry(updatedEntry);
+        saved = true;
+        setEditMode(false);
+      }
+    } else {
+      // Normal save - create or update today's entry
+      saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any, templateData);
+    }
     
     if (saved) {
       if (!isEditing) {
@@ -228,13 +279,13 @@ export default function JournalPage() {
         }
       }
       
-      toast.success(isEditing ? "Journal entry updated" : "Journal entry saved");
+      toast.success(editMode ? "Journal entry updated" : (isEditing ? "Journal entry updated" : "Journal entry saved"));
     }
   };
 
   const handleImageAttachment = async () => {
-    if (readOnly) {
-      toast.error("Cannot modify past entries");
+    if (readOnly && !editMode) {
+      toast.error("Cannot modify past entries without entering edit mode");
       return;
     }
     
@@ -249,7 +300,7 @@ export default function JournalPage() {
         return;
       }
       
-      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
+      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any, templateData);
       if (!saved) {
         toast.error("Failed to save journal entry. Please try again.");
         return;
@@ -270,8 +321,8 @@ export default function JournalPage() {
   };
 
   const handleMusicAttachment = async () => {
-    if (readOnly) {
-      toast.error("Cannot modify past entries");
+    if (readOnly && !editMode) {
+      toast.error("Cannot modify past entries without entering edit mode");
       return;
     }
     
@@ -286,7 +337,7 @@ export default function JournalPage() {
         return;
       }
       
-      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any);
+      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any, templateData);
       if (!saved) {
         toast.error("Failed to save journal entry. Please try again.");
         return;
@@ -307,8 +358,8 @@ export default function JournalPage() {
   };
 
   const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "music") => {
-    if (readOnly) {
-      toast.error("Cannot modify past entries");
+    if (readOnly && !editMode) {
+      toast.error("Cannot modify past entries without entering edit mode");
       return;
     }
     
@@ -329,8 +380,8 @@ export default function JournalPage() {
   };
 
   const handleDeleteAttachment = async (attachmentIndex: number) => {
-    if (readOnly) {
-      toast.error("Cannot modify past entries");
+    if (readOnly && !editMode) {
+      toast.error("Cannot modify past entries without entering edit mode");
       return;
     }
     
@@ -342,25 +393,57 @@ export default function JournalPage() {
     }
   };
 
+  // Function to view template data of a past entry
+  const viewTemplateData = () => {
+    if (!templateData || Object.keys(templateData.sections).length === 0) {
+      toast.info("No template data for this entry");
+      return;
+    }
+    
+    setIsTemplateDialogOpen(true);
+  };
+
   return (
     <div className="w-full h-full relative">
       {readOnly && (
-        <div className="bg-yellow-100 dark:bg-yellow-900 p-3 mb-4 rounded-md">
-          <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium text-center">
-            This is a past entry. You are viewing it in read-only mode.
-            {searchQuery && 
-              <span className="ml-2">
-                Showing results for: <strong>{searchQuery}</strong>
-              </span>
-            }
+        <div className={`${editMode ? "bg-amber-100 dark:bg-amber-950" : "bg-yellow-100 dark:bg-yellow-900"} p-3 mb-4 rounded-md flex justify-between items-center`}>
+          <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium">
+            {editMode ? (
+              "You are editing a past entry. Click Save when finished."
+            ) : (
+              <>
+                This is a past entry. You are viewing it in read-only mode.
+                {searchQuery && 
+                  <span className="ml-2">
+                    Showing results for: <strong>{searchQuery}</strong>
+                  </span>
+                }
+              </>
+            )}
           </p>
+          <Button
+            variant={editMode ? "destructive" : "outline"}
+            size="sm"
+            onClick={toggleEditMode}
+            className="ml-2"
+          >
+            {editMode ? (
+              <>
+                <X size={16} className="mr-1" /> Cancel Edit
+              </>
+            ) : (
+              <>
+                <Edit size={16} className="mr-1" /> Edit Entry
+              </>
+            )}
+          </Button>
         </div>
       )}
       
       <div className="mb-4 space-y-4">
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            {readOnly && highlightedTitle ? (
+            {readOnly && !editMode && highlightedTitle ? (
               <div className="text-lg w-full border rounded-md p-2">
                 {highlightedTitle || "Untitled"}
               </div>
@@ -370,7 +453,7 @@ export default function JournalPage() {
                 className="text-lg w-full"
                 value={journalTitle}
                 onChange={(e) => setJournalTitle(e.target.value)}
-                readOnly={readOnly}
+                readOnly={readOnly && !editMode}
               />
             )}
           </div>
@@ -379,7 +462,7 @@ export default function JournalPage() {
             selectedMood={selectedMood}
             setSelectedMood={(mood) => setSelectedMood(mood)}
             moodNames={moodNames}
-            readOnly={readOnly}
+            readOnly={readOnly && !editMode}
           />
         </div>
 
@@ -390,10 +473,22 @@ export default function JournalPage() {
             fileInputRef={fileInputRef}
             audioInputRef={audioInputRef}
             onFileSelected={handleFileSelected}
-            readOnly={readOnly}
+            readOnly={readOnly && !editMode}
           />
 
-          {!readOnly && (
+          {readOnly && !editMode ? (
+            (isSubscribed && templateData && Object.keys(templateData.sections).length > 0) && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={viewTemplateData}
+                className="flex items-center gap-2"
+              >
+                <LayoutGrid size={16} />
+                View Template Data
+              </Button>
+            )
+          ) : (
             isSubscribed ? (
               <Button 
                 variant="outline" 
@@ -423,14 +518,14 @@ export default function JournalPage() {
             <AttachmentViewer 
               attachments={currentEntry.attachments} 
               size="medium"
-              onDelete={readOnly ? undefined : handleDeleteAttachment}
+              onDelete={(readOnly && !editMode) ? undefined : handleDeleteAttachment}
             />
           </div>
         )}
       </div>
 
       <div className="relative">
-        {readOnly && highlightedContent ? (
+        {readOnly && !editMode && highlightedContent ? (
           <div className="min-h-[calc(100vh-240px)] w-full resize-none text-lg p-4 border rounded-md whitespace-pre-wrap">
             {highlightedContent}
           </div>
@@ -440,16 +535,24 @@ export default function JournalPage() {
             className="min-h-[calc(100vh-240px)] w-full resize-none text-lg p-4 focus:border-fakudid-purple border-none"
             value={journalEntry}
             onChange={(e) => setJournalEntry(e.target.value)}
-            readOnly={readOnly}
+            readOnly={readOnly && !editMode}
           />
         )}
 
-        {!readOnly && (
-          <div className="fixed bottom-8 right-8">
+        {(!readOnly || editMode) && (
+          <div className="fixed bottom-8 right-8 flex flex-col gap-2">
+            {editMode && (
+              <Button 
+                className="rounded-full shadow-lg w-12 h-12 p-0"
+                onClick={handleSave}
+              >
+                <Save size={20} />
+              </Button>
+            )}
             <PromptButton
               journalEntry={journalEntry}
               onPromptGenerated={setJournalEntry}
-              readOnly={readOnly}
+              readOnly={readOnly && !editMode}
             />
           </div>
         )}
@@ -458,6 +561,10 @@ export default function JournalPage() {
       <TemplateDialog 
         isOpen={isTemplateDialogOpen}
         onClose={() => setIsTemplateDialogOpen(false)}
+        initialValues={templateData}
+        readOnly={readOnly && !editMode}
+        onEdit={toggleEditMode}
+        entryId={entryId || undefined}
       />
     </div>
   );

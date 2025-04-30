@@ -1,18 +1,40 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { TemplateSection } from './TemplateSection';
 import { Button } from '@/components/ui/button';
-import { LayoutTemplate } from 'lucide-react';
+import { LayoutTemplate, Save, Edit } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 export interface TemplateState {
   sections: Record<string, string[]>;
 }
 
-export const TemplateManager: React.FC = () => {
+interface TemplateManagerProps {
+  initialValues?: TemplateState;
+  readOnly?: boolean;
+  onEdit?: () => void;
+  entryId?: string;
+}
+
+export const TemplateManager: React.FC<TemplateManagerProps> = ({ 
+  initialValues,
+  readOnly = false,
+  onEdit,
+  entryId
+}) => {
   const [openSections, setOpenSections] = useLocalStorage<string[]>('fakudid-open-sections', []);
-  const [templateValues, setTemplateValues] = useLocalStorage<TemplateState>('fakudid-template-values', { sections: {} });
+  const [templateValues, setTemplateValues] = useState<TemplateState>(
+    initialValues || { sections: {} }
+  );
   const [templateSections] = useLocalStorage<any[]>('fakudid-template-sections', defaultTemplateSections);
+  
+  // Update templateValues if initialValues changes (when editing a past entry)
+  useEffect(() => {
+    if (initialValues) {
+      setTemplateValues(initialValues);
+    }
+  }, [initialValues]);
   
   const toggleSection = (sectionId: string) => {
     if (openSections.includes(sectionId)) {
@@ -23,6 +45,8 @@ export const TemplateManager: React.FC = () => {
   };
 
   const handleValueChange = (sectionId: string, fieldId: string, value: string) => {
+    if (readOnly) return;
+    
     const currentFieldValues = templateValues.sections[fieldId] || [];
     const updatedFieldValues = currentFieldValues.includes(value)
       ? currentFieldValues.filter(v => v !== value)
@@ -42,17 +66,36 @@ export const TemplateManager: React.FC = () => {
     const currentContent = localStorage.getItem('current-journal-content') || '';
     localStorage.setItem('current-journal-content', currentContent + '\n\n' + journalText);
     
+    // Save the template values to use later when saving the journal entry
+    localStorage.setItem('current-template-values', JSON.stringify(templateValues));
+    
     // Dispatch an event to notify JournalPage component
     window.dispatchEvent(new CustomEvent('template-inserted'));
+    
+    toast.success("Template inserted into journal");
   };
 
   return (
     <div className="space-y-4 p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Journal Templates</h2>
-        <Button onClick={insertTemplateToJournal} variant="default">
-          Insert into Journal
-        </Button>
+        <h2 className="text-lg font-medium">
+          {readOnly ? "Template Data" : "Journal Templates"}
+          {readOnly && onEdit && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="ml-2" 
+              onClick={onEdit}
+            >
+              <Edit size={16} className="mr-1" /> Edit
+            </Button>
+          )}
+        </h2>
+        {!readOnly && (
+          <Button onClick={insertTemplateToJournal} variant="default">
+            <Save size={16} className="mr-1" /> Insert into Journal
+          </Button>
+        )}
       </div>
       
       <div className="space-y-3">
@@ -64,6 +107,7 @@ export const TemplateManager: React.FC = () => {
             onToggle={() => toggleSection(section.id)}
             selectedValues={templateValues.sections}
             onValueChange={(fieldId, value) => handleValueChange(section.id, fieldId, value)}
+            readOnly={readOnly}
           />
         ))}
       </div>

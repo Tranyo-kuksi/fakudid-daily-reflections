@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,6 +13,9 @@ export interface JournalEntry {
     name: string;
   }[];
   userId?: string;
+  templateData?: {
+    sections: Record<string, string[]>;
+  };
 }
 
 // Load entries from localStorage with user ID filtering
@@ -120,7 +122,12 @@ export async function getEntryByDate(date: Date): Promise<JournalEntry | undefin
 }
 
 // Create a new entry for the current user
-export async function createEntry(title: string, content: string, mood: JournalEntry['mood']): Promise<JournalEntry | null> {
+export async function createEntry(
+  title: string, 
+  content: string, 
+  mood: JournalEntry['mood'],
+  templateData?: { sections: Record<string, string[]> }
+): Promise<JournalEntry | null> {
   const todayEntry = await getTodayEntry();
   if (todayEntry) {
     toast.error("You've already created a journal entry for today");
@@ -138,7 +145,8 @@ export async function createEntry(title: string, content: string, mood: JournalE
     content,
     mood,
     attachments: [],
-    userId
+    userId,
+    templateData
   };
   
   journalEntries.push(newEntry);
@@ -227,7 +235,12 @@ export async function deleteAttachment(entryId: string, attachmentIndex: number)
 }
 
 // Autosave functionality - returns true if saved successfully
-export async function autosaveEntry(title: string, content: string, mood: JournalEntry['mood']): Promise<boolean> {
+export async function autosaveEntry(
+  title: string, 
+  content: string, 
+  mood: JournalEntry['mood'],
+  templateData?: { sections: Record<string, string[]> }
+): Promise<boolean> {
   // Check if there's already an entry for today
   let todayEntry = await getTodayEntry();
   
@@ -237,10 +250,10 @@ export async function autosaveEntry(title: string, content: string, mood: Journa
   
   if (todayEntry) {
     // Update existing entry
-    updateEntry(todayEntry.id, { title, content, mood });
+    updateEntry(todayEntry.id, { title, content, mood, templateData });
     return true;
-  } else if (title.trim() || content.trim() || mood) {
-    // Create new entry if there's content or mood
+  } else if (title.trim() || content.trim() || mood || (templateData && Object.keys(templateData.sections).length > 0)) {
+    // Create new entry if there's content, mood, or template data
     const newEntry: JournalEntry = {
       id: Date.now().toString(),
       date: new Date(),
@@ -248,7 +261,8 @@ export async function autosaveEntry(title: string, content: string, mood: Journa
       content,
       mood,
       attachments: [],
-      userId
+      userId,
+      templateData
     };
     
     journalEntries.push(newEntry);

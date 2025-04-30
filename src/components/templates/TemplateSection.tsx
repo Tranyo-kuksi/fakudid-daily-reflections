@@ -26,6 +26,7 @@ interface TemplateSectionProps {
   selectedValues: Record<string, string[]>;
   onValueChange: (fieldId: string, value: string) => void;
   onCounterChange?: (fieldId: string, count: number) => void;
+  readOnly?: boolean;
 }
 
 export const TemplateSection: React.FC<TemplateSectionProps> = ({
@@ -34,7 +35,8 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
   onToggle,
   selectedValues,
   onValueChange,
-  onCounterChange
+  onCounterChange,
+  readOnly = false
 }) => {
   return (
     <div className="border border-border rounded-lg overflow-hidden mb-3">
@@ -62,6 +64,7 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
                         isSelected={selectedValues[field.id]?.includes(tag) || false}
                         onClick={() => onValueChange(field.id, tag)}
                         category={section.color}
+                        disabled={readOnly}
                       />
                     ))}
                   </div>

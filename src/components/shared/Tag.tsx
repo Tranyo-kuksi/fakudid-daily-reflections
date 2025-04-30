@@ -6,14 +6,16 @@ interface TagProps {
   isSelected: boolean;
   onClick: () => void;
   category?: string;
+  disabled?: boolean;
 }
 
-export function Tag({
+export const Tag: React.FC<TagProps> = ({
   label,
   isSelected,
   onClick,
-  category = 'default'
-}: TagProps) {
+  category = 'default',
+  disabled = false
+}) => {
   const getSelectedColor = () => {
     switch (category) {
       case 'workout':
@@ -37,20 +39,21 @@ export function Tag({
       case 'selfCare':
         return 'bg-gradient-to-r from-rose-400 to-pink-500';
       default:
-        return 'bg-fakudid-purple';
+        return 'bg-[#f0a742]';
     }
   };
-  
+
   return (
     <button 
       className={`px-3 py-1 rounded-full text-sm transition-all ${
         isSelected 
           ? `${getSelectedColor()} text-white font-medium shadow-lg scale-105` 
-          : 'bg-muted hover:bg-muted/80 text-foreground'
-      }`} 
+          : 'bg-[#1a2e25] text-gray-300 hover:bg-[#243b31]'
+      } ${disabled ? 'opacity-80 cursor-default' : 'cursor-pointer'}`} 
       onClick={onClick}
+      disabled={disabled}
     >
       {label}
     </button>
   );
-}
+};
