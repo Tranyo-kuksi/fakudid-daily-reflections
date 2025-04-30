@@ -22,8 +22,6 @@ import { LayoutGrid, Sparkles, Save, Edit, X } from "lucide-react";
 import { TemplateDialog } from "@/components/templates/TemplateDialog";
 
 export default function JournalPage() {
-  // ... keep existing code (variable declarations and state)
-
   const [journalTitle, setJournalTitle] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -63,7 +61,7 @@ export default function JournalPage() {
     }
   }, []);
 
-  // Function to highlight search terms in text
+  // Function to highlight search text
   const highlightSearchText = (text: string) => {
     if (!searchQuery || !text) return text;
     
@@ -596,14 +594,6 @@ export default function JournalPage() {
         entryId={entryId || undefined}
       />
       
-      <style jsx>{`
-        .template-content {
-          color: #8B5CF6; /* Vivid purple color for template text */
-          border-left: 3px solid #8B5CF6;
-          padding-left: 10px;
-          margin: 10px 0;
-        }
-      `}</style>
     </div>
   );
 }
