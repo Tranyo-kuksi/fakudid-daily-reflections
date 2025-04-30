@@ -1,8 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Add this to your existing CSS */
-.template-content {
-  color: #8B5CF6; /* Vivid purple color for template text */
-  border-left: 3px solid #8B5CF6;
-  padding-left: 10px;
-  margin: 10px 0;
+@layer base {
+  :root {
+    --background: 240 10% 90%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 240 10% 90%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 240 10% 90%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 266 57% 68%;      /* #bc7bed lavender */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 140 60% 87%;    /* #c2fcdf mint */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 140 60% 87%;        /* #c2fcdf mint */
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 36 91% 88%;        /* #fcd4b1 peach */
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 266 57% 75%;       /* lavender border */
+    --input: 266 57% 75%;
+    --ring: 266 57% 75%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: var(--background);
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 240 10% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 240 10% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 240 10% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 260 78% 75%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 326 78% 60%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 260 78% 75%;
+    --sidebar-background: var(--background);
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  /* Theme-specific backgrounds with gradients and better contrast */
+  .theme-lavender {
+    --background: linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%);
+    --primary: 266 57% 68%;
+    --secondary: 266 30% 90%;
+    --card: 266 50% 95%;
+    --muted: 266 25% 85%;
+    --accent: 266 40% 60%;
+    --border: 266 35% 75%;
+  }
+
+  .theme-mint {
+    --background: linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%);
+    --primary: 152 50% 60%;
+    --secondary: 152 25% 90%;
+    --card: 152 25% 99%;
+    --muted: 152 20% 85%;
+    --accent: 152 35% 55%;
+    --border: 152 25% 85%;
+  }
+
+  .theme-peach {
+    --background: linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%);
+    --primary: 32 70% 65%;
+    --secondary: 32 25% 90%;
+    --card: 32 25% 99%;
+    --muted: 32 20% 85%;
+    --accent: 6 50% 55%;
+    --border: 32 25% 85%;
+  }
+
+  .theme-sky {
+    --background: linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%);
+    --primary: 187 75% 75%;
+    --secondary: 200 25% 90%;
+    --card: 187 75% 95%;
+    --muted: 187 60% 83%;
+    --accent: 187 75% 70%;
+    --border: 187 45% 75%;
+  }
+
+  .dark.theme-midnight {
+    --background: 240 10% 8%;
+  }
+
+  .dark.theme-forest {
+    --background: 150 30% 10%;
+  }
+
+  .dark.theme-plum {
+    --background: 300 30% 10%;
+  }
+
+  .dark.theme-ocean {
+    --background: 200 70% 8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
 }

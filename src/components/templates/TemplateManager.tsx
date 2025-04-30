@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { TemplateSection } from './TemplateSection';
@@ -34,21 +35,6 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
       setTemplateValues(initialValues);
     }
   }, [initialValues]);
-  
-  // Autosave template values to localStorage whenever they change
-  useEffect(() => {
-    if (readOnly) return;
-    
-    // Save the current template values
-    localStorage.setItem('current-template-values', JSON.stringify(templateValues));
-    
-    // If we have an entryId, dispatch the autosave event
-    if (entryId) {
-      window.dispatchEvent(new CustomEvent('template-autosave', { 
-        detail: { templateValues } 
-      }));
-    }
-  }, [templateValues, readOnly, entryId]);
   
   const toggleSection = (sectionId: string) => {
     if (openSections.includes(sectionId)) {
