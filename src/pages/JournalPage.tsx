@@ -151,68 +151,6 @@ export default function JournalPage() {
     loadEntry();
   }, [params.id, location.search]);
 
-  // Update autosave effect to include template data
-  useEffect(() => {
-    if (readOnly && !editMode) return; // Don't autosave if in read-only mode and not editing
-    
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current);
-    }
-
-    if (journalTitle.trim() || journalEntry.trim() || selectedMood) {
-      autoSaveTimerRef.current = setTimeout(async () => {
-        const saved = await autosaveEntry(journalTitle, journalEntry, selectedMood as any, templateData);
-        if (saved && !isEditing) {
-          const entry = await getTodayEntry();
-          if (entry) {
-            setEntryId(entry.id);
-            setCurrentEntry(entry);
-            setIsEditing(true);
-          }
-        }
-      }, 500);
-    }
-
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
-    };
-  }, [journalTitle, journalEntry, selectedMood, templateData, readOnly, isEditing, editMode]);
-
-  // Listen for template insertion events
-  useEffect(() => {
-    const handleTemplateInserted = () => {
-      const content = localStorage.getItem('current-journal-content');
-      const templateValues = localStorage.getItem('current-template-values');
-      
-      if (content) {
-        setJournalEntry(content);
-        localStorage.removeItem('current-journal-content');
-      }
-      
-      if (templateValues) {
-        setTemplateData(JSON.parse(templateValues));
-        localStorage.removeItem('current-template-values');
-      }
-      
-      setIsTemplateDialogOpen(false);
-    };
-
-    window.addEventListener('template-inserted', handleTemplateInserted);
-    return () => {
-      window.removeEventListener('template-inserted', handleTemplateInserted);
-    };
-  }, []);
-
-  // Save current content before opening template dialog
-  const openTemplateDialog = () => {
-    if (journalEntry) {
-      localStorage.setItem('current-journal-content', journalEntry);
-    }
-    setIsTemplateDialogOpen(true);
-  };
-
   // Toggle edit mode for past entries
   const toggleEditMode = () => {
     if (!readOnly) return;
@@ -246,7 +184,7 @@ export default function JournalPage() {
     let saved = false;
     
     if (editMode && entryId) {
-      // Update existing entry in edit mode
+      // Update existing entry in edit mode - directly update the entry while preserving its date
       const updatedEntry = updateEntry(entryId, {
         title: journalTitle,
         content: journalEntry,
@@ -258,28 +196,35 @@ export default function JournalPage() {
         setCurrentEntry(updatedEntry);
         saved = true;
         setEditMode(false);
+        toast.success("Journal entry updated");
       }
     } else {
       // Normal save - create or update today's entry
-      saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any, templateData);
-    }
-    
-    if (saved) {
-      if (!isEditing) {
-        const todayEntry = await getTodayEntry();
-        if (todayEntry) {
-          setEntryId(todayEntry.id);
-          setCurrentEntry(todayEntry);
-          setIsEditing(true);
-        }
-      } else {
-        const updatedEntry = await getEntryById(entryId!);
-        if (updatedEntry) {
-          setCurrentEntry(updatedEntry);
-        }
-      }
+      saved = await autosaveEntry(
+        journalTitle, 
+        journalEntry.trim(), 
+        selectedMood as any, 
+        templateData,
+        entryId // Pass the current entryId to make sure we update the right one
+      );
       
-      toast.success(editMode ? "Journal entry updated" : (isEditing ? "Journal entry updated" : "Journal entry saved"));
+      if (saved) {
+        if (!isEditing) {
+          const todayEntry = await getTodayEntry();
+          if (todayEntry) {
+            setEntryId(todayEntry.id);
+            setCurrentEntry(todayEntry);
+            setIsEditing(true);
+          }
+        } else {
+          const updatedEntry = await getEntryById(entryId!);
+          if (updatedEntry) {
+            setCurrentEntry(updatedEntry);
+          }
+        }
+        
+        toast.success(isEditing ? "Journal entry updated" : "Journal entry saved");
+      }
     }
   };
 
@@ -400,6 +345,75 @@ export default function JournalPage() {
       return;
     }
     
+    setIsTemplateDialogOpen(true);
+  };
+
+  // Update autosave effect to include template data and handle entry ID properly
+  useEffect(() => {
+    if (readOnly && !editMode) return; // Don't autosave if in read-only mode and not editing
+    
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    if (journalTitle.trim() || journalEntry.trim() || selectedMood) {
+      autoSaveTimerRef.current = setTimeout(async () => {
+        const saved = await autosaveEntry(
+          journalTitle, 
+          journalEntry, 
+          selectedMood as any, 
+          templateData,
+          editMode ? entryId : undefined // Only pass entryId when in edit mode
+        );
+        
+        if (saved && !isEditing && !editMode) {
+          const entry = await getTodayEntry();
+          if (entry) {
+            setEntryId(entry.id);
+            setCurrentEntry(entry);
+            setIsEditing(true);
+          }
+        }
+      }, 500);
+    }
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [journalTitle, journalEntry, selectedMood, templateData, readOnly, isEditing, editMode, entryId]);
+
+  // Listen for template insertion events
+  useEffect(() => {
+    const handleTemplateInserted = () => {
+      const content = localStorage.getItem('current-journal-content');
+      const templateValues = localStorage.getItem('current-template-values');
+      
+      if (content) {
+        setJournalEntry(content);
+        localStorage.removeItem('current-journal-content');
+      }
+      
+      if (templateValues) {
+        setTemplateData(JSON.parse(templateValues));
+        localStorage.removeItem('current-template-values');
+      }
+      
+      setIsTemplateDialogOpen(false);
+    };
+
+    window.addEventListener('template-inserted', handleTemplateInserted);
+    return () => {
+      window.removeEventListener('template-inserted', handleTemplateInserted);
+    };
+  }, []);
+
+  // Save current content before opening template dialog
+  const openTemplateDialog = () => {
+    if (journalEntry) {
+      localStorage.setItem('current-journal-content', journalEntry);
+    }
     setIsTemplateDialogOpen(true);
   };
 

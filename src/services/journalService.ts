@@ -121,48 +121,22 @@ export async function getEntryByDate(date: Date): Promise<JournalEntry | undefin
   });
 }
 
-// Create a new entry for the current user
-export async function createEntry(
-  title: string, 
-  content: string, 
-  mood: JournalEntry['mood'],
-  templateData?: { sections: Record<string, string[]> }
-): Promise<JournalEntry | null> {
-  const todayEntry = await getTodayEntry();
-  if (todayEntry) {
-    toast.error("You've already created a journal entry for today");
-    return null;
-  }
-  
-  // Get current user ID
-  const { data } = await supabase.auth.getUser();
-  const userId = data.user?.id;
-  
-  const newEntry: JournalEntry = {
-    id: Date.now().toString(),
-    date: new Date(),
-    title,
-    content,
-    mood,
-    attachments: [],
-    userId,
-    templateData
-  };
-  
-  journalEntries.push(newEntry);
-  saveEntriesToStorage();
-  toast.success("Journal entry created successfully");
-  return newEntry;
-}
-
-// Update an existing entry
+// Update an existing entry - modified to preserve the original date
 export function updateEntry(id: string, updates: Partial<JournalEntry>): JournalEntry | null {
   const index = journalEntries.findIndex(entry => entry.id === id);
   if (index === -1) return null;
   
-  journalEntries[index] = { ...journalEntries[index], ...updates };
+  // Make sure we're not overriding the original date when editing
+  const updatedEntry = { 
+    ...journalEntries[index], 
+    ...updates,
+    // Preserve the original date
+    date: updates.date || journalEntries[index].date
+  };
+  
+  journalEntries[index] = updatedEntry;
   saveEntriesToStorage();
-  return journalEntries[index];
+  return updatedEntry;
 }
 
 // Delete an entry
@@ -234,14 +208,24 @@ export async function deleteAttachment(entryId: string, attachmentIndex: number)
   return updatedEntry;
 }
 
-// Autosave functionality - returns true if saved successfully
+// Autosave functionality - modified to handle past entries properly
 export async function autosaveEntry(
   title: string, 
   content: string, 
   mood: JournalEntry['mood'],
-  templateData?: { sections: Record<string, string[]> }
+  templateData?: { sections: Record<string, string[]> },
+  entryId?: string // Add entryId parameter to handle existing entries
 ): Promise<boolean> {
-  // Check if there's already an entry for today
+  // If we have an entryId, update that specific entry instead of looking for today's
+  if (entryId) {
+    const existingEntry = journalEntries.find(entry => entry.id === entryId);
+    if (existingEntry) {
+      updateEntry(entryId, { title, content, mood, templateData });
+      return true;
+    }
+  }
+  
+  // Otherwise check for today's entry as before
   let todayEntry = await getTodayEntry();
   
   // Get current user ID
@@ -249,7 +233,7 @@ export async function autosaveEntry(
   const userId = data.user?.id;
   
   if (todayEntry) {
-    // Update existing entry
+    // Update existing today's entry
     updateEntry(todayEntry.id, { title, content, mood, templateData });
     return true;
   } else if (title.trim() || content.trim() || mood || (templateData && Object.keys(templateData.sections).length > 0)) {
