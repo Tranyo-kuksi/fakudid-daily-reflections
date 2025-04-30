@@ -11,6 +11,9 @@ import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { format, addMonths, subMonths, getDaysInMonth, getDay, startOfMonth } from "date-fns";
 
 export default function MoodTrackerPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -18,6 +21,7 @@ export default function MoodTrackerPage() {
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [monthlySummary, setMonthlySummary] = useState<{[key: string]: number}>({});
   const [dominantMood, setDominantMood] = useState<string | null>(null);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -37,13 +41,13 @@ export default function MoodTrackerPage() {
         awesome: 0
       };
       
-      const today = new Date();
-      const currentMonth = today.getMonth();
-      const currentYear = today.getFullYear();
+      const monthDate = currentMonth;
+      const selectedMonth = monthDate.getMonth();
+      const selectedYear = monthDate.getFullYear();
       
       allEntries.forEach(entry => {
         const entryDate = new Date(entry.date);
-        if (entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear && entry.mood) {
+        if (entryDate.getMonth() === selectedMonth && entryDate.getFullYear() === selectedYear && entry.mood) {
           summary[entry.mood] = (summary[entry.mood] || 0) + 1;
         }
       });
@@ -65,7 +69,7 @@ export default function MoodTrackerPage() {
     };
     
     fetchEntries();
-  }, []);
+  }, [currentMonth]);
   
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString('en-US', {
@@ -139,15 +143,16 @@ export default function MoodTrackerPage() {
     }
   };
   
-  const handleDayClick = (date: Date) => {
-    setSelectedDate(date);
+  const handleDayClick = (year: number, month: number, day: number) => {
+    const clickedDate = new Date(year, month, day);
+    setSelectedDate(clickedDate);
     
     const entryForDate = entries.find(entry => {
       const entryDate = new Date(entry.date);
       return (
-        entryDate.getFullYear() === date.getFullYear() &&
-        entryDate.getMonth() === date.getMonth() &&
-        entryDate.getDate() === date.getDate()
+        entryDate.getFullYear() === clickedDate.getFullYear() &&
+        entryDate.getMonth() === clickedDate.getMonth() &&
+        entryDate.getDate() === clickedDate.getDate()
       );
     });
     
@@ -177,14 +182,25 @@ export default function MoodTrackerPage() {
         : part
     );
   };
+
+  const goToPreviousMonth = () => {
+    setCurrentMonth(prevMonth => subMonths(prevMonth, 1));
+  };
+  
+  const goToNextMonth = () => {
+    setCurrentMonth(prevMonth => addMonths(prevMonth, 1));
+  };
+  
+  const goToCurrentMonth = () => {
+    setCurrentMonth(new Date());
+  };
   
   const renderCalendarDays = () => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
     
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+    const firstDayOfMonth = getDay(startOfMonth(currentMonth));
+    const daysInMonth = getDaysInMonth(currentMonth);
     
     const days: JSX.Element[] = [];
     
@@ -195,7 +211,7 @@ export default function MoodTrackerPage() {
     
     // Add the days of the month
     for (let i = 1; i <= daysInMonth; i++) {
-      const dayDate = new Date(currentYear, currentMonth, i);
+      const dayDate = new Date(year, month, i);
       const entryForDay = entries.find(entry => {
         const entryDate = new Date(entry.date);
         return (
@@ -209,7 +225,7 @@ export default function MoodTrackerPage() {
         <div
           key={i}
           className="p-2 cursor-pointer hover:bg-secondary rounded-md transition-colors"
-          onClick={() => handleDayClick(dayDate)}
+          onClick={() => handleDayClick(year, month, i)}
         >
           <Badge 
             variant={entryForDay ? "default" : "outline"}
@@ -228,8 +244,39 @@ export default function MoodTrackerPage() {
     <div className="max-w-4xl mx-auto">
       {/* Calendar Card */}
       <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Mood Tracker</CardTitle>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between mb-2">
+            <CardTitle className="text-2xl font-bold">Mood Tracker</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToPreviousMonth}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToCurrentMonth}
+                className="h-8 px-2 text-sm"
+              >
+                Today
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToNextMonth}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-center">
+            {format(currentMonth, 'MMMM yyyy')}
+          </h3>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-2">
