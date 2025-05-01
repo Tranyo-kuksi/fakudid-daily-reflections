@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Trash2, ImageIcon, LayoutGrid } from "lucide-react";
+import { Search, Trash2, ImageIcon, LayoutGrid } from "lucide-react";
 import { 
   getAllEntries, 
   deleteEntry,
@@ -70,21 +70,36 @@ export default function HistoryPage() {
     }
   };
 
-  const getMoodIcon = (mood: string | null) => {
+  const getMoodColor = (mood: string | null): string => {
     switch (mood) {
       case "dead":
-        return <Skull className="h-5 w-5 text-mood-dead" />;
+        return "bg-mood-dead text-white";
       case "sad":
-        return <FrownIcon className="h-5 w-5 text-mood-sad" />;
+        return "bg-mood-sad text-white";
       case "meh":
-        return <MehIcon className="h-5 w-5 text-mood-meh" />;
+        return "bg-mood-meh text-white";
       case "good":
-        return <SmileIcon className="h-5 w-5 text-mood-good" />;
+        return "bg-mood-good text-white";
       case "awesome":
-        return <PartyPopper className="h-5 w-5 text-gold-dark" />;
+        return "bg-gold-gradient text-white";
       default:
-        return null;
+        return "bg-muted text-muted-foreground";
     }
+  };
+
+  // Function to get the mood name
+  const getMoodName = (mood: string | null): string => {
+    if (!mood) return "No Mood";
+    
+    const moodNames = JSON.parse(localStorage.getItem("fakudid-mood-names") || JSON.stringify({
+      dead: "Dead Inside",
+      sad: "Shity",
+      meh: "Meh",
+      good: "Pretty Good",
+      awesome: "Fucking AWESOME"
+    }));
+    
+    return moodNames[mood] || "Unknown Mood";
   };
 
   const truncateText = (text: string, maxLength: number) => {
@@ -187,7 +202,9 @@ export default function HistoryPage() {
                     })}
                   </p>
                 </div>
-                <div className="flex items-center justify-center">{getMoodIcon(entry.mood)}</div>
+                <div className={`px-3 py-1 rounded-full ${getMoodColor(entry.mood)}`}>
+                  <span className="text-sm font-medium">{getMoodName(entry.mood)}</span>
+                </div>
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <p className="text-muted-foreground">

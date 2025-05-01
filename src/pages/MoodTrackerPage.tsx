@@ -311,8 +311,7 @@ export default function MoodTrackerPage() {
                 key={mood} 
                 className={`px-3 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap shrink-0 ${getMoodColor(mood)}`}
               >
-                {getMoodIcon(mood)}
-                <span className="text-sm font-medium">{count}</span>
+                <span className="text-sm font-medium">{getMoodLabel(mood)}: {count}</span>
               </div>
             ))}
           </div>
@@ -334,7 +333,6 @@ export default function MoodTrackerPage() {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Mood:</span>
                   <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
-                    {getMoodIcon(selectedEntry.mood)}
                     <span>{getMoodLabel(selectedEntry.mood)}</span>
                   </div>
                 </div>
