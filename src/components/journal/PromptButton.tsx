@@ -58,7 +58,7 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
     try {
       if (isSubscribed) {
         setIsGeneratingPrompt(true);
-        toast.loading('Generating prompt...', { id: 'generate-prompt' });
+        toast.loading('Generating AI prompt...', { id: 'generate-prompt' });
         
         const allEntries = await getAllEntries();
         const recentEntries = allEntries
