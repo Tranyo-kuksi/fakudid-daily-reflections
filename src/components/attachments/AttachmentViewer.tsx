@@ -8,13 +8,14 @@ interface Attachment {
   type: "image" | "music";
   url: string;
   name: string;
+  data?: string; // Base64 data for persistent storage
 }
 
 interface AttachmentViewerProps {
   attachments?: Attachment[];
   size?: "small" | "medium" | "large";
   showFullScreenOption?: boolean;
-  onDelete?: (index: number) => void; // New prop for deletion
+  onDelete?: (index: number) => void;
 }
 
 export const AttachmentViewer = ({ 
@@ -37,6 +38,16 @@ export const AttachmentViewer = ({
 
   const iconClass = sizeClasses[size];
   
+  // Function to get the correct image source (base64 data or URL)
+  const getImageSource = (attachment: Attachment): string => {
+    // Use base64 data if available (for persistence)
+    if (attachment.data && attachment.type === 'image') {
+      return attachment.data;
+    }
+    // Fall back to URL (temporary)
+    return attachment.url;
+  };
+  
   return (
     <>
       <div className="flex flex-wrap gap-2">
@@ -49,12 +60,12 @@ export const AttachmentViewer = ({
                 } relative rounded-md overflow-hidden`}
                 onClick={() => {
                   if (showFullScreenOption) {
-                    setSelectedImage(attachment.url);
+                    setSelectedImage(getImageSource(attachment));
                   }
                 }}
               >
                 <img 
-                  src={attachment.url} 
+                  src={getImageSource(attachment)} 
                   alt={attachment.name}
                   className="h-20 w-20 object-cover rounded-md"
                 />

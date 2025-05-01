@@ -11,6 +11,7 @@ export interface JournalEntry {
     type: "image" | "music";
     url: string;
     name: string;
+    data?: string; // Base64 data for persistent storage
   }[];
   userId?: string;
   templateData?: {
@@ -167,23 +168,50 @@ export async function addAttachment(
       return;
     }
     
-    // In a real app, we would upload the file to a server
-    // For this demo, we'll create a URL for the file
+    // Create a URL for the file (for temporary display)
     const url = URL.createObjectURL(file);
     
-    if (!entry.attachments) {
-      entry.attachments = [];
+    // For persistent storage, we'll convert images to base64
+    let fileData: string | undefined = undefined;
+    
+    if (type === "image") {
+      // Convert image to base64 for persistent storage
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        fileData = reader.result as string;
+        
+        if (!entry.attachments) {
+          entry.attachments = [];
+        }
+        
+        entry.attachments.push({
+          type,
+          url, // Keep URL for immediate display
+          name: file.name,
+          data: fileData // Store base64 data for persistence
+        });
+        
+        const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
+        toast.success(`${type === 'image' ? 'Image' : 'Audio'} attachment added`);
+        resolve(updatedEntry);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // For audio files, keep the current behavior
+      if (!entry.attachments) {
+        entry.attachments = [];
+      }
+      
+      entry.attachments.push({
+        type,
+        url,
+        name: file.name
+      });
+      
+      const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
+      toast.success(`${type === 'image' ? 'Image' : 'Audio'} attachment added`);
+      resolve(updatedEntry);
     }
-    
-    entry.attachments.push({
-      type,
-      url,
-      name: file.name
-    });
-    
-    const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
-    toast.success(`${type === 'image' ? 'Image' : 'Audio'} attachment added`);
-    resolve(updatedEntry);
   });
 }
 
