@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -80,6 +81,11 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  /* Gold gradient for the awesome mood */
+  .bg-gold-gradient {
+    background: linear-gradient(135deg, #FEF7CD 0%, #FEC6A1 50%, #F97316 100%);
   }
 
   /* Theme-specific backgrounds with gradients and better contrast */

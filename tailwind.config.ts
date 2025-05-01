@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 
@@ -35,6 +34,11 @@ export default {
           meh: "#0EA5E9",      // Blue
           good: "#16A34A",     // Green
           awesome: "#EAB308",  // Gold/Yellow
+        },
+        gold: {
+          light: "#FEF7CD",    // Soft Yellow
+          medium: "#FEC6A1",   // Soft Orange
+          dark: "#F97316",     // Bright Orange
         },
         // Theme colors
         theme: {
@@ -109,6 +113,9 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground, var(--muted-foreground)))",
           ring: "hsl(var(--sidebar-ring, var(--ring)))",
         },
+      },
+      backgroundImage: {
+        'gold-gradient': 'linear-gradient(135deg, #FEF7CD 0%, #FEC6A1 50%, #F97316 100%)',
       },
       borderRadius: {
         lg: "var(--radius)",

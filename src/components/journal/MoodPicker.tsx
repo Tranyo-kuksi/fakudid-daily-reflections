@@ -34,6 +34,14 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
     ? moodOptions.find(m => m.value === selectedMood) 
     : null;
 
+  // Function to get the class for the mood icon
+  const getMoodIconClass = (mood: string) => {
+    if (mood === "awesome") {
+      return "text-transparent bg-gold-gradient bg-clip-text";
+    }
+    return moodOptions.find(m => m.value === mood)?.color || "";
+  };
+
   return (
     <div className="relative">
       <Button 
@@ -44,7 +52,11 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
       >
         {selectedMoodOption ? (
           <>
-            <selectedMoodOption.icon className={`h-5 w-5 ${selectedMoodOption.color}`} />
+            <selectedMoodOption.icon 
+              className={`h-5 w-5 ${selectedMoodOption.value === "awesome" 
+                ? "text-transparent bg-gold-gradient bg-clip-text" 
+                : selectedMoodOption.color}`} 
+            />
             <span>{selectedMoodOption.name}</span>
           </>
         ) : (
@@ -69,7 +81,11 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
                       setShowMoodPicker(false);
                     }}
                   >
-                    <mood.icon className={`h-7 w-7 ${mood.color}`} />
+                    <mood.icon 
+                      className={`h-7 w-7 ${mood.value === "awesome" 
+                        ? "text-transparent bg-gold-gradient bg-clip-text" 
+                        : mood.color}`} 
+                    />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -91,7 +92,7 @@ export default function MoodTrackerPage() {
       case "good":
         return <SmileIcon className="h-5 w-5 text-mood-good" />;
       case "awesome":
-        return <PartyPopper className="h-5 w-5 text-mood-awesome" />;
+        return <PartyPopper className="h-5 w-5 text-transparent bg-gold-gradient bg-clip-text" />;
       default:
         return null;
     }
@@ -120,7 +121,7 @@ export default function MoodTrackerPage() {
       case "good":
         return "bg-mood-good text-white";
       case "awesome":
-        return "bg-mood-awesome text-white";
+        return "bg-gold-gradient text-white";
       default:
         return "bg-muted text-muted-foreground";
     }
@@ -137,7 +138,7 @@ export default function MoodTrackerPage() {
       case "good":
         return "text-mood-good";
       case "awesome":
-        return "text-mood-awesome";
+        return "text-transparent bg-gold-gradient bg-clip-text";
       default:
         return "text-muted-foreground";
     }
