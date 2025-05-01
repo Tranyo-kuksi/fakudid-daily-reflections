@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -874,4 +875,167 @@ export default function CustomizePage() {
                                         : 'border-border hover:bg-accent'
                                     }`}
                                     onClick={() => {
-                                      setActiveFieldId(field
+                                      setActiveFieldId(field.id);
+                                      setEditingFieldName(field.name);
+                                    }}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-medium">{field.name}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          deleteField(activeSectionId, field.id);
+                                        }}
+                                      >
+                                        <Trash2 size={14} />
+                                      </Button>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {field.type === 'tags' ? 'Tags' : 'Counter'} 
+                                      {field.type === 'tags' && ` • ${field.multiSelect ? 'Multi' : 'Single'} select`}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-center p-6 text-muted-foreground">
+                            <LayoutGrid className="h-8 w-8 mb-2 opacity-50" />
+                            <p>Select a section to edit its details</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Right - Field details */}
+                      <div className="border rounded-md p-4 h-auto">
+                        {activeFieldId && activeSectionId ? (
+                          <div className="space-y-4">
+                            <h3 className="font-medium mb-3">Field Settings</h3>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Field Name</label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  value={editingFieldName}
+                                  onChange={(e) => setEditingFieldName(e.target.value)}
+                                  placeholder="Field name"
+                                />
+                                <Button 
+                                  size="sm"
+                                  onClick={() => updateFieldName(activeSectionId, activeFieldId)}
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">Selection Type</label>
+                                <Toggle
+                                  pressed={templateSections
+                                    .find(s => s.id === activeSectionId)
+                                    ?.fields.find(f => f.id === activeFieldId)
+                                    ?.multiSelect || false
+                                  }
+                                  onPressedChange={() => toggleMultiSelect(activeSectionId, activeFieldId)}
+                                >
+                                  <span className="text-xs">
+                                    {templateSections
+                                      .find(s => s.id === activeSectionId)
+                                      ?.fields.find(f => f.id === activeFieldId)
+                                      ?.multiSelect 
+                                        ? 'Multiple' 
+                                        : 'Single'
+                                    }
+                                  </span>
+                                </Toggle>
+                              </div>
+                            </div>
+                            
+                            <div className="pt-4 border-t">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium">Tags</h4>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="flex gap-2">
+                                  <Input 
+                                    value={editingTagName}
+                                    onChange={(e) => setEditingTagName(e.target.value)}
+                                    placeholder="New tag name"
+                                  />
+                                  <Button 
+                                    size="sm"
+                                    onClick={() => addTagToField(activeSectionId, activeFieldId)}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                  {templateSections
+                                    .find(s => s.id === activeSectionId)
+                                    ?.fields.find(f => f.id === activeFieldId)
+                                    ?.tags?.map((tag, index) => (
+                                      <Badge 
+                                        key={index} 
+                                        variant="outline"
+                                        className="flex items-center gap-1 pl-2"
+                                      >
+                                        {tag}
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-4 w-4 ml-1"
+                                          onClick={() => deleteTag(activeSectionId, activeFieldId, index)}
+                                        >
+                                          <Trash2 size={10} />
+                                        </Button>
+                                      </Badge>
+                                    ))
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-center p-6 text-muted-foreground">
+                            <LayoutGrid className="h-8 w-8 mb-2 opacity-50" />
+                            <p>Select a field to edit its settings</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="p-6">
+                  <div className="flex flex-col items-center text-center space-y-4 py-8">
+                    <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center">
+                      <Sparkles className="h-8 w-8 text-amber-500" />
+                    </div>
+                    <h3 className="text-xl font-semibold">Premium Feature</h3>
+                    <p className="text-muted-foreground max-w-md">
+                      Unlock the ability to customize your journal templates by upgrading to our premium plan.
+                    </p>
+                    <Button 
+                      className="mt-4 bg-gradient-to-r from-amber-500 to-amber-600"
+                      onClick={openCheckout}
+                    >
+                      <Sparkles className="mr-2 h-4 w-4" /> Upgrade to Premium
+                    </Button>
+                  </div>
+                </Card>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </div>
+  );
+}

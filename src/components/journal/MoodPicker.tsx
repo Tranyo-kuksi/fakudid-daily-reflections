@@ -11,11 +11,11 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 const moodIcons = {
   dead: {
     default: Skull,
-    alternatives: [CircleX, HeartCrack]
+    alternatives: [Skull, CircleX, HeartCrack]
   },
   sad: {
     default: FrownIcon,
-    alternatives: [Angry, Poop]
+    alternatives: [FrownIcon, Angry, Poop]
   },
   meh: {
     default: MehIcon,
@@ -23,11 +23,11 @@ const moodIcons = {
   },
   good: {
     default: SmileIcon,
-    alternatives: [Heart]
+    alternatives: [SmileIcon, Heart]
   },
   awesome: {
     default: PartyPopper,
-    alternatives: [Star]
+    alternatives: [PartyPopper, Star]
   }
 };
 
