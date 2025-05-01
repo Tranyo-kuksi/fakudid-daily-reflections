@@ -46,42 +46,57 @@ serve(async (req) => {
     // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get the user from the authorization header
-    const authHeader = req.headers.get('Authorization');
+    // Parse request body for session data
+    let user = null;
+    let requestData = {};
     
-    // Debug auth header
-    console.log("Auth header present:", !!authHeader);
-    
-    if (!authHeader) {
-      console.error("No authorization header found");
-      
-      // Try to get session from the request body as a fallback
-      const requestData = await req.json().catch(() => ({}));
-      
-      if (!requestData.session) {
-        return new Response(
-          JSON.stringify({ error: 'No authorization header', details: 'Authentication required' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      console.log("Using session from request body");
-      var token = requestData.session.access_token;
-    } else {
-      var token = authHeader.replace('Bearer ', '');
+    try {
+      requestData = await req.json();
+      console.log("Request data received:", 
+        requestData && requestData.session ? "Session provided in body" : "No session in body");
+    } catch (e) {
+      console.log("No JSON body in request");
     }
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    // First try to get user from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    console.log("Auth header present:", !!authHeader);
     
-    if (userError || !user) {
-      console.error("User authentication error:", userError);
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data, error } = await supabase.auth.getUser(token);
+      
+      if (!error && data.user) {
+        user = data.user;
+        console.log("User authenticated from auth header:", user.id);
+      } else {
+        console.error("Auth header validation error:", error?.message);
+      }
+    }
+    
+    // If user not found via Authorization header, try from session in request body
+    if (!user && requestData.session) {
+      const token = requestData.session.access_token;
+      console.log("Using access token from request body");
+      
+      const { data, error } = await supabase.auth.getUser(token);
+      
+      if (!error && data.user) {
+        user = data.user;
+        console.log("User authenticated from request body:", user.id);
+      } else {
+        console.error("Request body session validation error:", error?.message);
+      }
+    }
+    
+    // If still no user, return authentication error
+    if (!user) {
+      console.error("No valid user found from authentication sources");
       return new Response(
-        JSON.stringify({ error: 'Invalid user token', details: userError?.message || 'Authentication failed' }),
+        JSON.stringify({ error: 'Authentication failed', details: 'Unable to authenticate user from any source' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    console.log("User authenticated:", user.id);
 
     // Check if user already has a Stripe customer ID
     const { data: subscribers, error: subscribersError } = await supabase
