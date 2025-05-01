@@ -27,20 +27,12 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
     { name: moodNames.sad, value: "sad", icon: FrownIcon, color: "text-mood-sad" },
     { name: moodNames.meh, value: "meh", icon: MehIcon, color: "text-mood-meh" },
     { name: moodNames.good, value: "good", icon: SmileIcon, color: "text-mood-good" },
-    { name: moodNames.awesome, value: "awesome", icon: PartyPopper, color: "text-mood-awesome" }
+    { name: moodNames.awesome, value: "awesome", icon: PartyPopper, color: "bg-gold-gradient" }
   ];
 
   const selectedMoodOption = selectedMood 
     ? moodOptions.find(m => m.value === selectedMood) 
     : null;
-
-  // Function to get the class for the mood icon
-  const getMoodIconClass = (mood: string) => {
-    if (mood === "awesome") {
-      return "text-transparent bg-gold-gradient bg-clip-text";
-    }
-    return moodOptions.find(m => m.value === mood)?.color || "";
-  };
 
   return (
     <div className="relative">
@@ -52,11 +44,13 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
       >
         {selectedMoodOption ? (
           <>
-            <selectedMoodOption.icon 
-              className={`h-5 w-5 ${selectedMoodOption.value === "awesome" 
-                ? "text-transparent bg-gold-gradient bg-clip-text" 
-                : selectedMoodOption.color}`} 
-            />
+            {selectedMoodOption.value === "awesome" ? (
+              <PartyPopper className="h-5 w-5 text-transparent bg-gold-gradient bg-clip-text" />
+            ) : (
+              <selectedMoodOption.icon 
+                className={`h-5 w-5 ${selectedMoodOption.color}`} 
+              />
+            )}
             <span>{selectedMoodOption.name}</span>
           </>
         ) : (
@@ -81,11 +75,11 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
                       setShowMoodPicker(false);
                     }}
                   >
-                    <mood.icon 
-                      className={`h-7 w-7 ${mood.value === "awesome" 
-                        ? "text-transparent bg-gold-gradient bg-clip-text" 
-                        : mood.color}`} 
-                    />
+                    {mood.value === "awesome" ? (
+                      <PartyPopper className="h-7 w-7 text-transparent bg-gold-gradient bg-clip-text" />
+                    ) : (
+                      <mood.icon className={`h-7 w-7 ${mood.color}`} />
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
