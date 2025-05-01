@@ -48,15 +48,29 @@ serve(async (req) => {
 
     // Get the user from the authorization header
     const authHeader = req.headers.get('Authorization');
+    
+    // Debug auth header
+    console.log("Auth header present:", !!authHeader);
+    
     if (!authHeader) {
       console.error("No authorization header found");
-      return new Response(
-        JSON.stringify({ error: 'No authorization header', details: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      
+      // Try to get session from the request body as a fallback
+      const requestData = await req.json().catch(() => ({}));
+      
+      if (!requestData.session) {
+        return new Response(
+          JSON.stringify({ error: 'No authorization header', details: 'Authentication required' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log("Using session from request body");
+      var token = requestData.session.access_token;
+    } else {
+      var token = authHeader.replace('Bearer ', '');
     }
     
-    const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {

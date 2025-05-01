@@ -116,8 +116,20 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
       
+      // Get a fresh token to ensure we're authenticated
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) {
+        toast.dismiss(loadingToast);
+        toast.error('Session expired. Please sign in again.');
+        return;
+      }
+      
       console.log('Creating checkout session...');
-      const { data, error } = await supabase.functions.invoke('create-checkout');
+      
+      // Pass the session in the request body as a fallback
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { session: currentSession },
+      });
       
       toast.dismiss(loadingToast);
       
