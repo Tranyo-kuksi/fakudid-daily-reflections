@@ -27,7 +27,7 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
     { name: moodNames.sad, value: "sad", icon: FrownIcon, color: "text-mood-sad" },
     { name: moodNames.meh, value: "meh", icon: MehIcon, color: "text-mood-meh" },
     { name: moodNames.good, value: "good", icon: SmileIcon, color: "text-mood-good" },
-    { name: moodNames.awesome, value: "awesome", icon: PartyPopper, color: "bg-gold-gradient" }
+    { name: moodNames.awesome, value: "awesome", icon: PartyPopper, color: "text-gold-dark" }
   ];
 
   const selectedMoodOption = selectedMood 

@@ -309,11 +309,9 @@ export default function MoodTrackerPage() {
             {Object.entries(monthlySummary).map(([mood, count]) => (
               <div 
                 key={mood} 
-                className={`px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 ${getMoodColor(mood)}`}
+                className={`px-3 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap shrink-0 ${getMoodColor(mood)}`}
               >
-                <div className="flex items-center justify-center">
-                  {getMoodIcon(mood)}
-                </div>
+                {getMoodIcon(mood)}
                 <span className="text-sm font-medium">{count}</span>
               </div>
             ))}
@@ -335,10 +333,8 @@ export default function MoodTrackerPage() {
               <div className="space-y-4 py-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Mood:</span>
-                  <div className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
-                    <div className="flex items-center justify-center">
-                      {getMoodIcon(selectedEntry.mood)}
-                    </div>
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
+                    {getMoodIcon(selectedEntry.mood)}
                     <span>{getMoodLabel(selectedEntry.mood)}</span>
                   </div>
                 </div>

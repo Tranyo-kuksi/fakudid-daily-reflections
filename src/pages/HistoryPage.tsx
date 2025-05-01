@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -188,7 +187,7 @@ export default function HistoryPage() {
                     })}
                   </p>
                 </div>
-                <div>{getMoodIcon(entry.mood)}</div>
+                <div className="flex items-center justify-center">{getMoodIcon(entry.mood)}</div>
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <p className="text-muted-foreground">
