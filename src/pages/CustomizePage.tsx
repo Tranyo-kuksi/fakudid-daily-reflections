@@ -1,12 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { 
-  Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, CheckCircle, Trash2, Plus, 
-  LayoutGrid, ChevronDown, ChevronUp, Sparkles, Angry, Heart, HeartCrack, Star, CircleX
-} from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, CheckCircle, Trash2, Plus, LayoutGrid, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +12,6 @@ import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 
 // Define theme options with gradients for visual representation
 const lightThemes = [
@@ -46,30 +42,6 @@ const templateColors = [
   { id: 'selfCare', name: 'Self-Care', color: 'from-rose-400 to-pink-500' }
 ];
 
-// Define available mood icons
-const moodIconOptions = {
-  dead: [
-    { icon: Skull, name: "Skull" },
-    { icon: CircleX, name: "X" },
-    { icon: HeartCrack, name: "Broken Heart" }
-  ],
-  sad: [
-    { icon: FrownIcon, name: "Frown" },
-    { icon: Angry, name: "Angry" }
-  ],
-  meh: [
-    { icon: MehIcon, name: "Meh" }
-  ],
-  good: [
-    { icon: SmileIcon, name: "Smile" },
-    { icon: Heart, name: "Heart" }
-  ],
-  awesome: [
-    { icon: PartyPopper, name: "Party" },
-    { icon: Star, name: "Star" }
-  ]
-};
-
 interface TemplateField {
   id: string;
   name: string;
@@ -99,10 +71,6 @@ export default function CustomizePage() {
     good: "Pretty Good",
     awesome: "Fucking AWESOME"
   });
-  
-  // Custom icons
-  const [customIcons, setCustomIcons] = useLocalStorage<{[key: string]: string}>("fakudid-custom-icons", {});
-  const [selectedMoodForIcons, setSelectedMoodForIcons] = useState<string | null>(null);
   
   // Template customization
   const [templateSections, setTemplateSections] = useLocalStorage<TemplateSection[]>(
@@ -237,20 +205,6 @@ export default function CustomizePage() {
       ...prev,
       [mood]: name
     }));
-  };
-
-  const handleIconSelect = (mood: string, iconName: string) => {
-    setCustomIcons(prev => ({
-      ...prev,
-      [mood]: iconName
-    }));
-    toast.success(`Icon updated for "${moodNames[mood]}" mood`);
-    setSelectedMoodForIcons(null);
-  };
-
-  const resetIcons = () => {
-    setCustomIcons({});
-    toast.success("Reset all icons to defaults");
   };
 
   const handleThemeSelect = (isLight: boolean, themeId: string) => {
@@ -556,7 +510,7 @@ export default function CustomizePage() {
             <AccordionContent className="px-1 pt-4">
               <Card>
                 <CardContent className="p-6">
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center gap-3">
                         <Skull className="h-8 w-8 text-mood-dead" />
@@ -566,15 +520,6 @@ export default function CustomizePage() {
                           maxLength={20}
                           placeholder="Dead Inside"
                         />
-                        {isSubscribed && (
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            onClick={() => setSelectedMoodForIcons('dead')}
-                          >
-                            <LayoutGrid className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                       
                       <div className="flex items-center gap-3">
@@ -585,15 +530,6 @@ export default function CustomizePage() {
                           maxLength={20}
                           placeholder="Shity"
                         />
-                        {isSubscribed && (
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            onClick={() => setSelectedMoodForIcons('sad')}
-                          >
-                            <LayoutGrid className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                       
                       <div className="flex items-center gap-3">
@@ -604,15 +540,6 @@ export default function CustomizePage() {
                           maxLength={20}
                           placeholder="Meh"
                         />
-                        {isSubscribed && (
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            onClick={() => setSelectedMoodForIcons('meh')}
-                          >
-                            <LayoutGrid className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                       
                       <div className="flex items-center gap-3">
@@ -623,15 +550,6 @@ export default function CustomizePage() {
                           maxLength={20}
                           placeholder="Pretty Good"
                         />
-                        {isSubscribed && (
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            onClick={() => setSelectedMoodForIcons('good')}
-                          >
-                            <LayoutGrid className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                       
                       <div className="flex items-center gap-3">
@@ -642,89 +560,15 @@ export default function CustomizePage() {
                           maxLength={20}
                           placeholder="Fucking AWESOME"
                         />
-                        {isSubscribed && (
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            onClick={() => setSelectedMoodForIcons('awesome')}
-                          >
-                            <LayoutGrid className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                     </div>
                     
-                    <div className="flex flex-col md:flex-row gap-3">
-                      <Button 
-                        className="w-full md:w-auto bg-fakudid-purple hover:bg-fakudid-darkPurple"
-                        onClick={saveMoodNames}
-                      >
-                        Save Mood Names
-                      </Button>
-                      
-                      {isSubscribed && (
-                        <Button 
-                          variant="outline"
-                          className="w-full md:w-auto"
-                          onClick={resetIcons}
-                        >
-                          Reset Icons
-                        </Button>
-                      )}
-                    </div>
-                    
-                    {selectedMoodForIcons && isSubscribed && (
-                      <div className="mt-6 p-4 border rounded-lg">
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-medium">Select Icon for "{moodNames[selectedMoodForIcons]}"</h3>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setSelectedMoodForIcons(null)}
-                          >
-                            Close
-                          </Button>
-                        </div>
-                        
-                        <RadioGroup 
-                          className="grid grid-cols-3 gap-4"
-                          value={customIcons[selectedMoodForIcons] || 'default'}
-                          onValueChange={(value) => handleIconSelect(selectedMoodForIcons, value)}
-                        >
-                          {moodIconOptions[selectedMoodForIcons].map((option) => (
-                            <div key={option.name} className="flex items-center space-x-2">
-                              <RadioGroupItem value={option.name} id={`icon-${option.name}`} />
-                              <Label 
-                                htmlFor={`icon-${option.name}`}
-                                className="flex items-center gap-2 cursor-pointer"
-                              >
-                                <option.icon className="h-6 w-6" />
-                                <span>{option.name}</span>
-                              </Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </div>
-                    )}
-                    
-                    {!isSubscribed && (
-                      <div className="mt-4 p-4 border rounded-lg bg-amber-50 dark:bg-amber-950/30">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Sparkles className="h-5 w-5 text-amber-500" />
-                          <h3 className="font-medium">Premium Feature</h3>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Upgrade to premium to customize your mood icons with more options.
-                        </p>
-                        <Button 
-                          size="sm" 
-                          onClick={openCheckout}
-                          className="bg-gradient-to-r from-amber-500 to-amber-600"
-                        >
-                          <Sparkles className="h-4 w-4 mr-1" /> Upgrade Now
-                        </Button>
-                      </div>
-                    )}
+                    <Button 
+                      className="mt-4 w-full md:w-auto bg-fakudid-purple hover:bg-fakudid-darkPurple"
+                      onClick={saveMoodNames}
+                    >
+                      Save Mood Names
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -876,3 +720,163 @@ export default function CustomizePage() {
                                       setActiveFieldId(field.id);
                                       setEditingFieldName(field.name);
                                     }}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span>{field.name}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          deleteField(activeSectionId, field.id);
+                                        }}
+                                      >
+                                        <Trash2 size={14} />
+                                      </Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {field.tags?.map((tag, i) => (
+                                        <Badge key={i} variant="outline" className="text-xs">
+                                          {tag}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                            Select a section to edit
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Right - Field details */}
+                      <div className="border rounded-md p-4 h-auto">
+                        {activeFieldId && activeSectionId ? (
+                          <div className="space-y-4">
+                            <h3 className="font-medium mb-3">Field Settings</h3>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Field Name</label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  value={editingFieldName}
+                                  onChange={(e) => setEditingFieldName(e.target.value)}
+                                  placeholder="Field name"
+                                />
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => updateFieldName(activeSectionId, activeFieldId)}
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium">Selection Type</label>
+                                <ToggleGroup type="single" value={
+                                  templateSections.find(s => s.id === activeSectionId)
+                                    ?.fields.find(f => f.id === activeFieldId)?.multiSelect ? "multi" : "single"
+                                }>
+                                  <ToggleGroupItem value="single" onClick={() => toggleMultiSelect(activeSectionId, activeFieldId)}>
+                                    Single
+                                  </ToggleGroupItem>
+                                  <ToggleGroupItem value="multi" onClick={() => toggleMultiSelect(activeSectionId, activeFieldId)}>
+                                    Multiple
+                                  </ToggleGroupItem>
+                                </ToggleGroup>
+                              </div>
+                            </div>
+                            
+                            <div className="pt-4 border-t">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium">Tags</h4>
+                              </div>
+                              
+                              <div className="space-y-2 mb-3">
+                                <div className="flex gap-2">
+                                  <Input 
+                                    value={editingTagName}
+                                    onChange={(e) => setEditingTagName(e.target.value)}
+                                    placeholder="New tag name"
+                                  />
+                                  <Button 
+                                    size="sm"
+                                    onClick={() => addTagToField(activeSectionId, activeFieldId)}
+                                    disabled={!editingTagName.trim()}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                {templateSections.find(s => s.id === activeSectionId)
+                                  ?.fields.find(f => f.id === activeFieldId)
+                                  ?.tags?.map((tag, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center justify-between p-2 border rounded-md"
+                                  >
+                                    <span>{tag}</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6"
+                                      onClick={() => deleteTag(activeSectionId, activeFieldId, index)}
+                                    >
+                                      <Trash2 size={14} />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                            {activeSectionId 
+                              ? "Select a field to edit"
+                              : "Select a section first"
+                            }
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="py-8 text-center space-y-5">
+                      <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
+                      <div>
+                        <h2 className="text-2xl font-semibold mb-2">Premium Feature</h2>
+                        <p className="text-muted-foreground max-w-md mx-auto">
+                          Custom journal templates are available exclusively for premium users. 
+                          Upgrade your account to create, customize and manage journal templates.
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={openCheckout}
+                        className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+                        size="lg"
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" /> Upgrade to Premium
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </div>
+  );
+}

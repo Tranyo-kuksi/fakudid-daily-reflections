@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar, ImageIcon,
-  Angry, HeartCrack, Heart, Star, CircleX
-} from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar, ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
   getAllEntries, 
@@ -17,34 +14,6 @@ import { useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, addMonths, subMonths, getDaysInMonth, getDay, startOfMonth } from "date-fns";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-
-// Default mood icons
-const defaultMoodIcons = {
-  dead: Skull,
-  sad: FrownIcon,
-  meh: MehIcon,
-  good: SmileIcon,
-  awesome: PartyPopper
-};
-
-// Alternative mood icons
-const alternativeMoodIcons = {
-  dead: {
-    "X": CircleX,
-    "Broken Heart": HeartCrack
-  },
-  sad: {
-    "Angry": Angry
-  },
-  meh: {},
-  good: {
-    "Heart": Heart
-  },
-  awesome: {
-    "Star": Star
-  }
-};
 
 export default function MoodTrackerPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -57,7 +26,6 @@ export default function MoodTrackerPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('search') || "";
-  const [customIcons] = useLocalStorage<{[key: string]: string}>("fakudid-custom-icons", {});
   
   useEffect(() => {
     const fetchEntries = async () => {
@@ -113,18 +81,20 @@ export default function MoodTrackerPage() {
   };
   
   const getMoodIcon = (mood: string | null) => {
-    if (!mood) return null;
-    
-    // Check if user has a custom icon for this mood
-    const customIconName = customIcons[mood];
-    if (customIconName && alternativeMoodIcons[mood] && alternativeMoodIcons[mood][customIconName]) {
-      const CustomIcon = alternativeMoodIcons[mood][customIconName];
-      return <CustomIcon className="h-5 w-5" />;
+    switch (mood) {
+      case "dead":
+        return <Skull className="h-5 w-5 text-mood-dead" />;
+      case "sad":
+        return <FrownIcon className="h-5 w-5 text-mood-sad" />;
+      case "meh":
+        return <MehIcon className="h-5 w-5 text-mood-meh" />;
+      case "good":
+        return <SmileIcon className="h-5 w-5 text-mood-good" />;
+      case "awesome":
+        return <PartyPopper className="h-5 w-5 text-gold-dark" />;
+      default:
+        return null;
     }
-    
-    // Otherwise use default icon
-    const DefaultIcon = defaultMoodIcons[mood];
-    return <DefaultIcon className="h-5 w-5" />;
   };
   
   const getMoodLabel = (mood: string | null): string => {
@@ -340,7 +310,6 @@ export default function MoodTrackerPage() {
               <div 
                 key={mood} 
                 className={`px-3 py-2 rounded-lg flex items-center justify-center w-10 h-10 shrink-0 ${getMoodColor(mood)}`}
-                title={getMoodLabel(mood)}
               >
                 <span className="text-sm font-medium">{count}</span>
               </div>
@@ -364,7 +333,6 @@ export default function MoodTrackerPage() {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Mood:</span>
                   <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
-                    {getMoodIcon(selectedEntry.mood)}
                     <span>{getMoodLabel(selectedEntry.mood)}</span>
                   </div>
                 </div>
