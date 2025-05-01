@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -81,7 +82,7 @@ export default function HistoryPage() {
       case "good":
         return <SmileIcon className="h-5 w-5 text-mood-good" />;
       case "awesome":
-        return <PartyPopper className="h-5 w-5 text-mood-awesome" />;
+        return <PartyPopper className="h-5 w-5 text-transparent bg-gold-gradient bg-clip-text" />;
       default:
         return null;
     }

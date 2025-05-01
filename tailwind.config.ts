@@ -36,9 +36,9 @@ export default {
           awesome: "#EAB308",  // Gold/Yellow
         },
         gold: {
-          light: "#FEF7CD",    // Soft Yellow
-          medium: "#FEC6A1",   // Soft Orange
-          dark: "#F97316",     // Bright Orange
+          light: "#FFEB8A",    // Bright Yellow
+          medium: "#FFDA56",   // Medium Yellow
+          dark: "#FFC107",     // Deep Yellow
         },
         // Theme colors
         theme: {
@@ -115,7 +115,7 @@ export default {
         },
       },
       backgroundImage: {
-        'gold-gradient': 'linear-gradient(135deg, #FEF7CD 0%, #FEC6A1 50%, #F97316 100%)',
+        'gold-gradient': 'linear-gradient(135deg, #FFEB8A 0%, #FFDA56 50%, #FFC107 100%)',
       },
       borderRadius: {
         lg: "var(--radius)",

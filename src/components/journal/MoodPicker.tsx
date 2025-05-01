@@ -75,7 +75,7 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
                 <TooltipTrigger asChild>
                   <Button 
                     variant="ghost" 
-                    className={`p-2 ${selectedMood === mood.value ? 'bg-muted' : ''}`}
+                    className={`p-2 flex items-center justify-center ${selectedMood === mood.value ? 'bg-muted' : ''}`}
                     onClick={() => {
                       setSelectedMood(mood.value);
                       setShowMoodPicker(false);

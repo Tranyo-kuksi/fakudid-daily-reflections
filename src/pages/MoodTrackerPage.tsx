@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -310,7 +309,7 @@ export default function MoodTrackerPage() {
             {Object.entries(monthlySummary).map(([mood, count]) => (
               <div 
                 key={mood} 
-                className={`p-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap shrink-0 ${getMoodColor(mood)}`}
+                className={`p-2 rounded-lg flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 ${getMoodColor(mood)}`}
               >
                 {getMoodIcon(mood)}
                 <span className="text-sm font-medium">{count}</span>
@@ -334,9 +333,9 @@ export default function MoodTrackerPage() {
               <div className="space-y-4 py-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Mood:</span>
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
+                  <div className={`flex items-center justify-center gap-1 px-2 py-1 rounded-full ${getMoodColor(selectedEntry.mood)}`}>
                     {getMoodIcon(selectedEntry.mood)}
-                    <span className="text-center w-full inline-block">{getMoodLabel(selectedEntry.mood)}</span>
+                    <span className="text-center">{getMoodLabel(selectedEntry.mood)}</span>
                   </div>
                 </div>
                 
