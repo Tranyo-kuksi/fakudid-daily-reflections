@@ -309,9 +309,9 @@ export default function MoodTrackerPage() {
             {Object.entries(monthlySummary).map(([mood, count]) => (
               <div 
                 key={mood} 
-                className={`px-3 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap shrink-0 ${getMoodColor(mood)}`}
+                className={`px-3 py-2 rounded-lg flex items-center justify-center w-10 h-10 shrink-0 ${getMoodColor(mood)}`}
               >
-                <span className="text-sm font-medium">{getMoodLabel(mood)}: {count}</span>
+                <span className="text-sm font-medium">{count}</span>
               </div>
             ))}
           </div>
