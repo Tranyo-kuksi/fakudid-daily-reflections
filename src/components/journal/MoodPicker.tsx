@@ -44,13 +44,9 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
       >
         {selectedMoodOption ? (
           <>
-            {selectedMoodOption.value === "awesome" ? (
-              <PartyPopper className="h-5 w-5 text-gold-dark" />
-            ) : (
-              <selectedMoodOption.icon 
-                className={`h-5 w-5 ${selectedMoodOption.color}`} 
-              />
-            )}
+            <selectedMoodOption.icon 
+              className={`h-5 w-5 ${selectedMoodOption.color}`} 
+            />
             <span>{selectedMoodOption.name}</span>
           </>
         ) : (
@@ -75,11 +71,7 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
                       setShowMoodPicker(false);
                     }}
                   >
-                    {mood.value === "awesome" ? (
-                      <PartyPopper className="h-7 w-7 text-gold-dark" />
-                    ) : (
-                      <mood.icon className={`h-7 w-7 ${mood.color}`} />
-                    )}
+                    <mood.icon className={`h-7 w-7 ${mood.color}`} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
