@@ -45,7 +45,7 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
         {selectedMoodOption ? (
           <>
             {selectedMoodOption.value === "awesome" ? (
-              <PartyPopper className="h-5 w-5 text-transparent bg-gold-gradient bg-clip-text" />
+              <PartyPopper className="h-5 w-5 text-gold-dark" />
             ) : (
               <selectedMoodOption.icon 
                 className={`h-5 w-5 ${selectedMoodOption.color}`} 
@@ -76,7 +76,7 @@ export const MoodPicker: React.FC<MoodPickerProps> = ({
                     }}
                   >
                     {mood.value === "awesome" ? (
-                      <PartyPopper className="h-7 w-7 text-transparent bg-gold-gradient bg-clip-text" />
+                      <PartyPopper className="h-7 w-7 text-gold-dark" />
                     ) : (
                       <mood.icon className={`h-7 w-7 ${mood.color}`} />
                     )}

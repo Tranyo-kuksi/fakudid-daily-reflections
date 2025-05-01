@@ -82,7 +82,7 @@ export default function HistoryPage() {
       case "good":
         return <SmileIcon className="h-5 w-5 text-mood-good" />;
       case "awesome":
-        return <PartyPopper className="h-5 w-5 text-transparent bg-gold-gradient bg-clip-text" />;
+        return <PartyPopper className="h-5 w-5 text-gold-dark" />;
       default:
         return null;
     }
