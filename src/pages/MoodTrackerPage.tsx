@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Calendar, ImageIcon,
-  Poop, Angry, HeartCrack, Heart, Star, CircleX
+  Angry, HeartCrack, Heart, Star, CircleX
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -35,8 +35,7 @@ const alternativeMoodIcons = {
     "Broken Heart": HeartCrack
   },
   sad: {
-    "Angry": Angry,
-    "Poop": Poop
+    "Angry": Angry
   },
   meh: {},
   good: {

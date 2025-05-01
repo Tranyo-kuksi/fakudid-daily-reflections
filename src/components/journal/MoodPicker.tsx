@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Poop, Angry, HeartCrack, Heart, Star, CircleX } from "lucide-react";
+import { Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper, Angry, HeartCrack, Heart, Star, CircleX } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
@@ -15,7 +15,7 @@ const moodIcons = {
   },
   sad: {
     default: FrownIcon,
-    alternatives: [FrownIcon, Angry, Poop]
+    alternatives: [FrownIcon, Angry]
   },
   meh: {
     default: MehIcon,
