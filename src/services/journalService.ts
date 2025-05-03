@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -8,10 +9,18 @@ export interface JournalEntry {
   content: string;
   mood: "dead" | "sad" | "meh" | "good" | "awesome" | null;
   attachments?: {
-    type: "image" | "music";
+    type: "image" | "music" | "spotify" | "voice";
     url: string;
     name: string;
     data?: string; // Base64 data for persistent storage
+    metadata?: {
+      artist?: string;
+      album?: string;
+      albumArt?: string;
+      previewUrl?: string;
+      externalUrl?: string;
+      spotifyId?: string;
+    };
   }[];
   userId?: string;
   templateData?: {
@@ -157,7 +166,7 @@ export function deleteEntry(id: string): boolean {
 // Add attachment to an entry
 export async function addAttachment(
   entryId: string, 
-  type: "image" | "music", 
+  type: "image" | "music" | "voice",
   file: File
 ): Promise<JournalEntry | null> {
   return new Promise(async (resolve) => {
@@ -171,11 +180,11 @@ export async function addAttachment(
     // Create a URL for the file (for temporary display)
     const url = URL.createObjectURL(file);
     
-    // For persistent storage, we'll convert images to base64
+    // For persistent storage, we'll convert files to base64
     let fileData: string | undefined = undefined;
     
-    if (type === "image") {
-      // Convert image to base64 for persistent storage
+    if (type === "image" || type === "voice") {
+      // Convert image/audio to base64 for persistent storage
       const reader = new FileReader();
       reader.onloadend = () => {
         fileData = reader.result as string;
@@ -192,12 +201,12 @@ export async function addAttachment(
         });
         
         const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
-        toast.success(`${type === 'image' ? 'Image' : 'Audio'} attachment added`);
+        toast.success(`${type === 'image' ? 'Image' : type === 'voice' ? 'Voice recording' : 'Audio'} attachment added`);
         resolve(updatedEntry);
       };
       reader.readAsDataURL(file);
     } else {
-      // For audio files, keep the current behavior
+      // For regular audio files
       if (!entry.attachments) {
         entry.attachments = [];
       }
@@ -209,9 +218,93 @@ export async function addAttachment(
       });
       
       const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
-      toast.success(`${type === 'image' ? 'Image' : 'Audio'} attachment added`);
+      toast.success(`Audio attachment added`);
       resolve(updatedEntry);
     }
+  });
+}
+
+// Add Spotify track to an entry
+export async function addSpotifyTrack(
+  entryId: string,
+  track: {
+    id: string;
+    name: string;
+    artist: string;
+    album: string;
+    albumArt: string;
+    previewUrl: string | null;
+    externalUrl: string;
+  }
+): Promise<JournalEntry | null> {
+  const entry = await getEntryById(entryId);
+  if (!entry) {
+    toast.error("Journal entry not found");
+    return null;
+  }
+  
+  if (!entry.attachments) {
+    entry.attachments = [];
+  }
+  
+  entry.attachments.push({
+    type: "spotify",
+    url: track.previewUrl || track.externalUrl,
+    name: track.name,
+    metadata: {
+      artist: track.artist,
+      album: track.album,
+      albumArt: track.albumArt,
+      previewUrl: track.previewUrl || undefined,
+      externalUrl: track.externalUrl,
+      spotifyId: track.id
+    }
+  });
+  
+  const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
+  toast.success(`"${track.name}" by ${track.artist} added to your journal`);
+  return updatedEntry;
+}
+
+// Add voice recording to an entry
+export async function addVoiceRecording(
+  entryId: string,
+  blob: Blob,
+  fileName: string
+): Promise<JournalEntry | null> {
+  return new Promise(async (resolve) => {
+    const entry = await getEntryById(entryId);
+    if (!entry) {
+      toast.error("Journal entry not found");
+      resolve(null);
+      return;
+    }
+    
+    // Create a URL for immediate playback
+    const url = URL.createObjectURL(blob);
+    
+    // Convert to base64 for storage
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64data = reader.result as string;
+      
+      if (!entry.attachments) {
+        entry.attachments = [];
+      }
+      
+      entry.attachments.push({
+        type: "voice",
+        url,
+        name: fileName,
+        data: base64data
+      });
+      
+      const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
+      toast.success("Voice recording added to your journal");
+      resolve(updatedEntry);
+    };
+    
+    reader.readAsDataURL(blob);
   });
 }
 

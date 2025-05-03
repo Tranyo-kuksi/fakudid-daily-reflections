@@ -1,14 +1,22 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ImageIcon, Music, X, Maximize2, Trash2 } from "lucide-react";
+import { ImageIcon, Music, X, Maximize2, Trash2, Play, Pause, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Attachment {
-  type: "image" | "music";
+  type: "image" | "music" | "spotify" | "voice";
   url: string;
   name: string;
   data?: string; // Base64 data for persistent storage
+  metadata?: {
+    artist?: string;
+    album?: string;
+    albumArt?: string;
+    previewUrl?: string;
+    externalUrl?: string;
+    spotifyId?: string;
+  };
 }
 
 interface AttachmentViewerProps {
@@ -25,6 +33,8 @@ export const AttachmentViewer = ({
   onDelete
 }: AttachmentViewerProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [playingAudioIndex, setPlayingAudioIndex] = useState<number | null>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
   if (!attachments || attachments.length === 0) {
     return null;
@@ -41,11 +51,55 @@ export const AttachmentViewer = ({
   // Function to get the correct image source (base64 data or URL)
   const getImageSource = (attachment: Attachment): string => {
     // Use base64 data if available (for persistence)
-    if (attachment.data && attachment.type === 'image') {
+    if (attachment.data && (attachment.type === 'image' || attachment.type === 'voice')) {
       return attachment.data;
+    }
+    // For Spotify, use album art if available
+    if (attachment.type === 'spotify' && attachment.metadata?.albumArt) {
+      return attachment.metadata.albumArt;
     }
     // Fall back to URL (temporary)
     return attachment.url;
+  };
+  
+  const playAudio = (attachment: Attachment, index: number) => {
+    // Stop currently playing audio if any
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+    }
+    
+    // If clicking the same audio that's playing, just stop it
+    if (playingAudioIndex === index) {
+      setPlayingAudioIndex(null);
+      setAudioElement(null);
+      return;
+    }
+    
+    // Determine the source to play
+    let audioSource: string;
+    
+    if (attachment.type === 'spotify' && attachment.metadata?.previewUrl) {
+      audioSource = attachment.metadata.previewUrl;
+    } else if (attachment.data && attachment.type === 'voice') {
+      audioSource = attachment.data;
+    } else {
+      audioSource = attachment.url;
+    }
+    
+    // Create and play audio
+    const audio = new Audio(audioSource);
+    audio.addEventListener('ended', () => {
+      setPlayingAudioIndex(null);
+      setAudioElement(null);
+    });
+    
+    audio.play().catch(error => {
+      console.error('Error playing audio:', error);
+    });
+    
+    setPlayingAudioIndex(index);
+    setAudioElement(audio);
   };
   
   return (
@@ -75,12 +129,85 @@ export const AttachmentViewer = ({
                   </div>
                 )}
               </div>
+            ) : (attachment.type === 'spotify' ? (
+              <div className="bg-muted p-2 rounded-md flex items-center gap-2 pr-4" style={{ minWidth: '200px' }}>
+                {attachment.metadata?.albumArt ? (
+                  <img 
+                    src={attachment.metadata.albumArt} 
+                    alt={attachment.name} 
+                    className="h-12 w-12 rounded object-cover"
+                  />
+                ) : (
+                  <div className="h-12 w-12 bg-black/10 rounded flex items-center justify-center">
+                    <Music className={iconClass} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{attachment.name}</p>
+                  {attachment.metadata?.artist && (
+                    <p className="text-xs text-muted-foreground truncate">{attachment.metadata.artist}</p>
+                  )}
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="ml-auto" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playAudio(attachment, i);
+                  }}
+                >
+                  {playingAudioIndex === i ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            ) : attachment.type === 'voice' ? (
+              <div className="bg-muted p-2 rounded-md flex items-center gap-2">
+                <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Mic className={iconClass} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm">Voice recording</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playAudio(attachment, i);
+                  }}
+                >
+                  {playingAudioIndex === i ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             ) : (
               <div className="bg-muted p-2 rounded-md text-sm flex items-center gap-1">
                 <Music className={iconClass} />
-                <span>{attachment.name}</span>
+                <span className="truncate max-w-[120px]">{attachment.name}</span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="ml-1 h-6 w-6"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playAudio(attachment, i);
+                  }}
+                >
+                  {playingAudioIndex === i ? (
+                    <Pause className="h-3 w-3" />
+                  ) : (
+                    <Play className="h-3 w-3" />
+                  )}
+                </Button>
               </div>
-            )}
+            ))}
             
             {onDelete && (
               <Button
