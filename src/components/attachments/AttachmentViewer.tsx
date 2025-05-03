@@ -79,8 +79,15 @@ export const AttachmentViewer = ({
     // Determine the source to play
     let audioSource: string;
     
-    if (attachment.type === 'spotify' && attachment.metadata?.previewUrl) {
-      audioSource = attachment.metadata.previewUrl;
+    if (attachment.type === 'spotify') {
+      // For Spotify tracks, prefer preview URL from metadata (saved for persistence)
+      audioSource = attachment.metadata?.previewUrl || attachment.url;
+      
+      // If no preview available
+      if (!audioSource || audioSource === 'null') {
+        console.error('No preview URL available for this Spotify track');
+        return;
+      }
     } else if (attachment.data && attachment.type === 'voice') {
       audioSource = attachment.data;
     } else {
@@ -88,6 +95,7 @@ export const AttachmentViewer = ({
     }
     
     // Create and play audio
+    console.log('Playing audio source:', audioSource);
     const audio = new Audio(audioSource);
     audio.addEventListener('ended', () => {
       setPlayingAudioIndex(null);

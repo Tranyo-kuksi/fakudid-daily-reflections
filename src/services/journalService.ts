@@ -247,6 +247,10 @@ export async function addSpotifyTrack(
     entry.attachments = [];
   }
   
+  // Ensure the previewUrl is properly stored as a string 
+  // This fixes the issue where null values caused problems after refresh
+  const previewUrl = track.previewUrl || "";
+  
   entry.attachments.push({
     type: "spotify",
     url: track.previewUrl || track.externalUrl,
@@ -255,7 +259,7 @@ export async function addSpotifyTrack(
       artist: track.artist,
       album: track.album,
       albumArt: track.albumArt,
-      previewUrl: track.previewUrl || undefined,
+      previewUrl: previewUrl, // Always store a string, even if it's empty
       externalUrl: track.externalUrl,
       spotifyId: track.id
     }

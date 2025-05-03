@@ -73,8 +73,8 @@ serve(async (req) => {
       name: track.name,
       artist: track.artists.map(artist => artist.name).join(", "),
       album: track.album.name,
-      albumArt: track.album.images[0]?.url,
-      previewUrl: track.preview_url,
+      albumArt: track.album.images[0]?.url || "",
+      previewUrl: track.preview_url || "", // Always return a string, even if empty
       externalUrl: track.external_urls.spotify,
     }));
     

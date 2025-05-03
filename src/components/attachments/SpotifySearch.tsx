@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Search, X, Music } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -27,6 +27,8 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SpotifyTrack[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
+  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
   
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,16 +60,75 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
   };
   
   const handleSelectTrack = (track: SpotifyTrack) => {
+    // Stop any playing preview before selecting
+    if (previewAudio) {
+      previewAudio.pause();
+      setPreviewAudio(null);
+      setPlayingTrackId(null);
+    }
+
     onSelect(track);
     onClose();
     toast.success(`"${track.name}" by ${track.artist} added`);
   };
   
+  // Handle track preview playback
+  const togglePreview = (track: SpotifyTrack) => {
+    // If there's already audio playing, stop it
+    if (previewAudio) {
+      previewAudio.pause();
+      previewAudio.currentTime = 0;
+      setPreviewAudio(null);
+      setPlayingTrackId(null);
+      
+      // If we clicked the same track that was playing, just stop it
+      if (playingTrackId === track.id) {
+        return;
+      }
+    }
+    
+    // No preview URL available
+    if (!track.previewUrl) {
+      toast.info("No preview available for this track");
+      return;
+    }
+    
+    // Create and play new audio
+    const audio = new Audio(track.previewUrl);
+    audio.addEventListener('ended', () => {
+      setPlayingTrackId(null);
+      setPreviewAudio(null);
+    });
+    
+    audio.play().catch(error => {
+      console.error('Error playing preview:', error);
+      toast.error("Couldn't play preview");
+    });
+    
+    setPlayingTrackId(track.id);
+    setPreviewAudio(audio);
+  };
+  
+  // Clean up audio when dialog closes
+  const handleDialogChange = (open: boolean) => {
+    if (!open) {
+      if (previewAudio) {
+        previewAudio.pause();
+        setPreviewAudio(null);
+        setPlayingTrackId(null);
+      }
+      onClose();
+    }
+  };
+  
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={handleDialogChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Search Spotify</DialogTitle>
+          <DialogDescription>
+            Find songs to attach to your journal entry
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSearch} className="flex gap-2 mt-2">
@@ -103,7 +164,22 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
               </div>
               
               {track.previewUrl ? (
-                <audio src={track.previewUrl} controls className="h-8 w-28" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePreview(track);
+                  }}
+                >
+                  {playingTrackId === track.id ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                </Button>
               ) : (
                 <span className="text-xs text-muted-foreground">No preview</span>
               )}
