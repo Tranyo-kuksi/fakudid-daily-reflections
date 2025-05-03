@@ -37,6 +37,23 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
     }
   }, [isOpen]);
 
+  // Add event listener for ESC key to ensure dialog closes properly
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        handleDialogClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener("keydown", handleEscKey);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleEscKey);
+    };
+  }, [isOpen]);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -78,13 +95,16 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
     try {
       // Make a copy of the track to prevent any potential reference issues
       const trackCopy = { ...track };
-      onTrackSelect(trackCopy);
+      // First close the dialog to prevent UI freeze
+      handleDialogClose();
+      // Then call the callback after a short delay to ensure dialog is fully closed
+      setTimeout(() => {
+        onTrackSelect(trackCopy);
+      }, 50);
     } catch (error) {
       console.error("Error selecting track:", error);
       toast.error("Failed to select track");
-    } finally {
-      // Always ensure we close the dialog
-      onClose();
+      handleDialogClose();
     }
   };
 

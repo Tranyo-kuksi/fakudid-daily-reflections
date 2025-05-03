@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const CLIENT_ID = "c2c4255cd9124081b28c237a7b232b89";
@@ -108,31 +107,50 @@ serve(async (req) => {
     }
 
     // Step 3: Format results with album cover images
-    const tracks = searchData.tracks.items.map(track => {
-      let albumImageUrl = null;
-      
-      // Extract album cover image
-      if (track.album && track.album.images && track.album.images.length > 0) {
-        // Use the medium size image if available
-        const mediumImage = track.album.images.find(image => image.height === 300);
-        // Otherwise use the first image
-        albumImageUrl = mediumImage ? mediumImage.url : track.album.images[0].url;
-      }
-      
-      return {
-        id: track.id,
-        name: track.name,
-        artists: track.artists.map(artist => artist.name).join(', '),
-        album: track.album.name,
-        uri: track.uri,
-        albumImageUrl
-      };
-    });
+    // Safely process track data to prevent errors
+    const tracks = searchData.tracks.items
+      .filter(track => track && track.id) // Filter out any invalid tracks
+      .map(track => {
+        try {
+          let albumImageUrl = null;
+          
+          // Extract album cover image with error handling
+          if (track.album && track.album.images && Array.isArray(track.album.images) && track.album.images.length > 0) {
+            // Use the medium size image if available
+            const mediumImage = track.album.images.find(image => image && image.height === 300);
+            // Otherwise use the first image
+            albumImageUrl = mediumImage && mediumImage.url ? mediumImage.url : track.album.images[0].url;
+          }
+          
+          // Return a safely constructed track object with defaults for potentially undefined values
+          return {
+            id: track.id || '',
+            name: track.name || 'Unknown Track',
+            artists: Array.isArray(track.artists) 
+              ? track.artists.map(artist => artist?.name || 'Unknown Artist').join(', ')
+              : 'Unknown Artist',
+            album: track.album?.name || 'Unknown Album',
+            uri: track.uri || '',
+            albumImageUrl: albumImageUrl || null
+          };
+        } catch (error) {
+          console.error('Error processing track:', error);
+          return null;
+        }
+      })
+      .filter(Boolean); // Filter out any tracks that failed to process
 
     console.log(`Found ${tracks.length} tracks`);
+    
+    // Add content security policy headers to ensure images can be loaded
+    const headers = {
+      ...corsHeaders, 
+      'Content-Type': 'application/json'
+    };
+    
     return new Response(
       JSON.stringify({ tracks }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers }
     );
     
   } catch (error) {
