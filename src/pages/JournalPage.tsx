@@ -9,7 +9,8 @@ import {
   deleteAttachment,
   getAllEntries,
   getEntryById,
-  updateEntry
+  updateEntry,
+  addSpotifyTrack
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
@@ -432,6 +433,50 @@ export default function JournalPage() {
     setIsTemplateDialogOpen(true);
   };
 
+  const handleSpotifySongSelected = async (track: any) => {
+    if (readOnly && !editMode) {
+      toast.error("Cannot modify past entries without entering edit mode");
+      return;
+    }
+    
+    if (!entryId) {
+      if (!journalEntry.trim()) {
+        toast.error("Please write something in your journal before adding attachments");
+        return;
+      }
+      
+      if (!selectedMood) {
+        toast.error("Please select a mood for your entry before adding attachments");
+        return;
+      }
+      
+      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any, templateData);
+      if (!saved) {
+        toast.error("Failed to save journal entry. Please try again.");
+        return;
+      }
+      
+      const todayEntry = await getTodayEntry();
+      if (todayEntry) {
+        setEntryId(todayEntry.id);
+        setCurrentEntry(todayEntry);
+        setIsEditing(true);
+        
+        // Now that we have an entry ID, add the Spotify track
+        const updatedEntry = await addSpotifyTrack(todayEntry.id, track);
+        if (updatedEntry) {
+          setCurrentEntry(updatedEntry);
+        }
+      }
+    } else {
+      // We already have an entry ID, add the Spotify track directly
+      const updatedEntry = await addSpotifyTrack(entryId, track);
+      if (updatedEntry) {
+        setCurrentEntry(updatedEntry);
+      }
+    }
+  };
+
   return (
     <div className="w-full h-full relative">
       {readOnly && (
@@ -502,6 +547,7 @@ export default function JournalPage() {
             fileInputRef={fileInputRef}
             audioInputRef={audioInputRef}
             onFileSelected={handleFileSelected}
+            onSpotifySelected={handleSpotifySongSelected}
             readOnly={readOnly && !editMode}
           />
 

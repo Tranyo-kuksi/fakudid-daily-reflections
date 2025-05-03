@@ -8,10 +8,11 @@ export interface JournalEntry {
   content: string;
   mood: "dead" | "sad" | "meh" | "good" | "awesome" | null;
   attachments?: {
-    type: "image" | "music";
+    type: "image" | "music" | "spotify";
     url: string;
     name: string;
     data?: string; // Base64 data for persistent storage
+    spotifyUri?: string; // Spotify URI for direct opening
   }[];
   userId?: string;
   templateData?: {
@@ -171,48 +172,61 @@ export async function addAttachment(
     // Create a URL for the file (for temporary display)
     const url = URL.createObjectURL(file);
     
-    // For persistent storage, we'll convert images to base64
+    // For persistent storage, we'll convert files to base64
     let fileData: string | undefined = undefined;
     
-    if (type === "image") {
-      // Convert image to base64 for persistent storage
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        fileData = reader.result as string;
-        
-        if (!entry.attachments) {
-          entry.attachments = [];
-        }
-        
-        entry.attachments.push({
-          type,
-          url, // Keep URL for immediate display
-          name: file.name,
-          data: fileData // Store base64 data for persistence
-        });
-        
-        const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
-        toast.success(`${type === 'image' ? 'Image' : 'Audio'} attachment added`);
-        resolve(updatedEntry);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      // For audio files, keep the current behavior
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      fileData = reader.result as string;
+      
       if (!entry.attachments) {
         entry.attachments = [];
       }
       
       entry.attachments.push({
         type,
-        url,
-        name: file.name
+        url, // Keep URL for immediate display
+        name: file.name,
+        data: fileData // Store base64 data for persistence
       });
       
       const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
       toast.success(`${type === 'image' ? 'Image' : 'Audio'} attachment added`);
       resolve(updatedEntry);
-    }
+    };
+    
+    reader.readAsDataURL(file);
   });
+}
+
+// Add Spotify track as an attachment
+export async function addSpotifyTrack(
+  entryId: string,
+  track: any
+): Promise<JournalEntry | null> {
+  const entry = await getEntryById(entryId);
+  if (!entry) {
+    toast.error("Journal entry not found");
+    return null;
+  }
+  
+  if (!entry.attachments) {
+    entry.attachments = [];
+  }
+  
+  entry.attachments.push({
+    type: "spotify",
+    url: "",
+    name: `${track.name} - ${track.artists}`,
+    spotifyUri: track.uri
+  });
+  
+  const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
+  if (updatedEntry) {
+    toast.success("Spotify song added");
+  }
+  
+  return updatedEntry;
 }
 
 // Delete an attachment from an entry

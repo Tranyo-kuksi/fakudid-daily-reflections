@@ -1,14 +1,16 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ImageIcon, Music, X, Maximize2, Trash2 } from "lucide-react";
+import { ImageIcon, Music, X, Maximize2, Trash2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
 
 interface Attachment {
-  type: "image" | "music";
+  type: "image" | "music" | "spotify";
   url: string;
   name: string;
   data?: string; // Base64 data for persistent storage
+  spotifyUri?: string; // Spotify URI for opening in Spotify
 }
 
 interface AttachmentViewerProps {
@@ -47,6 +49,29 @@ export const AttachmentViewer = ({
     // Fall back to URL (temporary)
     return attachment.url;
   };
+
+  const handlePlay = (audioSrc: string) => {
+    try {
+      const audio = new Audio(audioSrc);
+      audio.play().catch(error => {
+        console.error("Audio playback error:", error);
+        toast.error("Couldn't play audio: " + error.message);
+      });
+    } catch (error) {
+      console.error("Error setting up audio playback:", error);
+      toast.error("Error playing audio");
+    }
+  };
+  
+  const openInSpotify = (spotifyUri: string | undefined) => {
+    if (!spotifyUri) {
+      toast.error("Spotify link not available");
+      return;
+    }
+    
+    // Open Spotify URI
+    window.open(spotifyUri, '_blank');
+  };
   
   return (
     <>
@@ -75,10 +100,42 @@ export const AttachmentViewer = ({
                   </div>
                 )}
               </div>
+            ) : attachment.type === 'spotify' ? (
+              <div className="bg-muted p-2 rounded-md flex flex-col items-center gap-1 min-w-[100px]">
+                <div className="flex items-center gap-1 text-sm mb-1">
+                  <Music className={iconClass} />
+                  <span className="truncate max-w-[150px]">{attachment.name}</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs flex items-center gap-1"
+                  onClick={() => openInSpotify(attachment.spotifyUri)}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Open in Spotify
+                </Button>
+              </div>
             ) : (
-              <div className="bg-muted p-2 rounded-md text-sm flex items-center gap-1">
-                <Music className={iconClass} />
-                <span>{attachment.name}</span>
+              <div className="bg-muted p-2 rounded-md flex flex-col items-center gap-1 min-w-[100px]">
+                <div className="flex items-center gap-1 text-sm mb-1">
+                  <Music className={iconClass} />
+                  <span className="truncate max-w-[150px]">{attachment.name}</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => {
+                    if (attachment.data) {
+                      handlePlay(attachment.data);
+                    } else {
+                      handlePlay(attachment.url);
+                    }
+                  }}
+                >
+                  Play Audio
+                </Button>
               </div>
             )}
             

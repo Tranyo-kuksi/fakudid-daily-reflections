@@ -2,7 +2,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ImageIcon, Music } from "lucide-react";
+import { ImageIcon, Music, Search } from "lucide-react";
+import { SpotifySearch } from "@/components/spotify/SpotifySearch";
 
 interface AttachmentControlsProps {
   onImageClick: () => void;
@@ -10,6 +11,7 @@ interface AttachmentControlsProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   audioInputRef: React.RefObject<HTMLInputElement>;
   onFileSelected: (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "music") => void;
+  onSpotifySelected?: (track: any) => void;
   readOnly?: boolean;
 }
 
@@ -19,8 +21,11 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
   fileInputRef,
   audioInputRef,
   onFileSelected,
+  onSpotifySelected,
   readOnly = false
 }) => {
+  const [showSpotifySearch, setShowSpotifySearch] = React.useState(false);
+
   return (
     <div className="flex gap-2">
       <input 
@@ -69,10 +74,36 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Add Music</p>
+            <p>Add Voice Recording</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => setShowSpotifySearch(true)}
+              disabled={readOnly}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Search Spotify</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {showSpotifySearch && onSpotifySelected && (
+        <SpotifySearch 
+          isOpen={showSpotifySearch}
+          onClose={() => setShowSpotifySearch(false)}
+          onTrackSelect={onSpotifySelected}
+        />
+      )}
     </div>
   );
 };
