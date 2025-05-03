@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ImageIcon, Music, X, Maximize2, Trash2, Play, Pause, Headphones, Mic } from "lucide-react";
@@ -35,6 +34,7 @@ export const AttachmentViewer = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [playingAudioIndex, setPlayingAudioIndex] = useState<number | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [audioError, setAudioError] = useState<{index: number, message: string} | null>(null);
 
   if (!attachments || attachments.length === 0) {
     return null;
@@ -63,6 +63,9 @@ export const AttachmentViewer = ({
   };
   
   const playAudio = (attachment: Attachment, index: number) => {
+    // Reset any previous error state
+    setAudioError(null);
+    
     // Stop currently playing audio if any
     if (audioElement) {
       audioElement.pause();
@@ -77,26 +80,79 @@ export const AttachmentViewer = ({
     }
     
     // Determine the source to play
-    let audioSource: string;
+    let audioSource: string | undefined;
     
     if (attachment.type === 'spotify') {
-      // For Spotify tracks, prefer preview URL from metadata (saved for persistence)
-      audioSource = attachment.metadata?.previewUrl || attachment.url;
-      
-      // If no preview available
-      if (!audioSource || audioSource === 'null') {
-        console.error('No preview URL available for this Spotify track');
+      // For Spotify tracks, try multiple sources in order of preference
+      if (attachment.metadata?.previewUrl && attachment.metadata.previewUrl !== "") {
+        audioSource = attachment.metadata.previewUrl;
+      } else if (attachment.url && attachment.url !== "undefined" && attachment.url !== "null") {
+        audioSource = attachment.url;
+      } else if (attachment.metadata?.externalUrl) {
+        // External URL is not playable - show a message and open in new tab
+        window.open(attachment.metadata.externalUrl, '_blank');
+        toast.info("No preview available. Opening Spotify in a new tab.");
+        return;
+      } else {
+        toast.error("No audio source available for this track");
         return;
       }
     } else if (attachment.data && attachment.type === 'voice') {
       audioSource = attachment.data;
-    } else {
+    } else if (attachment.url) {
       audioSource = attachment.url;
+    }
+    
+    if (!audioSource) {
+      toast.error("No audio source available");
+      return;
     }
     
     // Create and play audio
     console.log('Playing audio source:', audioSource);
     const audio = new Audio(audioSource);
+    
+    audio.addEventListener('error', (e) => {
+      console.error('Error loading audio:', e);
+      
+      // Handle specific error types
+      let errorMessage = "Failed to play audio";
+      
+      // @ts-ignore - typescript doesn't recognize the media error codes
+      if (audio.error && audio.error.code) {
+        // @ts-ignore
+        switch (audio.error.code) {
+          case MediaError.MEDIA_ERR_ABORTED:
+            errorMessage = "Playback aborted";
+            break;
+          case MediaError.MEDIA_ERR_NETWORK:
+            errorMessage = "Network error";
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            errorMessage = "Audio decode error";
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            errorMessage = "Audio format not supported";
+            break;
+        }
+      }
+      
+      setAudioError({index, message: errorMessage});
+      toast.error(errorMessage);
+      setPlayingAudioIndex(null);
+      setAudioElement(null);
+      
+      // If it's a Spotify track and we have an external URL, offer to open it
+      if (attachment.type === 'spotify' && attachment.metadata?.externalUrl) {
+        toast.info("Opening track on Spotify instead", {
+          action: {
+            label: "Open",
+            onClick: () => window.open(attachment.metadata?.externalUrl, '_blank')
+          }
+        });
+      }
+    });
+    
     audio.addEventListener('ended', () => {
       setPlayingAudioIndex(null);
       setAudioElement(null);
@@ -104,6 +160,9 @@ export const AttachmentViewer = ({
     
     audio.play().catch(error => {
       console.error('Error playing audio:', error);
+      toast.error(`Couldn't play audio: ${error.message}`);
+      setPlayingAudioIndex(null);
+      setAudioElement(null);
     });
     
     setPlayingAudioIndex(index);
@@ -165,7 +224,9 @@ export const AttachmentViewer = ({
                     playAudio(attachment, i);
                   }}
                 >
-                  {playingAudioIndex === i ? (
+                  {audioError && audioError.index === i ? (
+                    <X className="h-4 w-4 text-red-500" />
+                  ) : playingAudioIndex === i ? (
                     <Pause className="h-4 w-4" />
                   ) : (
                     <Play className="h-4 w-4" />

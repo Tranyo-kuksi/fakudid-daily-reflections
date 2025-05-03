@@ -67,7 +67,13 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
       setPlayingTrackId(null);
     }
 
-    onSelect(track);
+    // Ensure we're not passing null values
+    const safeTrack = {
+      ...track,
+      previewUrl: track.previewUrl || "" // Convert null to empty string for consistency
+    };
+
+    onSelect(safeTrack);
     onClose();
     toast.success(`"${track.name}" by ${track.artist} added`);
   };
@@ -95,6 +101,15 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
     
     // Create and play new audio
     const audio = new Audio(track.previewUrl);
+    
+    // Add error handling for audio loading
+    audio.addEventListener('error', (e) => {
+      console.error('Error loading audio:', e);
+      toast.error("Couldn't play preview - Audio not available");
+      setPlayingTrackId(null);
+      setPreviewAudio(null);
+    });
+    
     audio.addEventListener('ended', () => {
       setPlayingTrackId(null);
       setPreviewAudio(null);
@@ -102,7 +117,9 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
     
     audio.play().catch(error => {
       console.error('Error playing preview:', error);
-      toast.error("Couldn't play preview");
+      toast.error("Couldn't play preview - " + error.message);
+      setPlayingTrackId(null);
+      setPreviewAudio(null);
     });
     
     setPlayingTrackId(track.id);

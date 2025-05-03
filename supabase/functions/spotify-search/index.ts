@@ -68,15 +68,20 @@ serve(async (req) => {
     }
     
     // Format the response to include only what we need
-    const tracks = searchData.tracks.items.map(track => ({
-      id: track.id,
-      name: track.name,
-      artist: track.artists.map(artist => artist.name).join(", "),
-      album: track.album.name,
-      albumArt: track.album.images[0]?.url || "",
-      previewUrl: track.preview_url || "", // Always return a string, even if empty
-      externalUrl: track.external_urls.spotify,
-    }));
+    const tracks = searchData.tracks.items.map(track => {
+      // Log to help debugging
+      console.log(`Track: ${track.name}, Preview URL: ${track.preview_url || "No preview available"}`);
+      
+      return {
+        id: track.id,
+        name: track.name,
+        artist: track.artists.map(artist => artist.name).join(", "),
+        album: track.album.name,
+        albumArt: track.album.images[0]?.url || "",
+        previewUrl: track.preview_url, // Keep as null if not available
+        externalUrl: track.external_urls.spotify,
+      };
+    });
     
     return new Response(
       JSON.stringify({ tracks }),

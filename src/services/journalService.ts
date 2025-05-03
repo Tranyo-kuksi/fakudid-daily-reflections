@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -247,19 +246,20 @@ export async function addSpotifyTrack(
     entry.attachments = [];
   }
   
-  // Ensure the previewUrl is properly stored as a string 
-  // This fixes the issue where null values caused problems after refresh
+  // Make sure previewUrl is a string (even if empty) to avoid issues with localStorage JSON serialization
   const previewUrl = track.previewUrl || "";
   
+  // Store the external URL as a fallback
   entry.attachments.push({
     type: "spotify",
-    url: track.previewUrl || track.externalUrl,
+    // Use external URL as primary URL if preview is not available
+    url: previewUrl || track.externalUrl,
     name: track.name,
     metadata: {
       artist: track.artist,
       album: track.album,
       albumArt: track.albumArt,
-      previewUrl: previewUrl, // Always store a string, even if it's empty
+      previewUrl: previewUrl,
       externalUrl: track.externalUrl,
       spotifyId: track.id
     }
