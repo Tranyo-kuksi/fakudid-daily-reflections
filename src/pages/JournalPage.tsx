@@ -9,9 +9,7 @@ import {
   deleteAttachment,
   getAllEntries,
   getEntryById,
-  updateEntry,
-  addSpotifyTrack,
-  addVoiceRecording
+  updateEntry
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
 import { AttachmentViewer } from "@/components/attachments/AttachmentViewer";
@@ -24,6 +22,8 @@ import { LayoutGrid, Sparkles, Save, Edit, X } from "lucide-react";
 import { TemplateDialog } from "@/components/templates/TemplateDialog";
 
 export default function JournalPage() {
+  
+
   const [journalTitle, setJournalTitle] = useState("");
   const [journalEntry, setJournalEntry] = useState("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -302,59 +302,6 @@ export default function JournalPage() {
     }
   };
 
-  const handleSpotifyTrackSelect = async (track: any) => {
-    if (readOnly && !editMode) {
-      toast.error("Cannot modify past entries without entering edit mode");
-      return;
-    }
-    
-    if (!entryId) {
-      if (!journalEntry.trim()) {
-        toast.error("Please write something in your journal before adding attachments");
-        return;
-      }
-      
-      if (!selectedMood) {
-        toast.error("Please select a mood for your entry before adding attachments");
-        return;
-      }
-      
-      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any, templateData);
-      if (!saved) {
-        toast.error("Failed to save journal entry. Please try again.");
-        return;
-      }
-      
-      const todayEntry = await getTodayEntry();
-      if (todayEntry) {
-        setEntryId(todayEntry.id);
-        setCurrentEntry(todayEntry);
-        setIsEditing(true);
-        
-        // Add the Spotify track
-        const updatedEntry = await addSpotifyTrack(todayEntry.id, track);
-        if (updatedEntry) {
-          setCurrentEntry(updatedEntry);
-        }
-      }
-    } else {
-      // Add the Spotify track to the current entry
-      const updatedEntry = await addSpotifyTrack(entryId, track);
-      if (updatedEntry) {
-        setCurrentEntry(updatedEntry);
-      }
-    }
-  };
-
-  const handleVoiceRecordingSelect = async (blob: Blob, fileName: string) => {
-    // This function will no longer be used as we're not implementing an in-app recorder
-    // but we keep it for compatibility with the existing codebase
-    if (readOnly && !editMode) {
-      toast.error("Cannot modify past entries without entering edit mode");
-      return;
-    }
-  };
-
   const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>, type: "image" | "music") => {
     if (readOnly && !editMode) {
       toast.error("Cannot modify past entries without entering edit mode");
@@ -552,8 +499,6 @@ export default function JournalPage() {
           <AttachmentControls
             onImageClick={handleImageAttachment}
             onMusicClick={handleMusicAttachment}
-            onSpotifyTrackSelect={handleSpotifyTrackSelect}
-            onVoiceRecordingSelect={handleVoiceRecordingSelect}
             fileInputRef={fileInputRef}
             audioInputRef={audioInputRef}
             onFileSelected={handleFileSelected}

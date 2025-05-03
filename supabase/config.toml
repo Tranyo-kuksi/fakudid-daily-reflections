@@ -1,37 +1,8 @@
 
-project_id = "fnzkkyhhqxrbyhslwply"
-
-[api]
-enabled = true
-port = 54321
-schemas = ["public", "storage"]
-
-[db]
-port = 54322
-
-[studio]
-port = 54323
-
-[inbucket]
-port = 54324
-
-[storage]
-enabled = true
-
-[auth]
-enabled = true
-
-[realtime]
-enabled = true
-
-[analytics]
-enabled = false
-
-[experimental]
-validations = true
-tracing = false
-events = false
+project_id = "fakudid"
 
 [functions]
-[functions.spotify-search]
-verify_jwt = false
+node_version = 18
+
+[[functions.edge.locations]]
+name = "aws-us-west-2"
