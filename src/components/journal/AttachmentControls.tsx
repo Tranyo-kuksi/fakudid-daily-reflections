@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AttachmentControlsProps {
   onImageClick: () => void;
@@ -34,6 +35,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
 }) => {
   const [showSpotifySearch, setShowSpotifySearch] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const isMobile = useIsMobile();
 
   // Clean up processing state automatically after timeout
   useEffect(() => {
@@ -42,7 +44,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
     if (isProcessing) {
       timeoutId = setTimeout(() => {
         setIsProcessing(false);
-      }, 1000); // Ensure processing state reset after 1 second as safety
+      }, 1500); // Extended timeout for mobile devices
     }
     
     return () => {
@@ -71,7 +73,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-    }, 500);
+    }, 800); // Extended for mobile response time
   }, []);
   
   const handleSpotifyTrackSelected = useCallback((track: any) => {
@@ -96,7 +98,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
         }
         // Reset processing state after handling the track
         setIsProcessing(false);
-      }, 500);
+      }, 800); // Extended for mobile
     } catch (error) {
       console.error("Error handling Spotify track selection:", error);
       setShowSpotifySearch(false);
@@ -104,6 +106,10 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
       toast.error("Failed to process selected track");
     }
   }, [onSpotifySelected]);
+
+  // Adjust button size for better touch targets on mobile
+  const buttonSize = isMobile ? "sm" : "icon";
+  const buttonClass = isMobile ? "px-3 py-2" : "";
 
   return (
     <div className="flex gap-2">
@@ -127,11 +133,13 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
           <TooltipTrigger asChild>
             <Button 
               variant="outline" 
-              size="icon" 
+              size={buttonSize}
+              className={buttonClass}
               onClick={onImageClick}
               disabled={readOnly || isProcessing}
             >
-              <ImageIcon className="h-5 w-5" />
+              <ImageIcon className={isMobile ? "h-6 w-6 mr-2" : "h-5 w-5"} />
+              {isMobile && "Image"}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -147,10 +155,12 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="outline" 
-                  size="icon"
+                  size={buttonSize}
+                  className={buttonClass}
                   disabled={readOnly || isProcessing}
                 >
-                  <Music className="h-5 w-5" />
+                  <Music className={isMobile ? "h-6 w-6 mr-2" : "h-5 w-5"} />
+                  {isMobile && "Audio"}
                 </Button>
               </DropdownMenuTrigger>
             </TooltipTrigger>
@@ -160,7 +170,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
           </Tooltip>
         </TooltipProvider>
         
-        <DropdownMenuContent align="center" className="w-48">
+        <DropdownMenuContent align="center" className={isMobile ? "w-56" : "w-48"}>
           <DropdownMenuItem 
             onClick={onMusicClick} 
             className="cursor-pointer"
