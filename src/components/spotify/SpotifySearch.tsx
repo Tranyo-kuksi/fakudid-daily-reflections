@@ -27,6 +27,15 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
   const [searchResults, setSearchResults] = useState<SpotifyTrack[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Clean up on unmount or dialog close
+  React.useEffect(() => {
+    return () => {
+      // Clear any state on unmount to prevent memory leaks
+      setSearchResults([]);
+      setSearchQuery("");
+    };
+  }, [isOpen]);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -61,12 +70,22 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
   };
   
   const handleTrackSelect = (track: SpotifyTrack) => {
-    onTrackSelect(track);
+    // Make a copy of the track to prevent any potential reference issues
+    const trackCopy = { ...track };
+    onTrackSelect(trackCopy);
+    onClose();
+  };
+
+  // Safe dialog close handler
+  const handleDialogClose = () => {
+    // Clear search results before closing to prevent state issues
+    setSearchResults([]);
+    setSearchQuery("");
     onClose();
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleDialogClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Search Spotify</DialogTitle>

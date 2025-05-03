@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const CLIENT_ID = "c2c4255cd9124081b28c237a7b232b89";
@@ -15,7 +16,18 @@ serve(async (req) => {
   }
   
   try {
-    const { query } = await req.json();
+    // Parse request body with error handling
+    let query;
+    try {
+      const body = await req.json();
+      query = body.query;
+    } catch (e) {
+      console.error("Error parsing request body:", e);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
     
     if (!query) {
       return new Response(
@@ -25,6 +37,7 @@ serve(async (req) => {
     }
 
     // Step 1: Get access token
+    console.log("Fetching Spotify access token");
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -47,6 +60,7 @@ serve(async (req) => {
     }
 
     // Step 2: Search Spotify
+    console.log(`Searching Spotify for: ${query}`);
     const searchResponse = await fetch(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`,
       {
@@ -88,6 +102,7 @@ serve(async (req) => {
       };
     });
 
+    console.log(`Found ${tracks.length} tracks`);
     return new Response(
       JSON.stringify({ tracks }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

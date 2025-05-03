@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ImageIcon, Music, FileAudio, Mic } from "lucide-react";
+import { ImageIcon, Music, FileAudio } from "lucide-react";
 import { SpotifySearch } from "@/components/spotify/SpotifySearch";
 import { 
   DropdownMenu,
@@ -32,15 +32,6 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
   readOnly = false
 }) => {
   const [showSpotifySearch, setShowSpotifySearch] = React.useState(false);
-
-  const handleRecordAudio = () => {
-    // On mobile devices, this will open the native voice recorder app
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      alert("Please use your device's voice recorder app to record audio, then upload the file.");
-    } else {
-      alert("Please use your device's voice recorder app to record audio, then upload the file.");
-    }
-  };
 
   return (
     <div className="flex gap-2">
@@ -101,11 +92,6 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
           <DropdownMenuItem onClick={onMusicClick} className="cursor-pointer">
             <FileAudio className="mr-2 h-4 w-4" />
             <span>Upload Audio File</span>
-          </DropdownMenuItem>
-          
-          <DropdownMenuItem onClick={handleRecordAudio} className="cursor-pointer">
-            <Mic className="mr-2 h-4 w-4" />
-            <span>Record Audio</span>
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />
