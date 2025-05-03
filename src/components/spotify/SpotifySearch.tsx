@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
-import { Music, Search } from "lucide-react";
+import { Music, Search, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SpotifyTrack {
@@ -13,6 +13,7 @@ interface SpotifyTrack {
   artists: string;
   uri: string;
   album: string;
+  albumImageUrl?: string;
 }
 
 interface SpotifySearchProps {
@@ -92,13 +93,26 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
                   className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer"
                   onClick={() => handleTrackSelect(track)}
                 >
-                  <div className="flex items-center gap-2">
-                    <Music className="h-4 w-4 flex-shrink-0" />
+                  <div className="flex items-center gap-3">
+                    {track.albumImageUrl ? (
+                      <img 
+                        src={track.albumImageUrl} 
+                        alt={`${track.album} cover`} 
+                        className="h-12 w-12 rounded object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                        <Music className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    
                     <div className="overflow-hidden">
                       <p className="font-medium truncate">{track.name}</p>
                       <p className="text-sm text-muted-foreground truncate">{track.artists}</p>
                     </div>
                   </div>
+                  
+                  <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0 opacity-50" />
                 </div>
               ))}
             </div>

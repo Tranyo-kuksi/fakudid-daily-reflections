@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const CLIENT_ID = "c2c4255cd9124081b28c237a7b232b89";
@@ -67,14 +66,27 @@ serve(async (req) => {
       );
     }
 
-    // Step 3: Format results
-    const tracks = searchData.tracks.items.map(track => ({
-      id: track.id,
-      name: track.name,
-      artists: track.artists.map(artist => artist.name).join(', '),
-      album: track.album.name,
-      uri: track.uri
-    }));
+    // Step 3: Format results with album cover images
+    const tracks = searchData.tracks.items.map(track => {
+      let albumImageUrl = null;
+      
+      // Extract album cover image
+      if (track.album && track.album.images && track.album.images.length > 0) {
+        // Use the medium size image if available
+        const mediumImage = track.album.images.find(image => image.height === 300);
+        // Otherwise use the first image
+        albumImageUrl = mediumImage ? mediumImage.url : track.album.images[0].url;
+      }
+      
+      return {
+        id: track.id,
+        name: track.name,
+        artists: track.artists.map(artist => artist.name).join(', '),
+        album: track.album.name,
+        uri: track.uri,
+        albumImageUrl
+      };
+    });
 
     return new Response(
       JSON.stringify({ tracks }),

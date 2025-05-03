@@ -13,6 +13,7 @@ export interface JournalEntry {
     name: string;
     data?: string; // Base64 data for persistent storage
     spotifyUri?: string; // Spotify URI for direct opening
+    albumImageUrl?: string; // Album cover image for Spotify tracks
   }[];
   userId?: string;
   templateData?: {
@@ -218,7 +219,8 @@ export async function addSpotifyTrack(
     type: "spotify",
     url: "",
     name: `${track.name} - ${track.artists}`,
-    spotifyUri: track.uri
+    spotifyUri: track.uri,
+    albumImageUrl: track.albumImageUrl
   });
   
   const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });

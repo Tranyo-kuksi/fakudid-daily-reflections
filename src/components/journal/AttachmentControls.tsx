@@ -2,8 +2,15 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ImageIcon, Music, Search } from "lucide-react";
+import { ImageIcon, Music, FileAudio, Mic } from "lucide-react";
 import { SpotifySearch } from "@/components/spotify/SpotifySearch";
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 
 interface AttachmentControlsProps {
   onImageClick: () => void;
@@ -25,6 +32,15 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
   readOnly = false
 }) => {
   const [showSpotifySearch, setShowSpotifySearch] = React.useState(false);
+
+  const handleRecordAudio = () => {
+    // On mobile devices, this will open the native voice recorder app
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      alert("Please use your device's voice recorder app to record audio, then upload the file.");
+    } else {
+      alert("Please use your device's voice recorder app to record audio, then upload the file.");
+    }
+  };
 
   return (
     <div className="flex gap-2">
@@ -61,41 +77,48 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
         </Tooltip>
       </TooltipProvider>
       
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={onMusicClick}
-              disabled={readOnly}
-            >
-              <Music className="h-5 w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Add Voice Recording</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={() => setShowSpotifySearch(true)}
-              disabled={readOnly}
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Search Spotify</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <DropdownMenu>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  disabled={readOnly}
+                >
+                  <Music className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add Audio</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <DropdownMenuContent align="center" className="w-48">
+          <DropdownMenuItem onClick={onMusicClick} className="cursor-pointer">
+            <FileAudio className="mr-2 h-4 w-4" />
+            <span>Upload Audio File</span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem onClick={handleRecordAudio} className="cursor-pointer">
+            <Mic className="mr-2 h-4 w-4" />
+            <span>Record Audio</span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem 
+            onClick={() => setShowSpotifySearch(true)} 
+            className="cursor-pointer"
+          >
+            <Music className="mr-2 h-4 w-4" />
+            <span>Search Spotify</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {showSpotifySearch && onSpotifySelected && (
         <SpotifySearch 

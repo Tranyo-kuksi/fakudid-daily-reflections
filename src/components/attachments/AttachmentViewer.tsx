@@ -10,7 +10,8 @@ interface Attachment {
   url: string;
   name: string;
   data?: string; // Base64 data for persistent storage
-  spotifyUri?: string; // Spotify URI for opening in Spotify
+  spotifyUri?: string; // Spotify URI for direct opening
+  albumImageUrl?: string; // Album cover image for Spotify tracks
 }
 
 interface AttachmentViewerProps {
@@ -102,9 +103,19 @@ export const AttachmentViewer = ({
               </div>
             ) : attachment.type === 'spotify' ? (
               <div className="bg-muted p-2 rounded-md flex flex-col items-center gap-1 min-w-[100px]">
+                {attachment.albumImageUrl ? (
+                  <img 
+                    src={attachment.albumImageUrl} 
+                    alt="Album cover" 
+                    className="h-16 w-16 object-cover rounded mb-1"
+                  />
+                ) : (
+                  <div className="h-16 w-16 bg-muted-foreground/20 rounded flex items-center justify-center mb-1">
+                    <Music className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
                 <div className="flex items-center gap-1 text-sm mb-1">
-                  <Music className={iconClass} />
-                  <span className="truncate max-w-[150px]">{attachment.name}</span>
+                  <span className="truncate max-w-[150px] text-center">{attachment.name}</span>
                 </div>
                 <Button 
                   variant="outline" 
