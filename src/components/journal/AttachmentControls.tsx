@@ -2,10 +2,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ImageIcon, Music, Mic, Search } from "lucide-react";
+import { ImageIcon, Music, Mic, Search, ExternalLink } from "lucide-react";
 import { SpotifySearch } from "@/components/attachments/SpotifySearch";
-import { VoiceRecorder } from "@/components/attachments/VoiceRecorder";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/ui/sonner";
 
 interface SpotifyTrack {
   id: string;
@@ -32,14 +32,16 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
   onImageClick,
   onMusicClick,
   onSpotifyTrackSelect,
-  onVoiceRecordingSelect,
   fileInputRef,
   audioInputRef,
   onFileSelected,
   readOnly = false
 }) => {
   const [isSpotifySearchOpen, setIsSpotifySearchOpen] = useState(false);
-  const [isVoiceRecorderOpen, setIsVoiceRecorderOpen] = useState(false);
+  
+  const handleVoiceRecordClick = () => {
+    toast.info("Please use your device's voice recorder app and upload the file when finished");
+  };
   
   return (
     <div className="flex gap-2">
@@ -98,7 +100,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
                   <Search className="h-4 w-4 mr-2" />
                   Search Spotify
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsVoiceRecorderOpen(true)}>
+                <DropdownMenuItem onClick={handleVoiceRecordClick}>
                   <Mic className="h-4 w-4 mr-2" />
                   Record Voice
                 </DropdownMenuItem>
@@ -115,12 +117,6 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
         isOpen={isSpotifySearchOpen} 
         onClose={() => setIsSpotifySearchOpen(false)}
         onSelect={onSpotifyTrackSelect}
-      />
-      
-      <VoiceRecorder
-        isOpen={isVoiceRecorderOpen}
-        onClose={() => setIsVoiceRecorderOpen(false)}
-        onRecord={onVoiceRecordingSelect}
       />
     </div>
   );

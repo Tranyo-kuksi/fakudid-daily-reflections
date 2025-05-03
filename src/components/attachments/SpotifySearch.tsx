@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import { Search, X, Music } from "lucide-react";
-import { Play, Pause } from "lucide-react";
+import { Search, X, Music, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -28,8 +27,6 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SpotifyTrack[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
-  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
   const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null);
   
   const handleSearch = async (e: React.FormEvent) => {
@@ -72,13 +69,6 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
     // Prevent multiple rapid selections that could cause UI freeze
     if (selectedTrackIndex !== null) return;
     
-    // Stop any playing preview before selecting
-    if (previewAudio) {
-      previewAudio.pause();
-      setPreviewAudio(null);
-      setPlayingTrackId(null);
-    }
-    
     // Set selection state to prevent multiple clicks
     setSelectedTrackIndex(results.findIndex(t => t.id === track.id));
 
@@ -95,64 +85,18 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
     }, 10);
   };
   
-  // Handle track preview playback
-  const togglePreview = (e: React.MouseEvent, track: SpotifyTrack) => {
+  const openSpotify = (e: React.MouseEvent, url: string) => {
     e.stopPropagation();
-    
-    // If there's already audio playing, stop it
-    if (previewAudio) {
-      previewAudio.pause();
-      previewAudio.currentTime = 0;
-      setPreviewAudio(null);
-      setPlayingTrackId(null);
-      
-      // If we clicked the same track that was playing, just stop it
-      if (playingTrackId === track.id) {
-        return;
-      }
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      toast.error("No Spotify link available for this track");
     }
-    
-    // No preview URL available
-    if (!track.previewUrl) {
-      toast.info("No preview available for this track");
-      return;
-    }
-    
-    // Create and play new audio
-    const audio = new Audio(track.previewUrl);
-    
-    // Add error handling for audio loading
-    audio.addEventListener('error', (e) => {
-      console.error('Error loading audio:', e);
-      toast.error("Couldn't play preview - Audio not available");
-      setPlayingTrackId(null);
-      setPreviewAudio(null);
-    });
-    
-    audio.addEventListener('ended', () => {
-      setPlayingTrackId(null);
-      setPreviewAudio(null);
-    });
-    
-    audio.play().catch(error => {
-      console.error('Error playing preview:', error);
-      toast.error("Couldn't play preview - " + error.message);
-      setPlayingTrackId(null);
-      setPreviewAudio(null);
-    });
-    
-    setPlayingTrackId(track.id);
-    setPreviewAudio(audio);
   };
   
-  // Clean up audio when dialog closes
+  // Clean up when dialog closes
   const handleDialogChange = (open: boolean) => {
     if (!open) {
-      if (previewAudio) {
-        previewAudio.pause();
-        setPreviewAudio(null);
-        setPlayingTrackId(null);
-      }
       setSelectedTrackIndex(null);
       onClose();
     }
@@ -205,13 +149,10 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={(e) => togglePreview(e, track)}
+                onClick={(e) => openSpotify(e, track.externalUrl)}
+                title="Open in Spotify"
               >
-                {playingTrackId === track.id ? (
-                  <Pause className="h-4 w-4" />
-                ) : (
-                  <Play className="h-4 w-4" />
-                )}
+                <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
           ))}

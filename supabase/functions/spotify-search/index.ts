@@ -69,14 +69,11 @@ serve(async (req) => {
     
     // Format the response to include only what we need
     const tracks = searchData.tracks.items.map(track => {
-      // Always include the external URL for fallback
+      // Always include the external URL
       const externalUrl = track.external_urls?.spotify || "";
       
-      // Verify preview URL is a valid URL or set to empty string
-      let previewUrl = track.preview_url || "";
-      
-      // Log to help debugging
-      console.log(`Track: ${track.name}, Preview URL: ${previewUrl || "No preview available"}, External URL: ${externalUrl}`);
+      // We're not using preview URLs anymore, but include them as empty strings for compatibility
+      const previewUrl = "";
       
       return {
         id: track.id,
@@ -84,7 +81,7 @@ serve(async (req) => {
         artist: track.artists.map(artist => artist.name).join(", "),
         album: track.album.name,
         albumArt: track.album.images[0]?.url || "",
-        previewUrl: previewUrl, // Ensure this is a string, even if empty
+        previewUrl: previewUrl, 
         externalUrl: externalUrl,
       };
     });

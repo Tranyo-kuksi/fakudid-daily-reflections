@@ -347,46 +347,11 @@ export default function JournalPage() {
   };
 
   const handleVoiceRecordingSelect = async (blob: Blob, fileName: string) => {
+    // This function will no longer be used as we're not implementing an in-app recorder
+    // but we keep it for compatibility with the existing codebase
     if (readOnly && !editMode) {
       toast.error("Cannot modify past entries without entering edit mode");
       return;
-    }
-    
-    if (!entryId) {
-      if (!journalEntry.trim()) {
-        toast.error("Please write something in your journal before adding attachments");
-        return;
-      }
-      
-      if (!selectedMood) {
-        toast.error("Please select a mood for your entry before adding attachments");
-        return;
-      }
-      
-      const saved = await autosaveEntry(journalTitle, journalEntry.trim(), selectedMood as any, templateData);
-      if (!saved) {
-        toast.error("Failed to save journal entry. Please try again.");
-        return;
-      }
-      
-      const todayEntry = await getTodayEntry();
-      if (todayEntry) {
-        setEntryId(todayEntry.id);
-        setCurrentEntry(todayEntry);
-        setIsEditing(true);
-        
-        // Add the voice recording
-        const updatedEntry = await addVoiceRecording(todayEntry.id, blob, fileName);
-        if (updatedEntry) {
-          setCurrentEntry(updatedEntry);
-        }
-      }
-    } else {
-      // Add the voice recording to the current entry
-      const updatedEntry = await addVoiceRecording(entryId, blob, fileName);
-      if (updatedEntry) {
-        setCurrentEntry(updatedEntry);
-      }
     }
   };
 

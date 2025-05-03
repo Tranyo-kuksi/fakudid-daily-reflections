@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ImageIcon, Music, X, Maximize2, Trash2, Play, Pause, Headphones, Mic } from "lucide-react";
+import { ImageIcon, Music, X, Maximize2, Trash2, Play, Pause, ExternalLink, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 
@@ -35,7 +36,6 @@ export const AttachmentViewer = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [playingAudioIndex, setPlayingAudioIndex] = useState<number | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
-  const [audioError, setAudioError] = useState<{index: number, message: string} | null>(null);
 
   if (!attachments || attachments.length === 0) {
     return null;
@@ -63,10 +63,12 @@ export const AttachmentViewer = ({
     return attachment.url;
   };
   
-  // More robust audio playback function
+  // Play audio for non-Spotify tracks
   const playAudio = (attachment: Attachment, index: number) => {
-    // Reset any previous error state
-    setAudioError(null);
+    // Don't attempt to play Spotify tracks
+    if (attachment.type === 'spotify') {
+      return;
+    }
     
     // Stop currently playing audio if any
     if (audioElement) {
@@ -83,33 +85,8 @@ export const AttachmentViewer = ({
     
     // Determine the source to play based on type and availability
     let audioSource = "";
-    let fallbackUrl = "";
     
-    if (attachment.type === 'spotify') {
-      // For Spotify tracks, use multiple sources in order of preference
-      if (attachment.metadata?.previewUrl && attachment.metadata.previewUrl !== "") {
-        audioSource = attachment.metadata.previewUrl;
-      } 
-      
-      // Always set fallback URL for Spotify tracks
-      if (attachment.metadata?.externalUrl) {
-        fallbackUrl = attachment.metadata.externalUrl;
-      }
-      
-      // If no preview is available, open in Spotify directly
-      if (!audioSource && fallbackUrl) {
-        toast.info("No preview available. Opening in Spotify instead.", {
-          action: {
-            label: "Open",
-            onClick: () => window.open(fallbackUrl, '_blank')
-          }
-        });
-        return;
-      } else if (!audioSource) {
-        toast.error("No audio source available for this track");
-        return;
-      }
-    } else if (attachment.data && attachment.type === 'voice') {
+    if (attachment.data && attachment.type === 'voice') {
       audioSource = attachment.data;
     } else if (attachment.url) {
       audioSource = attachment.url;
@@ -149,20 +126,7 @@ export const AttachmentViewer = ({
         }
       }
       
-      setAudioError({index, message: errorMessage});
-      
-      // If it's a Spotify track and we have a fallback URL, offer to open it
-      if (attachment.type === 'spotify' && fallbackUrl) {
-        toast.info("Preview not available. Listen on Spotify instead?", {
-          action: {
-            label: "Open",
-            onClick: () => window.open(fallbackUrl, '_blank')
-          }
-        });
-      } else {
-        toast.error(errorMessage);
-      }
-      
+      toast.error(errorMessage);
       setPlayingAudioIndex(null);
       setAudioElement(null);
     });
@@ -175,25 +139,22 @@ export const AttachmentViewer = ({
     // Try to play with better error handling
     audio.play().catch(error => {
       console.error('Error playing audio:', error);
-      
-      // If it's a Spotify track and we have a fallback URL, offer to open it
-      if (attachment.type === 'spotify' && fallbackUrl) {
-        toast.info("Couldn't play preview. Listen on Spotify instead?", {
-          action: {
-            label: "Open",
-            onClick: () => window.open(fallbackUrl, '_blank')
-          }
-        });
-      } else {
-        toast.error(`Couldn't play audio: ${error.message}`);
-      }
-      
+      toast.error(`Couldn't play audio: ${error.message}`);
       setPlayingAudioIndex(null);
       setAudioElement(null);
     });
     
     setPlayingAudioIndex(index);
     setAudioElement(audio);
+  };
+
+  // Open Spotify link
+  const openSpotifyLink = (attachment: Attachment) => {
+    if (attachment.type === 'spotify' && attachment.metadata?.externalUrl) {
+      window.open(attachment.metadata.externalUrl, '_blank');
+    } else {
+      toast.error("No Spotify link available");
+    }
   };
   
   return (
@@ -248,16 +209,11 @@ export const AttachmentViewer = ({
                   className="ml-auto" 
                   onClick={(e) => {
                     e.stopPropagation();
-                    playAudio(attachment, i);
+                    openSpotifyLink(attachment);
                   }}
+                  title="Open in Spotify"
                 >
-                  {audioError && audioError.index === i ? (
-                    <X className="h-4 w-4 text-red-500" />
-                  ) : playingAudioIndex === i ? (
-                    <Pause className="h-4 w-4" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
+                  <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
             ) : attachment.type === 'voice' ? (
