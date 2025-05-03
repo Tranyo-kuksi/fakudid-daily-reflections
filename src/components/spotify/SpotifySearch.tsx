@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
@@ -85,10 +85,21 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleDialogClose()}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) handleDialogClose();
+      }}
+    >
+      <DialogContent 
+        className="sm:max-w-md"
+        aria-describedby="spotify-search-description"
+      >
         <DialogHeader>
           <DialogTitle>Search Spotify</DialogTitle>
+          <DialogDescription id="spotify-search-description">
+            Search for songs on Spotify and add them to your journal.
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSearch} className="flex gap-2 mt-4">

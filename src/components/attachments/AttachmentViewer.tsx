@@ -164,8 +164,8 @@ export const AttachmentViewer = ({
         ))}
       </div>
       
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl w-full p-1">
+      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl w-full p-1" aria-describedby="image-viewer-description">
           <div className="relative">
             <Button 
               variant="ghost" 
@@ -180,6 +180,7 @@ export const AttachmentViewer = ({
               alt="Full size attachment" 
               className="w-full h-auto max-h-[80vh] object-contain rounded-md"
             />
+            <span id="image-viewer-description" className="sr-only">Full size image view</span>
           </div>
         </DialogContent>
       </Dialog>

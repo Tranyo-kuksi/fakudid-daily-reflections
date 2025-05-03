@@ -33,6 +33,22 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
 }) => {
   const [showSpotifySearch, setShowSpotifySearch] = React.useState(false);
 
+  // Function to safely handle opening and closing the Spotify search
+  const handleOpenSpotifySearch = () => {
+    setShowSpotifySearch(true);
+  };
+  
+  const handleCloseSpotifySearch = () => {
+    setShowSpotifySearch(false);
+  };
+  
+  const handleSpotifyTrackSelected = (track: any) => {
+    if (onSpotifySelected) {
+      onSpotifySelected(track);
+    }
+    handleCloseSpotifySearch();
+  };
+
   return (
     <div className="flex gap-2">
       <input 
@@ -97,7 +113,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
           <DropdownMenuSeparator />
           
           <DropdownMenuItem 
-            onClick={() => setShowSpotifySearch(true)} 
+            onClick={handleOpenSpotifySearch} 
             className="cursor-pointer"
           >
             <Music className="mr-2 h-4 w-4" />
@@ -109,8 +125,8 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
       {showSpotifySearch && onSpotifySelected && (
         <SpotifySearch 
           isOpen={showSpotifySearch}
-          onClose={() => setShowSpotifySearch(false)}
-          onTrackSelect={onSpotifySelected}
+          onClose={handleCloseSpotifySearch}
+          onTrackSelect={handleSpotifyTrackSelected}
         />
       )}
     </div>
