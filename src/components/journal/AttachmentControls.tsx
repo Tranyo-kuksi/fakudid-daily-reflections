@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/ui/sonner";
 
 interface AttachmentControlsProps {
   onImageClick: () => void;
@@ -34,6 +35,29 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
   const [showSpotifySearch, setShowSpotifySearch] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Clean up processing state automatically after timeout
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    
+    if (isProcessing) {
+      timeoutId = setTimeout(() => {
+        setIsProcessing(false);
+      }, 1000); // Ensure processing state reset after 1 second as safety
+    }
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isProcessing]);
+
+  // Reset all states when component unmounts
+  useEffect(() => {
+    return () => {
+      setShowSpotifySearch(false);
+      setIsProcessing(false);
+    };
+  }, []);
+  
   // Function to safely handle opening and closing the Spotify search
   const handleOpenSpotifySearch = useCallback(() => {
     if (!isProcessing) {
@@ -47,33 +71,39 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-    }, 300);
+    }, 500);
   }, []);
   
   const handleSpotifyTrackSelected = useCallback((track: any) => {
-    if (onSpotifySelected) {
+    if (!onSpotifySelected) return;
+    
+    try {
       // Set processing flag to prevent multiple actions
       setIsProcessing(true);
       
-      // First close the search dialog
+      // Close the search dialog
       setShowSpotifySearch(false);
       
-      // Then handle the selected track after a small delay
+      // Add longer delay before calling the callback to ensure dialog is fully closed
       setTimeout(() => {
-        onSpotifySelected(track);
+        if (onSpotifySelected) {
+          try {
+            onSpotifySelected(track);
+          } catch (err) {
+            console.error("Error selecting Spotify track:", err);
+            toast.error("Failed to add track to journal");
+          }
+        }
         // Reset processing state after handling the track
         setIsProcessing(false);
-      }, 100);
-    }
-  }, [onSpotifySelected]);
-
-  // Clean up state when component unmounts
-  useEffect(() => {
-    return () => {
+      }, 500);
+    } catch (error) {
+      console.error("Error handling Spotify track selection:", error);
       setShowSpotifySearch(false);
       setIsProcessing(false);
-    };
-  }, []);
+      toast.error("Failed to process selected track");
+    }
+  }, [onSpotifySelected]);
 
   return (
     <div className="flex gap-2">

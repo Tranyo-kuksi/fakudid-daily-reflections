@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,33 +26,60 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SpotifyTrack[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
 
-  // Reset state when dialog opens or closes
+  // Synchronize the local state with the prop
   useEffect(() => {
-    if (!isOpen) {
-      // Clean up state when the dialog closes
-      setSearchResults([]);
-      setSearchQuery("");
-      setIsLoading(false);
+    if (isOpen) {
+      setLocalOpen(true);
     }
   }, [isOpen]);
 
-  // Add event listener for ESC key to ensure dialog closes properly
+  // Reset state when dialog closes completely
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      // First update the local state
+      setLocalOpen(false);
+      
+      // Clear the search and results with a small delay to ensure animations complete
+      setTimeout(() => {
+        setSearchResults([]);
+        setSearchQuery("");
+        setIsLoading(false);
+        
+        // Then notify the parent component
+        onClose();
+      }, 100);
+    }
+  }, [onClose]);
+
+  // Handle ESC key and cleanup
   useEffect(() => {
-    const handleEscKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isOpen) {
-        handleDialogClose();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && localOpen) {
+        e.preventDefault();
+        handleOpenChange(false);
       }
     };
 
-    if (isOpen) {
-      window.addEventListener("keydown", handleEscKey);
+    if (localOpen) {
+      window.addEventListener('keydown', handleKeyDown);
     }
 
     return () => {
-      window.removeEventListener("keydown", handleEscKey);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [localOpen, handleOpenChange]);
+
+  // Clean up function to ensure everything is reset when component unmounts
+  useEffect(() => {
+    return () => {
+      setSearchResults([]);
+      setSearchQuery("");
+      setIsLoading(false);
+      setLocalOpen(false);
+    };
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,38 +118,31 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
     }
   };
   
-  const handleTrackSelect = (track: SpotifyTrack) => {
+  const handleTrackSelect = useCallback((track: SpotifyTrack) => {
     try {
       // Make a copy of the track to prevent any potential reference issues
       const trackCopy = { ...track };
-      // First close the dialog to prevent UI freeze
-      handleDialogClose();
-      // Then call the callback after a short delay to ensure dialog is fully closed
+      
+      // First close the dialog
+      setLocalOpen(false);
+      
+      // Then call the callback after a delay to ensure dialog is fully closed
       setTimeout(() => {
         onTrackSelect(trackCopy);
-      }, 50);
+      }, 300);
     } catch (error) {
       console.error("Error selecting track:", error);
       toast.error("Failed to select track");
-      handleDialogClose();
+      // Make sure dialog closes even on error
+      setLocalOpen(false);
+      setTimeout(() => onClose(), 100);
     }
-  };
-
-  // Safe dialog close handler
-  const handleDialogClose = () => {
-    // Clear search results and reset state before closing
-    setSearchResults([]);
-    setSearchQuery("");
-    setIsLoading(false);
-    onClose();
-  };
+  }, [onClose, onTrackSelect]);
   
   return (
     <Dialog 
-      open={isOpen} 
-      onOpenChange={(open) => {
-        if (!open) handleDialogClose();
-      }}
+      open={localOpen} 
+      onOpenChange={handleOpenChange}
     >
       <DialogContent 
         className="sm:max-w-md"

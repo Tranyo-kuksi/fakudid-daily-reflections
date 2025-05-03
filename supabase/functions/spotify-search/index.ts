@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const CLIENT_ID = "c2c4255cd9124081b28c237a7b232b89";
@@ -6,6 +7,7 @@ const CLIENT_SECRET = "9de00f3d79534cf3b2c1e838a7e6395f";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Security-Policy': "default-src 'self'; img-src *; media-src *;",
 };
 
 serve(async (req) => {
@@ -142,15 +144,14 @@ serve(async (req) => {
 
     console.log(`Found ${tracks.length} tracks`);
     
-    // Add content security policy headers to ensure images can be loaded
-    const headers = {
-      ...corsHeaders, 
-      'Content-Type': 'application/json'
-    };
-    
     return new Response(
       JSON.stringify({ tracks }),
-      { headers }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }
+      }
     );
     
   } catch (error) {
