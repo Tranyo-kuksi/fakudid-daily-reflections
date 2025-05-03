@@ -1,6 +1,7 @@
 
 import { useState } from "react";
-import { Search, X, Music, Play, Pause } from "lucide-react";
+import { Search, X, Music } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -13,7 +14,7 @@ interface SpotifyTrack {
   artist: string;
   album: string;
   albumArt: string;
-  previewUrl: string | null;
+  previewUrl: string;
   externalUrl: string;
 }
 
@@ -29,6 +30,7 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
   const [isLoading, setIsLoading] = useState(false);
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
+  const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null);
   
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,9 +48,16 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
         throw new Error(error.message);
       }
       
-      setResults(data.tracks || []);
+      // Ensure all tracks have valid values for critical fields
+      const processedTracks = (data.tracks || []).map((track: SpotifyTrack) => ({
+        ...track,
+        previewUrl: track.previewUrl || "",
+        externalUrl: track.externalUrl || ""
+      }));
       
-      if (data.tracks.length === 0) {
+      setResults(processedTracks);
+      
+      if (processedTracks.length === 0) {
         toast.info("No songs found. Try a different search term.");
       }
     } catch (error) {
@@ -60,26 +69,36 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
   };
   
   const handleSelectTrack = (track: SpotifyTrack) => {
+    // Prevent multiple rapid selections that could cause UI freeze
+    if (selectedTrackIndex !== null) return;
+    
     // Stop any playing preview before selecting
     if (previewAudio) {
       previewAudio.pause();
       setPreviewAudio(null);
       setPlayingTrackId(null);
     }
+    
+    // Set selection state to prevent multiple clicks
+    setSelectedTrackIndex(results.findIndex(t => t.id === track.id));
 
-    // Ensure we're not passing null values
-    const safeTrack = {
-      ...track,
-      previewUrl: track.previewUrl || "" // Convert null to empty string for consistency
-    };
-
-    onSelect(safeTrack);
-    onClose();
-    toast.success(`"${track.name}" by ${track.artist} added`);
+    // Use a timeout to allow UI to update before processing
+    setTimeout(() => {
+      onSelect(track);
+      onClose();
+      toast.success(`"${track.name}" by ${track.artist} added`);
+      
+      // Reset selection state after a delay
+      setTimeout(() => {
+        setSelectedTrackIndex(null);
+      }, 300);
+    }, 10);
   };
   
   // Handle track preview playback
-  const togglePreview = (track: SpotifyTrack) => {
+  const togglePreview = (e: React.MouseEvent, track: SpotifyTrack) => {
+    e.stopPropagation();
+    
     // If there's already audio playing, stop it
     if (previewAudio) {
       previewAudio.pause();
@@ -134,6 +153,7 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
         setPreviewAudio(null);
         setPlayingTrackId(null);
       }
+      setSelectedTrackIndex(null);
       onClose();
     }
   };
@@ -161,10 +181,10 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
         </form>
         
         <div className="max-h-[50vh] overflow-y-auto mt-4">
-          {results.map(track => (
+          {results.map((track, index) => (
             <div 
               key={track.id} 
-              className="flex items-center gap-3 p-2 hover:bg-muted rounded-md cursor-pointer mb-2"
+              className={`flex items-center gap-3 p-2 hover:bg-muted rounded-md cursor-pointer mb-2 ${selectedTrackIndex === index ? 'bg-muted' : ''}`}
               onClick={() => handleSelectTrack(track)}
             >
               {track.albumArt ? (
@@ -180,26 +200,19 @@ export const SpotifySearch = ({ onSelect, isOpen, onClose }: SpotifySearchProps)
                 <p className="text-sm text-muted-foreground truncate">{track.artist}</p>
               </div>
               
-              {track.previewUrl ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePreview(track);
-                  }}
-                >
-                  {playingTrackId === track.id ? (
-                    <Pause className="h-4 w-4" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
-                </Button>
-              ) : (
-                <span className="text-xs text-muted-foreground">No preview</span>
-              )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => togglePreview(e, track)}
+              >
+                {playingTrackId === track.id ? (
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+              </Button>
             </div>
           ))}
           

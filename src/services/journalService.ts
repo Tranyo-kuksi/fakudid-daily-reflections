@@ -232,7 +232,7 @@ export async function addSpotifyTrack(
     artist: string;
     album: string;
     albumArt: string;
-    previewUrl: string | null;
+    previewUrl: string;
     externalUrl: string;
   }
 ): Promise<JournalEntry | null> {
@@ -246,28 +246,41 @@ export async function addSpotifyTrack(
     entry.attachments = [];
   }
   
-  // Make sure previewUrl is a string (even if empty) to avoid issues with localStorage JSON serialization
-  const previewUrl = track.previewUrl || "";
+  // Validate and sanitize track data to prevent UI freezes
+  const safeTrack = {
+    id: track.id || "",
+    name: track.name || "Unknown Track",
+    artist: track.artist || "Unknown Artist",
+    album: track.album || "Unknown Album",
+    albumArt: track.albumArt || "",
+    previewUrl: track.previewUrl || "",
+    externalUrl: track.externalUrl || ""
+  };
   
-  // Store the external URL as a fallback
+  // Add attachment with both previewUrl and externalUrl for fallback
   entry.attachments.push({
     type: "spotify",
-    // Use external URL as primary URL if preview is not available
-    url: previewUrl || track.externalUrl,
-    name: track.name,
+    url: safeTrack.previewUrl || safeTrack.externalUrl, // Use external URL as fallback
+    name: safeTrack.name,
     metadata: {
-      artist: track.artist,
-      album: track.album,
-      albumArt: track.albumArt,
-      previewUrl: previewUrl,
-      externalUrl: track.externalUrl,
-      spotifyId: track.id
+      artist: safeTrack.artist,
+      album: safeTrack.album,
+      albumArt: safeTrack.albumArt,
+      previewUrl: safeTrack.previewUrl,
+      externalUrl: safeTrack.externalUrl,
+      spotifyId: safeTrack.id
     }
   });
   
-  const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
-  toast.success(`"${track.name}" by ${track.artist} added to your journal`);
-  return updatedEntry;
+  try {
+    const updatedEntry = updateEntry(entryId, { attachments: entry.attachments });
+    toast.success(`"${safeTrack.name}" by ${safeTrack.artist} added to your journal`);
+    return updatedEntry;
+  } catch (error) {
+    console.error("Error adding Spotify track:", error);
+    toast.error("Failed to add track to journal");
+    return null;
+  }
 }
 
 // Add voice recording to an entry

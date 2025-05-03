@@ -63,6 +63,7 @@ export const AttachmentViewer = ({
     return attachment.url;
   };
   
+  // More robust audio playback function
   const playAudio = (attachment: Attachment, index: number) => {
     // Reset any previous error state
     setAudioError(null);
@@ -71,30 +72,40 @@ export const AttachmentViewer = ({
     if (audioElement) {
       audioElement.pause();
       audioElement.currentTime = 0;
+      setAudioElement(null);
+      setPlayingAudioIndex(null);
     }
     
     // If clicking the same audio that's playing, just stop it
     if (playingAudioIndex === index) {
-      setPlayingAudioIndex(null);
-      setAudioElement(null);
       return;
     }
     
-    // Determine the source to play
-    let audioSource: string | undefined;
+    // Determine the source to play based on type and availability
+    let audioSource = "";
+    let fallbackUrl = "";
     
     if (attachment.type === 'spotify') {
-      // For Spotify tracks, try multiple sources in order of preference
+      // For Spotify tracks, use multiple sources in order of preference
       if (attachment.metadata?.previewUrl && attachment.metadata.previewUrl !== "") {
         audioSource = attachment.metadata.previewUrl;
-      } else if (attachment.url && attachment.url !== "undefined" && attachment.url !== "null") {
-        audioSource = attachment.url;
-      } else if (attachment.metadata?.externalUrl) {
-        // External URL is not playable - show a message and open in new tab
-        window.open(attachment.metadata.externalUrl, '_blank');
-        toast.info("No preview available. Opening Spotify in a new tab.");
+      } 
+      
+      // Always set fallback URL for Spotify tracks
+      if (attachment.metadata?.externalUrl) {
+        fallbackUrl = attachment.metadata.externalUrl;
+      }
+      
+      // If no preview is available, open in Spotify directly
+      if (!audioSource && fallbackUrl) {
+        toast.info("No preview available. Opening in Spotify instead.", {
+          action: {
+            label: "Open",
+            onClick: () => window.open(fallbackUrl, '_blank')
+          }
+        });
         return;
-      } else {
+      } else if (!audioSource) {
         toast.error("No audio source available for this track");
         return;
       }
@@ -113,21 +124,21 @@ export const AttachmentViewer = ({
     console.log('Playing audio source:', audioSource);
     const audio = new Audio(audioSource);
     
+    // Add robust error handling
     audio.addEventListener('error', (e) => {
-      console.error('Error loading audio:', e);
+      console.error('Error loading audio:', e, audio.error);
       
       // Handle specific error types
       let errorMessage = "Failed to play audio";
       
-      // @ts-ignore - typescript doesn't recognize the media error codes
-      if (audio.error && audio.error.code) {
-        // @ts-ignore
+      // Check if it's a media error
+      if (audio.error) {
         switch (audio.error.code) {
           case MediaError.MEDIA_ERR_ABORTED:
             errorMessage = "Playback aborted";
             break;
           case MediaError.MEDIA_ERR_NETWORK:
-            errorMessage = "Network error";
+            errorMessage = "Network error while loading audio";
             break;
           case MediaError.MEDIA_ERR_DECODE:
             errorMessage = "Audio decode error";
@@ -139,19 +150,21 @@ export const AttachmentViewer = ({
       }
       
       setAudioError({index, message: errorMessage});
-      toast.error(errorMessage);
-      setPlayingAudioIndex(null);
-      setAudioElement(null);
       
-      // If it's a Spotify track and we have an external URL, offer to open it
-      if (attachment.type === 'spotify' && attachment.metadata?.externalUrl) {
-        toast.info("Opening track on Spotify instead", {
+      // If it's a Spotify track and we have a fallback URL, offer to open it
+      if (attachment.type === 'spotify' && fallbackUrl) {
+        toast.info("Preview not available. Listen on Spotify instead?", {
           action: {
             label: "Open",
-            onClick: () => window.open(attachment.metadata?.externalUrl, '_blank')
+            onClick: () => window.open(fallbackUrl, '_blank')
           }
         });
+      } else {
+        toast.error(errorMessage);
       }
+      
+      setPlayingAudioIndex(null);
+      setAudioElement(null);
     });
     
     audio.addEventListener('ended', () => {
@@ -159,9 +172,22 @@ export const AttachmentViewer = ({
       setAudioElement(null);
     });
     
+    // Try to play with better error handling
     audio.play().catch(error => {
       console.error('Error playing audio:', error);
-      toast.error(`Couldn't play audio: ${error.message}`);
+      
+      // If it's a Spotify track and we have a fallback URL, offer to open it
+      if (attachment.type === 'spotify' && fallbackUrl) {
+        toast.info("Couldn't play preview. Listen on Spotify instead?", {
+          action: {
+            label: "Open",
+            onClick: () => window.open(fallbackUrl, '_blank')
+          }
+        });
+      } else {
+        toast.error(`Couldn't play audio: ${error.message}`);
+      }
+      
       setPlayingAudioIndex(null);
       setAudioElement(null);
     });
