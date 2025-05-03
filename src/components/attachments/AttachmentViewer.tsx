@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ImageIcon, Music, X, Maximize2, Trash2, Play, Pause, Headphones } from "lucide-react";
+import { ImageIcon, Music, X, Maximize2, Trash2, Play, Pause, Headphones, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Attachment {
