@@ -1,8 +1,8 @@
 
-import React from "react";
+import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ImageIcon, Music, FileAudio } from "lucide-react";
+import { ImageIcon, Music } from "lucide-react";
 import { SpotifySearch } from "@/components/spotify/SpotifySearch";
 import { 
   DropdownMenu,
@@ -34,20 +34,21 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
   const [showSpotifySearch, setShowSpotifySearch] = React.useState(false);
 
   // Function to safely handle opening and closing the Spotify search
-  const handleOpenSpotifySearch = () => {
+  const handleOpenSpotifySearch = useCallback(() => {
     setShowSpotifySearch(true);
-  };
+  }, []);
   
-  const handleCloseSpotifySearch = () => {
+  const handleCloseSpotifySearch = useCallback(() => {
     setShowSpotifySearch(false);
-  };
+  }, []);
   
-  const handleSpotifyTrackSelected = (track: any) => {
+  const handleSpotifyTrackSelected = useCallback((track: any) => {
     if (onSpotifySelected) {
       onSpotifySelected(track);
     }
+    // Close the search dialog after a track is selected
     handleCloseSpotifySearch();
-  };
+  }, [onSpotifySelected, handleCloseSpotifySearch]);
 
   return (
     <div className="flex gap-2">
@@ -106,7 +107,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
         
         <DropdownMenuContent align="center" className="w-48">
           <DropdownMenuItem onClick={onMusicClick} className="cursor-pointer">
-            <FileAudio className="mr-2 h-4 w-4" />
+            <Music className="mr-2 h-4 w-4" />
             <span>Upload Audio File</span>
           </DropdownMenuItem>
           

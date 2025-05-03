@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,13 +27,14 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
   const [searchResults, setSearchResults] = useState<SpotifyTrack[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Clean up on unmount or dialog close
-  React.useEffect(() => {
-    return () => {
-      // Clear any state on unmount to prevent memory leaks
+  // Reset state when dialog opens or closes
+  useEffect(() => {
+    if (!isOpen) {
+      // Clean up state when the dialog closes
       setSearchResults([]);
       setSearchQuery("");
-    };
+      setIsLoading(false);
+    }
   }, [isOpen]);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -57,6 +58,9 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
       
       if (data && data.tracks) {
         setSearchResults(data.tracks);
+        if (data.tracks.length === 0) {
+          toast.info("No results found");
+        }
       } else {
         setSearchResults([]);
         toast.info("No results found");
@@ -64,23 +68,32 @@ export const SpotifySearch: React.FC<SpotifySearchProps> = ({ isOpen, onClose, o
     } catch (error) {
       console.error("Spotify search error:", error);
       toast.error("Failed to search Spotify");
+      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }
   };
   
   const handleTrackSelect = (track: SpotifyTrack) => {
-    // Make a copy of the track to prevent any potential reference issues
-    const trackCopy = { ...track };
-    onTrackSelect(trackCopy);
-    onClose();
+    try {
+      // Make a copy of the track to prevent any potential reference issues
+      const trackCopy = { ...track };
+      onTrackSelect(trackCopy);
+    } catch (error) {
+      console.error("Error selecting track:", error);
+      toast.error("Failed to select track");
+    } finally {
+      // Always ensure we close the dialog
+      onClose();
+    }
   };
 
   // Safe dialog close handler
   const handleDialogClose = () => {
-    // Clear search results before closing to prevent state issues
+    // Clear search results and reset state before closing
     setSearchResults([]);
     setSearchQuery("");
+    setIsLoading(false);
     onClose();
   };
   

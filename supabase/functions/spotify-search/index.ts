@@ -17,10 +17,10 @@ serve(async (req) => {
   
   try {
     // Parse request body with error handling
-    let query;
+    let query = "";
     try {
       const body = await req.json();
-      query = body.query;
+      query = body.query || "";
     } catch (e) {
       console.error("Error parsing request body:", e);
       return new Response(
@@ -29,7 +29,7 @@ serve(async (req) => {
       );
     }
     
-    if (!query) {
+    if (!query.trim()) {
       return new Response(
         JSON.stringify({ error: 'No query provided' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -48,6 +48,15 @@ serve(async (req) => {
         'grant_type': 'client_credentials'
       })
     });
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error('Failed to get token from Spotify:', errorText);
+      return new Response(
+        JSON.stringify({ error: 'Failed to authenticate with Spotify' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
 
     const tokenData = await tokenResponse.json();
     
@@ -70,6 +79,15 @@ serve(async (req) => {
       }
     );
 
+    if (!searchResponse.ok) {
+      const errorText = await searchResponse.text();
+      console.error('Spotify search API error:', errorText);
+      return new Response(
+        JSON.stringify({ error: 'Error searching Spotify' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
     const searchData = await searchResponse.json();
     
     if (searchData.error) {
@@ -77,6 +95,15 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Error searching Spotify' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    // Check if tracks exist in the response
+    if (!searchData.tracks || !Array.isArray(searchData.tracks.items)) {
+      console.error('Unexpected Spotify API response format:', searchData);
+      return new Response(
+        JSON.stringify({ tracks: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -111,7 +138,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in Spotify search function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', message: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
