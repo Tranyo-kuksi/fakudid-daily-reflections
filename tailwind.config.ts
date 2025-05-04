@@ -64,10 +64,10 @@ export default {
             light: "#f5b2d3",  // Medium pink
             dark: "#f07fb7",   // Slightly darker pink (as requested)
           },
-          // Updated Golden Hour theme with medium gold
+          // Updated Golden Hour theme with more yellowish gold
           "golden-hour": {
-            light: "#e4c57c",  // Medium gold
-            dark: "#d2ac50",   // Slightly darker gold
+            light: "#f8d675",  // More yellowish gold (medium brightness)
+            dark: "#f5c242",   // Slightly darker yellowish gold
           },
           // Dark themes - keep as is
           midnight: {

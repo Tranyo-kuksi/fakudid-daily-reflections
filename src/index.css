@@ -141,15 +141,15 @@
     --border: 330 70% 70%;
   }
 
-  /* Updated Golden Hour theme with medium gold */
+  /* Updated Golden Hour theme with more yellowish gold */
   .theme-golden-hour {
-    --background: linear-gradient(135deg, #e4c57c 0%, #d2ac50 100%);
-    --primary: 38 65% 50%;      /* medium gold */
-    --secondary: 38 70% 80%;
-    --card: 38 50% 85%;
-    --muted: 38 40% 70%;
-    --accent: 38 80% 45%;
-    --border: 38 60% 60%;
+    --background: linear-gradient(135deg, #f8d675 0%, #f5c242 100%);
+    --primary: 45 90% 65%;      /* more yellowish gold */
+    --secondary: 45 75% 80%;
+    --card: 45 60% 85%;
+    --muted: 45 50% 70%;
+    --accent: 45 85% 55%;
+    --border: 45 65% 65%;
   }
 
   /* New theme: Cosmos */

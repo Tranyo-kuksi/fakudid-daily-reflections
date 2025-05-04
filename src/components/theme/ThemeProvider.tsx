@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
 type Theme = "dark" | "light" | "system";
@@ -39,7 +40,7 @@ const themeGradients = {
   peach: "linear-gradient(135deg, #f9cfb3 0%, #eeb28e 100%)",
   sky: "linear-gradient(135deg, #b0e3ef 0%, #85d0e0 100%)",
   bubblegum: "linear-gradient(135deg, #f5b2d3 0%, #f07fb7 100%)",
-  "golden-hour": "linear-gradient(135deg, #e4c57c 0%, #d2ac50 100%)"
+  "golden-hour": "linear-gradient(135deg, #f8d675 0%, #f5c242 100%)" // Updated to more yellowish gold
 };
 
 export function ThemeProvider({
@@ -113,7 +114,7 @@ export function ThemeProvider({
         root.style.setProperty("--background", "340 70% 83%");
         root.style.background = themeGradients.bubblegum;
       } else if (themeToApply === "golden-hour") {
-        root.style.setProperty("--background", "38 55% 65%");
+        root.style.setProperty("--background", "45 80% 70%"); // More yellowish, medium brightness
         root.style.background = themeGradients["golden-hour"];
       }
       
@@ -145,8 +146,8 @@ export function ThemeProvider({
           root.style.setProperty("--accent", "330 70% 55%");
           break;
         case "golden-hour":
-          root.style.setProperty("--primary", "38 80% 50%");
-          root.style.setProperty("--accent", "38 70% 40%");
+          root.style.setProperty("--primary", "45 90% 65%"); // More yellowish gold
+          root.style.setProperty("--accent", "45 85% 55%");
           break;
       }
     } else {
