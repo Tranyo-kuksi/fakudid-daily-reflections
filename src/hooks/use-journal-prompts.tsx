@@ -25,28 +25,28 @@ const JOURNAL_PROMPTS = [
   "What's one small thing you're grateful for?"
 ];
 
-// New prompts with more mature language for 18+ mode
+// Enhanced mature prompts with more creative swear words
 const MATURE_JOURNAL_PROMPTS = [
-  "What the hell is bothering you today?",
+  "What the fuck is bothering you today?",
   "What shit went down today that changed things?",
   "What's actually pissing you off right now?",
-  "That damn feeling you can't shake - spill it",
-  "Three words to describe this crazy day. Why those?",
-  "One good thing in all this mess today?",
-  "Something you need to get off your chest?",
+  "That bloody feeling you can't shake - spill it",
+  "Three words to describe this fucking crazy day. Why those?",
+  "One damn good thing in all this mess today?",
+  "Something you need to get off your chest, for fuck's sake?",
   "Fill in: Today made me feel like ___ because of all the ___",
-  "How the fuck are you really doing?",
+  "How the hell are you really doing?",
   "What's keeping your ass up at night lately?",
-  "Someone on your mind driving you crazy? Why them?",
-  "What chaos are you planning for tomorrow?",
+  "Someone on your mind driving you fucking crazy? Why them?",
+  "What chaos are you planning for tomorrow, you wanker?",
   "What's your gut telling you about this shit?",
   "What didn't completely suck about today?",
-  "What are you not saying that's eating you up?",
-  "What's been royally frustrating you?",
+  "What are you not saying that's eating you up, for fuck's sake?",
+  "What's been royally fucking frustrating you?",
   "Where is all this damn stress coming from?",
   "One bullshit thing you'd change about today?",
-  "What's one thing you actually did right today?",
-  "What's one damn thing you're grateful for in this mess?"
+  "What's one thing you actually didn't fuck up today?",
+  "What's one bloody thing you're grateful for in this mess?"
 ];
 
 export const useJournalPrompts = () => {
