@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -858,4 +859,33 @@ export default function CustomizePage() {
                   <CardContent className="p-0">
                     <div className="relative">
                       {/* Animated background with gradients */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-amber-300 via-amber-500 to-amber-70
+                      <div className="absolute inset-0 bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 animate-pulse">
+                        {/* Sparkles overlay */}
+                        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(white_1px,transparent_1px)] bg-[length:10px_10px]"></div>
+                      </div>
+                      
+                      <div className="relative z-10 flex flex-col items-center justify-center px-6 py-12 text-center">
+                        <Sparkles className="h-12 w-12 text-white mb-3" />
+                        <h2 className="text-2xl font-semibold mb-2 text-white">Unlock Premium Templates</h2>
+                        <p className="text-white/90 mb-6 max-w-md">
+                          Customize your journal experience with advanced templates and make tracking your habits easier than ever.
+                        </p>
+                        <Button 
+                          onClick={openCheckout}
+                          size="lg"
+                          className="bg-white text-amber-600 hover:bg-white/90 hover:text-amber-700 font-medium shadow-lg transform hover:scale-105 transition-all"
+                        >
+                          Upgrade to Premium
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </div>
+  );
+}
