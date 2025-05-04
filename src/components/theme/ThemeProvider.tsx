@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
 type Theme = "dark" | "light" | "system";
@@ -35,12 +34,12 @@ const darkThemes = ["midnight", "forest", "plum", "ocean", "cosmos", "molten"];
 
 // Gradient definitions for proper display
 const themeGradients = {
-  lavender: "linear-gradient(135deg, #e5deff 0%, #c9bef2 100%)",
-  mint: "linear-gradient(135deg, #f2fce2 0%, #d3ecd1 100%)",
-  peach: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)",
-  sky: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)",
-  bubblegum: "linear-gradient(135deg, #f8e1e7 0%, #f6d4dd 100%)",
-  "golden-hour": "linear-gradient(135deg, #fec6a1 0%, #e5deff 100%)"
+  lavender: "linear-gradient(135deg, #d1c3f5 0%, #a98de2 100%)",
+  mint: "linear-gradient(135deg, #d0ebbd 0%, #a3cea0 100%)",
+  peach: "linear-gradient(135deg, #f5b086 0%, #e08a58 100%)",
+  sky: "linear-gradient(135deg, #89d9e8 0%, #5ab0c0 100%)",
+  bubblegum: "linear-gradient(135deg, #f8c1d3 0%, #e698b5 100%)",
+  "golden-hour": "linear-gradient(135deg, #e0a77a 0%, #c28c62 100%)"
 };
 
 export function ThemeProvider({
@@ -99,22 +98,22 @@ export function ThemeProvider({
       // Set the background gradient directly on the document root element
       // This is crucial for the gradients to be visible
       if (themeToApply === "lavender") {
-        root.style.setProperty("--background", "240 30% 97%");  // Fallback for components using HSL
+        root.style.setProperty("--background", "260 40% 90%");  // Fallback for components using HSL
         root.style.background = themeGradients.lavender;
       } else if (themeToApply === "mint") {
-        root.style.setProperty("--background", "152 20% 96%"); 
+        root.style.setProperty("--background", "152 30% 85%"); 
         root.style.background = themeGradients.mint;
       } else if (themeToApply === "peach") {
-        root.style.setProperty("--background", "32 20% 96%");
+        root.style.setProperty("--background", "32 60% 80%");
         root.style.background = themeGradients.peach;
       } else if (themeToApply === "sky") {
-        root.style.setProperty("--background", "200 20% 96%");
+        root.style.setProperty("--background", "187 50% 80%");
         root.style.background = themeGradients.sky;
       } else if (themeToApply === "bubblegum") {
-        root.style.setProperty("--background", "350 20% 96%");
+        root.style.setProperty("--background", "350 60% 85%");
         root.style.background = themeGradients.bubblegum;
       } else if (themeToApply === "golden-hour") {
-        root.style.setProperty("--background", "35 20% 96%");
+        root.style.setProperty("--background", "35 50% 80%");
         root.style.background = themeGradients["golden-hour"];
       }
       
@@ -174,7 +173,7 @@ export function ThemeProvider({
           root.style.setProperty("--accent", "326 78% 60%");
           break;
         case "ocean":
-          root.style.setProperty("--background", "200 70% 12%");
+          root.style.setProperty("--background", "200 70% 15%");
           root.style.setProperty("--primary", "200 60% 60%");
           root.style.setProperty("--accent", "210 78% 60%");
           break;
@@ -198,11 +197,13 @@ export function ThemeProvider({
             radial-gradient(1px 1px at 95% 45%, white 1px, transparent 0),
             radial-gradient(1px 1px at 5% 45%, white 1px, transparent 0),
             radial-gradient(1px 1px at 15% 65%, white 1px, transparent 0),
-            radial-gradient(2px 2px at 25% 75%, rgba(255,255,255,0.5) 1px, transparent 0),
-            radial-gradient(2px 2px at 35% 85%, rgba(255,255,255,0.5) 1px, transparent 0),
-            radial-gradient(2px 2px at 45% 55%, rgba(255,255,255,0.5) 1px, transparent 0),
-            radial-gradient(2px 2px at 55% 90%, rgba(255,255,255,0.5) 1px, transparent 0),
-            radial-gradient(2px 2px at 65% 70%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 25% 75%, rgba(255,255,255,0.7) 1px, transparent 0),
+            radial-gradient(2px 2px at 35% 85%, rgba(255,255,255,0.7) 1px, transparent 0),
+            radial-gradient(2px 2px at 45% 55%, rgba(255,255,255,0.7) 1px, transparent 0),
+            radial-gradient(2px 2px at 55% 90%, rgba(255,255,255,0.7) 1px, transparent 0),
+            radial-gradient(2px 2px at 65% 70%, rgba(255,255,255,0.7) 1px, transparent 0),
+            radial-gradient(2px 2px at 75% 15%, rgba(255,255,255,0.7) 1px, transparent 0),
+            radial-gradient(2px 2px at 85% 35%, rgba(255,255,255,0.7) 1px, transparent 0),
             linear-gradient(135deg, #1A1F2C 0%, #2c3e50 100%)
           `;
           root.style.background = starsBackground;

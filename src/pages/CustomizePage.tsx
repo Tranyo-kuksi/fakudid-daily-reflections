@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,12 +14,12 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 
 // Define theme options with gradients for visual representation
 const lightThemes = [
-  { id: "lavender", name: "Lavender", gradient: "linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%)" },
-  { id: "mint", name: "Mint", gradient: "linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%)" },
-  { id: "peach", name: "Peach", gradient: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)" },
-  { id: "sky", name: "Sky Blue", gradient: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)" },
-  { id: "bubblegum", name: "Bubblegum", gradient: "linear-gradient(135deg, #FFDEE2 0%, #ffb8c2 100%)" },
-  { id: "golden-hour", name: "Golden Hour", gradient: "linear-gradient(135deg, #FFBF00 0%, #FDE1D3 100%)" }
+  { id: "lavender", name: "Lavender", gradient: "linear-gradient(135deg, #d1c3f5 0%, #a98de2 100%)" },
+  { id: "mint", name: "Mint", gradient: "linear-gradient(135deg, #d0ebbd 0%, #a3cea0 100%)" },
+  { id: "peach", name: "Peach", gradient: "linear-gradient(135deg, #f5b086 0%, #e08a58 100%)" },
+  { id: "sky", name: "Sky Blue", gradient: "linear-gradient(135deg, #89d9e8 0%, #5ab0c0 100%)" },
+  { id: "bubblegum", name: "Bubblegum", gradient: "linear-gradient(135deg, #f8c1d3 0%, #e698b5 100%)" },
+  { id: "golden-hour", name: "Golden Hour", gradient: "linear-gradient(135deg, #e0a77a 0%, #c28c62 100%)" }
 ];
 
 const darkThemes = [
@@ -855,27 +854,8 @@ export default function CustomizePage() {
                   </CardContent>
                 </Card>
               ) : (
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="py-8 text-center space-y-5">
-                      <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
-                      <div>
-                        <h2 className="text-2xl font-semibold mb-2">Premium Feature</h2>
-                        <p className="text-muted-foreground max-w-md mx-auto">
-                          Template customization is available for Premium subscribers. Upgrade to create custom journal templates.
-                        </p>
-                      </div>
-                      <Button onClick={openCheckout} className="bg-amber-500 hover:bg-amber-600">
-                        Upgrade to Premium
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    </div>
-  );
-}
+                <Card className="overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="relative">
+                      {/* Animated background with gradients */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-amber-300 via-amber-500 to-amber-70
