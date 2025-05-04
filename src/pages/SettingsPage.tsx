@@ -188,38 +188,56 @@ export default function SettingsPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-4 max-w-sm mx-auto">
-                <div className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-gray-400" />
-                  <h3 className="text-lg font-medium">Upgrade to Premium</h3>
+              <div className="relative overflow-hidden rounded-lg border-2 border-amber-300 dark:border-amber-600">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 opacity-20 rounded-full blur-xl animate-pulse"></div>
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tl from-amber-300 via-amber-400 to-amber-500 opacity-20 rounded-full blur-xl animate-pulse"></div>
+                
+                <div className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/60 dark:to-amber-900/60 p-6 relative">
+                  <div className="absolute top-2 right-2">
+                    <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-full p-2 bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-lg">
+                        <Crown className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-xl font-bold text-amber-800 dark:text-amber-300">
+                        Upgrade to Premium
+                      </h3>
+                    </div>
+                    
+                    <p className="text-amber-700 dark:text-amber-400">
+                      Unlock AI journal prompts and enhance your journaling experience!
+                    </p>
+                    
+                    <div className="rounded-lg bg-white/70 dark:bg-black/20 p-3 space-y-2">
+                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <span>Personalized AI journal prompts</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <span>Smart writing suggestions</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <span>Premium template customization</span>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      className="w-full relative overflow-hidden group mt-2"
+                      onClick={openCheckout}
+                    >
+                      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-300 to-amber-500 opacity-0 group-hover:opacity-30 transition-opacity"></div>
+                      <span className="flex items-center justify-center gap-2">
+                        <Crown className="h-5 w-5" />
+                        Upgrade Now - $3.99/month
+                      </span>
+                    </Button>
+                  </div>
                 </div>
-                
-                <p className="text-muted-foreground text-sm">
-                  Get personalized AI prompts and enhance your journaling.
-                </p>
-                
-                <ul className="space-y-2 text-xs">
-                  <li className="flex items-center gap-2">
-                    <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                    <span>AI journal prompts</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                    <span>Writing suggestions</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                    <span>Premium support</span>
-                  </li>
-                </ul>
-                
-                <Button
-                  className="w-full bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-900"
-                  onClick={openCheckout}
-                >
-                  <Crown className="h-4 w-4 mr-2" />
-                  Upgrade - $3.99/month
-                </Button>
               </div>
             )}
           </CardContent>
