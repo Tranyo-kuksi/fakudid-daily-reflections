@@ -26,6 +26,7 @@ export default function SettingsPage() {
   
   const [language, setLanguage] = useState("en");
   const [loading, setLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
   
   // Format subscription end date
   const formatSubscriptionEnd = (dateString: string | null) => {
@@ -82,16 +83,50 @@ export default function SettingsPage() {
     }
   }, [user]);
   
+  // New function to handle individual setting changes
+  const handleSettingChange = async (field: string, value: any) => {
+    if (!user) return;
+    
+    // Update local state first for UI responsiveness
+    setProfile(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    try {
+      setSaveLoading(true);
+      const { error } = await supabase
+        .from('profiles')
+        .update({ [field]: value })
+        .eq('id', user.id);
+        
+      if (error) throw error;
+      
+      toast.success(`${field.replace('_', ' ')} updated successfully.`);
+    } catch (error) {
+      console.error(`Error updating ${field}:`, error);
+      toast.error(`Failed to update ${field.replace('_', ' ')}.`);
+      
+      // Revert local state if save failed
+      setProfile(prev => ({
+        ...prev,
+        [field]: !value
+      }));
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+  
+  // Original function kept for the username which has its own save button
   const handleProfileUpdate = async () => {
     try {
       if (!user) return;
+      setSaveLoading(true);
       
       const { error } = await supabase
         .from('profiles')
         .update({
           username: profile.username,
-          email_notifications: profile.email_notifications,
-          allow_mature_content: profile.allow_mature_content
         })
         .eq('id', user.id);
         
@@ -103,6 +138,8 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error("Failed to update profile. Please try again.");
+    } finally {
+      setSaveLoading(false);
     }
   };
   
@@ -160,8 +197,8 @@ export default function SettingsPage() {
               </div>
             </div>
             
-            <Button onClick={handleProfileUpdate} disabled={loading}>
-              Save Profile Changes
+            <Button onClick={handleProfileUpdate} disabled={loading || saveLoading}>
+              {saveLoading ? "Saving..." : "Save Profile Changes"}
             </Button>
           </CardContent>
         </Card>
@@ -282,7 +319,8 @@ export default function SettingsPage() {
                 <Switch 
                   id="notifications" 
                   checked={profile.email_notifications}
-                  onCheckedChange={(checked) => setProfile({...profile, email_notifications: checked})}
+                  onCheckedChange={(checked) => handleSettingChange('email_notifications', checked)}
+                  disabled={saveLoading}
                 />
               </div>
               
@@ -299,7 +337,8 @@ export default function SettingsPage() {
                 <Switch 
                   id="mature-content" 
                   checked={profile.allow_mature_content}
-                  onCheckedChange={(checked) => setProfile({...profile, allow_mature_content: checked})}
+                  onCheckedChange={(checked) => handleSettingChange('allow_mature_content', checked)}
+                  disabled={saveLoading}
                 />
               </div>
             </div>

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { getAllEntries } from "@/services/journalService";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 interface PromptButtonProps {
   journalEntry: string;
@@ -32,10 +33,15 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
   const { getRandomPrompt } = useJournalPrompts();
   const { user } = useAuth();
   const [allowMatureContent, setAllowMatureContent] = useState(false);
+  const [matureLocalSetting, setMatureLocalSetting] = useLocalStorage<boolean>("allow_mature_content", false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!user) return;
+      if (!user) {
+        // Use local setting if no user
+        setAllowMatureContent(matureLocalSetting);
+        return;
+      }
       
       try {
         const { data, error } = await supabase
@@ -45,17 +51,24 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
           .single();
           
         if (!error && data) {
-          setAllowMatureContent(data.allow_mature_content || false);
+          const matureContentEnabled = data.allow_mature_content || false;
+          setAllowMatureContent(matureContentEnabled);
+          // Also update local setting
+          setMatureLocalSetting(matureContentEnabled);
         } else {
           console.error('Error fetching user preferences:', error);
+          // Fall back to local setting
+          setAllowMatureContent(matureLocalSetting);
         }
       } catch (error) {
         console.error('Error fetching user preferences:', error);
+        // Fall back to local setting
+        setAllowMatureContent(matureLocalSetting);
       }
     };
     
     fetchUserProfile();
-  }, [user]);
+  }, [user, matureLocalSetting, setMatureLocalSetting]);
 
   // Get a random emoji from the appropriate array
   const getRandomEmoji = (isPremium: boolean) => {
