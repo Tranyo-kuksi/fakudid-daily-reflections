@@ -88,67 +88,67 @@
     background: linear-gradient(135deg, #FFEB8A 0%, #FFDA56 50%, #FFC107 100%);
   }
 
-  /* Theme-specific backgrounds with gradients and better contrast */
+  /* Theme-specific backgrounds with gradients and better contrast - DARKER VERSION */
   .theme-lavender {
-    --background: linear-gradient(135deg, #e5deff 0%, #c9bef2 100%);
-    --primary: 266 57% 68%;
-    --secondary: 266 30% 90%;
-    --card: 266 50% 95%;
-    --muted: 266 25% 85%;
-    --accent: 266 40% 60%;
-    --border: 266 35% 75%;
+    --background: linear-gradient(135deg, #d1c9f2 0%, #b0a4e5 100%);
+    --primary: 266 57% 60%;
+    --secondary: 266 30% 80%;
+    --card: 266 50% 90%;
+    --muted: 266 25% 75%;
+    --accent: 266 40% 55%;
+    --border: 266 35% 65%;
   }
 
   .theme-mint {
-    --background: linear-gradient(135deg, #f2fce2 0%, #d3ecd1 100%);
-    --primary: 152 50% 60%;
-    --secondary: 152 25% 90%;
-    --card: 152 25% 99%;
-    --muted: 152 20% 85%;
-    --accent: 152 35% 55%;
-    --border: 152 25% 85%;
+    --background: linear-gradient(135deg, #dfebc9 0%, #bfd8ba 100%);
+    --primary: 152 50% 50%;
+    --secondary: 152 25% 80%;
+    --card: 152 25% 90%;
+    --muted: 152 20% 75%;
+    --accent: 152 35% 45%;
+    --border: 152 25% 75%;
   }
 
   .theme-peach {
-    --background: linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%);
-    --primary: 32 70% 65%;
-    --secondary: 32 25% 90%;
-    --card: 32 25% 99%;
-    --muted: 32 20% 85%;
-    --accent: 6 50% 55%;
-    --border: 32 25% 85%;
+    --background: linear-gradient(135deg, #f5b68d 0%, #e69768 100%);
+    --primary: 32 70% 55%;
+    --secondary: 32 25% 80%;
+    --card: 32 25% 90%;
+    --muted: 32 20% 75%;
+    --accent: 6 50% 45%;
+    --border: 32 25% 75%;
   }
 
   .theme-sky {
-    --background: linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%);
-    --primary: 187 75% 75%;
-    --secondary: 200 25% 90%;
-    --card: 187 75% 95%;
-    --muted: 187 60% 83%;
-    --accent: 187 75% 70%;
-    --border: 187 45% 75%;
+    --background: linear-gradient(135deg, #8adbea 0%, #5cc2d6 100%);
+    --primary: 187 75% 65%;
+    --secondary: 200 25% 80%;
+    --card: 187 75% 85%;
+    --muted: 187 60% 73%;
+    --accent: 187 75% 60%;
+    --border: 187 45% 65%;
   }
 
-  /* Updated Bubblegum theme with #f07fb7 pink */
+  /* Updated Bubblegum theme with #f07fb7 pink - now darker */
   .theme-bubblegum {
-    --background: linear-gradient(135deg, #f8b0d3 0%, #f07fb7 100%);
-    --primary: 330 84% 72%;     /* #f07fb7 pink */
-    --secondary: 330 70% 90%;
-    --card: 330 40% 95%;
-    --muted: 330 40% 85%;
-    --accent: 330 80% 65%;
-    --border: 330 70% 80%;
+    --background: linear-gradient(135deg, #f096c1 0%, #e561a1 100%);
+    --primary: 330 84% 60%;     /* darker pink */
+    --secondary: 330 70% 80%;
+    --card: 330 40% 85%;
+    --muted: 330 40% 75%;
+    --accent: 330 80% 55%;
+    --border: 330 70% 70%;
   }
 
   /* Updated Golden Hour theme with darker gold */
   .theme-golden-hour {
-    --background: linear-gradient(135deg, #dfb563 0%, #b78d37 100%);
-    --primary: 38 65% 45%;      /* darker gold */
-    --secondary: 38 70% 90%;
-    --card: 38 50% 95%;
-    --muted: 38 40% 80%;
-    --accent: 38 80% 55%;
-    --border: 38 60% 70%;
+    --background: linear-gradient(135deg, #c9a04d 0%, #9e7625 100%);
+    --primary: 38 65% 38%;      /* even darker gold */
+    --secondary: 38 70% 80%;
+    --card: 38 50% 85%;
+    --muted: 38 40% 70%;
+    --accent: 38 80% 45%;
+    --border: 38 60% 60%;
   }
 
   /* New theme: Cosmos */

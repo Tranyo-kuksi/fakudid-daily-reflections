@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 
@@ -41,36 +40,36 @@ export default {
           medium: "#FFDA56",   // Medium Yellow
           dark: "#FFC107",     // Deep Yellow
         },
-        // Updated theme colors
+        // Updated theme colors - now darker for light themes
         theme: {
-          // Light themes
+          // Light themes - darker versions
           lavender: {
-            light: "#E5DEFF",
-            dark: "#C9BEF2",
+            light: "#d1c9f2",  // Darker lavender
+            dark: "#b0a4e5",   // Even darker lavender
           },
           mint: {
-            light: "#F2FCE2",
-            dark: "#D3ECD1",
+            light: "#dfebc9",  // Darker mint
+            dark: "#bfd8ba",   // Even darker mint
           },
           peach: {
-            light: "#FFDAB9",
-            dark: "#F5B086",
+            light: "#f5b68d",  // Darker peach
+            dark: "#e69768",   // Even darker peach
           },
           sky: {
-            light: "#E0F7FA",
-            dark: "#79D8E6",
+            light: "#8adbea",  // Darker sky
+            dark: "#5cc2d6",   // Even darker sky
           },
-          // Updated Bubblegum theme with #f07fb7 pink
+          // Updated Bubblegum theme with darker pink
           bubblegum: {
-            light: "#f8b0d3",
-            dark: "#f07fb7",
+            light: "#f096c1",  // Darker pink
+            dark: "#e561a1",   // Even darker pink
           },
           // Updated Golden Hour theme with darker gold
           "golden-hour": {
-            light: "#dfb563",
-            dark: "#b78d37",
+            light: "#c9a04d",  // Darker gold
+            dark: "#9e7625",   // Even darker gold
           },
-          // Dark themes
+          // Dark themes - keep as is
           midnight: {
             light: "#2c3e50",
             dark: "#1a2530",
