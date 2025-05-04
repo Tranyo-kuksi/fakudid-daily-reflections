@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          allow_mature_content: boolean | null
           created_at: string
           email_notifications: boolean | null
           id: string
@@ -19,6 +20,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          allow_mature_content?: boolean | null
           created_at?: string
           email_notifications?: boolean | null
           id: string
@@ -27,6 +29,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          allow_mature_content?: boolean | null
           created_at?: string
           email_notifications?: boolean | null
           id?: string

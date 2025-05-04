@@ -57,19 +57,22 @@ export default function SettingsPage() {
             .single();
             
           if (error) {
-            throw error;
+            console.error('Error fetching profile:', error);
+            toast.error("Failed to load profile data");
+            return;
           }
           
           if (data) {
             setProfile(prev => ({
               ...prev,
               username: data.username || "",
-              email_notifications: data.email_notifications,
-              allow_mature_content: data.allow_mature_content || false
+              email_notifications: data.email_notifications !== null ? data.email_notifications : true,
+              allow_mature_content: data.allow_mature_content !== null ? data.allow_mature_content : false
             }));
           }
         } catch (error) {
           console.error('Error fetching profile:', error);
+          toast.error("Failed to load profile data");
         } finally {
           setLoading(false);
         }

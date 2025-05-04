@@ -46,6 +46,8 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
           
         if (!error && data) {
           setAllowMatureContent(data.allow_mature_content || false);
+        } else {
+          console.error('Error fetching user preferences:', error);
         }
       } catch (error) {
         console.error('Error fetching user preferences:', error);
