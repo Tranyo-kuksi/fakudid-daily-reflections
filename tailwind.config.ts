@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 
@@ -44,20 +45,20 @@ export default {
         theme: {
           // Light themes
           lavender: {
-            light: "#E6E6FA",
-            dark: "#9370DB",
+            light: "#E5DEFF",
+            dark: "#C9BEF2",
           },
           mint: {
-            light: "#F5FFFA",
-            dark: "#98FB98",
+            light: "#F2FCE2",
+            dark: "#D3ECD1",
           },
           peach: {
             light: "#FFDAB9",
-            dark: "#FFDAB9",
+            dark: "#F5B086",
           },
           sky: {
             light: "#E0F7FA",
-            dark: "#4FC3F7",
+            dark: "#79D8E6",
           },
           // Dark themes
           midnight: {
@@ -73,8 +74,8 @@ export default {
             dark: "#342A35",
           },
           ocean: {
-            light: "#1F3A5F",
-            dark: "#152C47",
+            light: "#33C3F0",
+            dark: "#1EAEDB",
           }
         },
         primary: {

@@ -90,7 +90,7 @@
 
   /* Theme-specific backgrounds with gradients and better contrast */
   .theme-lavender {
-    --background: linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%);
+    --background: linear-gradient(135deg, #e5deff 0%, #c9bef2 100%);
     --primary: 266 57% 68%;
     --secondary: 266 30% 90%;
     --card: 266 50% 95%;
@@ -100,7 +100,7 @@
   }
 
   .theme-mint {
-    --background: linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%);
+    --background: linear-gradient(135deg, #f2fce2 0%, #d3ecd1 100%);
     --primary: 152 50% 60%;
     --secondary: 152 25% 90%;
     --card: 152 25% 99%;
@@ -131,7 +131,7 @@
 
   /* New theme: Bubblegum */
   .theme-bubblegum {
-    --background: linear-gradient(135deg, #FFDEE2 0%, #ffb8c2 100%);
+    --background: linear-gradient(135deg, #f8e1e7 0%, #f6d4dd 100%);
     --primary: 350 100% 88%;
     --secondary: 350 60% 95%;
     --card: 350 30% 98%;
@@ -153,7 +153,7 @@
 
   /* New theme: Golden Hour */
   .theme-golden-hour {
-    --background: linear-gradient(135deg, #FFBF00 0%, #FDE1D3 100%);
+    --background: linear-gradient(135deg, #fec6a1 0%, #e5deff 100%);
     --primary: 45 100% 50%;
     --secondary: 30 100% 95%;
     --card: 30 70% 97%;
@@ -164,8 +164,8 @@
 
   /* New theme: Molten */
   .theme-molten {
-    --background: linear-gradient(135deg, #000000 0%, #320A0A 100%);
-    --primary: 0 100% 40%;
+    --background: linear-gradient(135deg, #320A0A 0%, #4a0000 100%);
+    --primary: 16 100% 50%;
     --secondary: 0 70% 15%;
     --card: 0 30% 10%;
     --muted: 15 30% 20%;
@@ -186,7 +186,7 @@
   }
 
   .dark.theme-ocean {
-    --background: 200 70% 8%;
+    --background: 200 70% 12%;
   }
 }
 

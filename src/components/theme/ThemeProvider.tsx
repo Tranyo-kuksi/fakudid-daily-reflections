@@ -35,12 +35,12 @@ const darkThemes = ["midnight", "forest", "plum", "ocean", "cosmos", "molten"];
 
 // Gradient definitions for proper display
 const themeGradients = {
-  lavender: "linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%)",
-  mint: "linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%)",
+  lavender: "linear-gradient(135deg, #e5deff 0%, #c9bef2 100%)",
+  mint: "linear-gradient(135deg, #f2fce2 0%, #d3ecd1 100%)",
   peach: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)",
   sky: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)",
-  bubblegum: "linear-gradient(135deg, #FFDEE2 0%, #ffb8c2 100%)",
-  "golden-hour": "linear-gradient(135deg, #FFBF00 0%, #FDE1D3 100%)"
+  bubblegum: "linear-gradient(135deg, #f8e1e7 0%, #f6d4dd 100%)",
+  "golden-hour": "linear-gradient(135deg, #fec6a1 0%, #e5deff 100%)"
 };
 
 export function ThemeProvider({
@@ -174,18 +174,42 @@ export function ThemeProvider({
           root.style.setProperty("--accent", "326 78% 60%");
           break;
         case "ocean":
-          root.style.setProperty("--background", "200 70% 8%");
+          root.style.setProperty("--background", "200 70% 12%");
           root.style.setProperty("--primary", "200 60% 60%");
           root.style.setProperty("--accent", "210 78% 60%");
           break;
         case "cosmos":
+          // Add star-like pattern for cosmos theme
           root.style.setProperty("--background", "250 40% 12%");
           root.style.setProperty("--primary", "260 60% 70%");
           root.style.setProperty("--accent", "230 80% 65%");
+          
+          // Create a star background effect
+          const starsBackground = `
+            radial-gradient(1px 1px at 10% 10%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 20% 30%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 30% 10%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 40% 40%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 50% 15%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 60% 25%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 70% 5%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 80% 35%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 90% 20%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 95% 45%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 5% 45%, white 1px, transparent 0),
+            radial-gradient(1px 1px at 15% 65%, white 1px, transparent 0),
+            radial-gradient(2px 2px at 25% 75%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 35% 85%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 45% 55%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 55% 90%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 65% 70%, rgba(255,255,255,0.5) 1px, transparent 0),
+            linear-gradient(135deg, #1A1F2C 0%, #2c3e50 100%)
+          `;
+          root.style.background = starsBackground;
           break;
         case "molten":
           root.style.setProperty("--background", "0 60% 8%");
-          root.style.setProperty("--primary", "0 100% 40%");
+          root.style.setProperty("--primary", "16 100% 50%");
           root.style.setProperty("--accent", "30 100% 50%");
           break;
       }
