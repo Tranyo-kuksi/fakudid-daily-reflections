@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
 type Theme = "dark" | "light" | "system";
@@ -33,14 +32,14 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 const lightThemes = ["lavender", "mint", "peach", "sky", "bubblegum", "golden-hour"];
 const darkThemes = ["midnight", "forest", "plum", "ocean", "cosmos", "molten"];
 
-// Updated gradient definitions with darker colors
+// Updated gradient definitions with medium brightness colors
 const themeGradients = {
-  lavender: "linear-gradient(135deg, #d1c9f2 0%, #b0a4e5 100%)",
-  mint: "linear-gradient(135deg, #dfebc9 0%, #bfd8ba 100%)",
-  peach: "linear-gradient(135deg, #f5b68d 0%, #e69768 100%)",
-  sky: "linear-gradient(135deg, #8adbea 0%, #5cc2d6 100%)",
-  bubblegum: "linear-gradient(135deg, #f096c1 0%, #e561a1 100%)",
-  "golden-hour": "linear-gradient(135deg, #c9a04d 0%, #9e7625 100%)"
+  lavender: "linear-gradient(135deg, #dcd6f7 0%, #c4b9ed 100%)",
+  mint: "linear-gradient(135deg, #e8f2dd 0%, #cde5c4 100%)",
+  peach: "linear-gradient(135deg, #f9cfb3 0%, #eeb28e 100%)",
+  sky: "linear-gradient(135deg, #b0e3ef 0%, #85d0e0 100%)",
+  bubblegum: "linear-gradient(135deg, #f5b2d3 0%, #f07fb7 100%)",
+  "golden-hour": "linear-gradient(135deg, #e4c57c 0%, #d2ac50 100%)"
 };
 
 export function ThemeProvider({
@@ -99,22 +98,22 @@ export function ThemeProvider({
       // Set the background gradient directly on the document root element
       // This is crucial for the gradients to be visible
       if (themeToApply === "lavender") {
-        root.style.setProperty("--background", "260 30% 85%");  // Fallback for components using HSL
+        root.style.setProperty("--background", "260 30% 90%");  // Medium brightness
         root.style.background = themeGradients.lavender;
       } else if (themeToApply === "mint") {
-        root.style.setProperty("--background", "152 20% 85%"); 
+        root.style.setProperty("--background", "152 20% 88%"); 
         root.style.background = themeGradients.mint;
       } else if (themeToApply === "peach") {
-        root.style.setProperty("--background", "32 40% 75%");
+        root.style.setProperty("--background", "32 40% 84%");
         root.style.background = themeGradients.peach;
       } else if (themeToApply === "sky") {
-        root.style.setProperty("--background", "190 60% 75%");
+        root.style.setProperty("--background", "190 60% 83%");
         root.style.background = themeGradients.sky;
       } else if (themeToApply === "bubblegum") {
-        root.style.setProperty("--background", "340 70% 75%");
+        root.style.setProperty("--background", "340 70% 83%");
         root.style.background = themeGradients.bubblegum;
       } else if (themeToApply === "golden-hour") {
-        root.style.setProperty("--background", "38 55% 55%");
+        root.style.setProperty("--background", "38 55% 65%");
         root.style.background = themeGradients["golden-hour"];
       }
       
@@ -126,28 +125,28 @@ export function ThemeProvider({
       // Now apply other theme-specific colors based on the selected theme
       switch (themeToApply) {
         case "lavender":
-          root.style.setProperty("--primary", "260 50% 60%");
+          root.style.setProperty("--primary", "260 50% 65%");
           root.style.setProperty("--accent", "326 50% 50%");
           break;
         case "mint":
-          root.style.setProperty("--primary", "152 50% 50%");
-          root.style.setProperty("--accent", "152 50% 40%");
+          root.style.setProperty("--primary", "152 50% 55%");
+          root.style.setProperty("--accent", "152 50% 45%");
           break;
         case "peach":
-          root.style.setProperty("--primary", "32 70% 55%");
+          root.style.setProperty("--primary", "32 70% 60%");
           root.style.setProperty("--accent", "6 50% 45%");
           break;
         case "sky":
-          root.style.setProperty("--primary", "200 60% 55%");
-          root.style.setProperty("--accent", "210 50% 45%");
+          root.style.setProperty("--primary", "200 60% 65%");
+          root.style.setProperty("--accent", "210 50% 50%");
           break;
         case "bubblegum":
-          root.style.setProperty("--primary", "330 80% 60%");
-          root.style.setProperty("--accent", "330 70% 50%");
+          root.style.setProperty("--primary", "330 80% 70%");
+          root.style.setProperty("--accent", "330 70% 55%");
           break;
         case "golden-hour":
-          root.style.setProperty("--primary", "38 80% 40%");
-          root.style.setProperty("--accent", "38 70% 30%");
+          root.style.setProperty("--primary", "38 80% 50%");
+          root.style.setProperty("--accent", "38 70% 40%");
           break;
       }
     } else {

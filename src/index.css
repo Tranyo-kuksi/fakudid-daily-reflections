@@ -1,4 +1,5 @@
 
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -88,10 +89,10 @@
     background: linear-gradient(135deg, #FFEB8A 0%, #FFDA56 50%, #FFC107 100%);
   }
 
-  /* Theme-specific backgrounds with gradients and better contrast - DARKER VERSION */
+  /* Theme-specific backgrounds with gradients - MEDIUM BRIGHTNESS */
   .theme-lavender {
-    --background: linear-gradient(135deg, #d1c9f2 0%, #b0a4e5 100%);
-    --primary: 266 57% 60%;
+    --background: linear-gradient(135deg, #dcd6f7 0%, #c4b9ed 100%);
+    --primary: 266 57% 65%;
     --secondary: 266 30% 80%;
     --card: 266 50% 90%;
     --muted: 266 25% 75%;
@@ -100,8 +101,8 @@
   }
 
   .theme-mint {
-    --background: linear-gradient(135deg, #dfebc9 0%, #bfd8ba 100%);
-    --primary: 152 50% 50%;
+    --background: linear-gradient(135deg, #e8f2dd 0%, #cde5c4 100%);
+    --primary: 152 50% 55%;
     --secondary: 152 25% 80%;
     --card: 152 25% 90%;
     --muted: 152 20% 75%;
@@ -110,8 +111,8 @@
   }
 
   .theme-peach {
-    --background: linear-gradient(135deg, #f5b68d 0%, #e69768 100%);
-    --primary: 32 70% 55%;
+    --background: linear-gradient(135deg, #f9cfb3 0%, #eeb28e 100%);
+    --primary: 32 70% 60%;
     --secondary: 32 25% 80%;
     --card: 32 25% 90%;
     --muted: 32 20% 75%;
@@ -120,8 +121,8 @@
   }
 
   .theme-sky {
-    --background: linear-gradient(135deg, #8adbea 0%, #5cc2d6 100%);
-    --primary: 187 75% 65%;
+    --background: linear-gradient(135deg, #b0e3ef 0%, #85d0e0 100%);
+    --primary: 187 75% 70%;
     --secondary: 200 25% 80%;
     --card: 187 75% 85%;
     --muted: 187 60% 73%;
@@ -129,10 +130,10 @@
     --border: 187 45% 65%;
   }
 
-  /* Updated Bubblegum theme with #f07fb7 pink - now darker */
+  /* Updated Bubblegum theme with #f07fb7 pink - medium brightness */
   .theme-bubblegum {
-    --background: linear-gradient(135deg, #f096c1 0%, #e561a1 100%);
-    --primary: 330 84% 60%;     /* darker pink */
+    --background: linear-gradient(135deg, #f5b2d3 0%, #f07fb7 100%);
+    --primary: 330 84% 70%;     /* medium pink */
     --secondary: 330 70% 80%;
     --card: 330 40% 85%;
     --muted: 330 40% 75%;
@@ -140,10 +141,10 @@
     --border: 330 70% 70%;
   }
 
-  /* Updated Golden Hour theme with darker gold */
+  /* Updated Golden Hour theme with medium gold */
   .theme-golden-hour {
-    --background: linear-gradient(135deg, #c9a04d 0%, #9e7625 100%);
-    --primary: 38 65% 38%;      /* even darker gold */
+    --background: linear-gradient(135deg, #e4c57c 0%, #d2ac50 100%);
+    --primary: 38 65% 50%;      /* medium gold */
     --secondary: 38 70% 80%;
     --card: 38 50% 85%;
     --muted: 38 40% 70%;

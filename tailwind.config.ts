@@ -40,34 +40,34 @@ export default {
           medium: "#FFDA56",   // Medium Yellow
           dark: "#FFC107",     // Deep Yellow
         },
-        // Updated theme colors - now darker for light themes
+        // Updated theme colors - now slightly darker for light themes (medium brightness)
         theme: {
-          // Light themes - darker versions
+          // Light themes - medium brightness versions
           lavender: {
-            light: "#d1c9f2",  // Darker lavender
-            dark: "#b0a4e5",   // Even darker lavender
+            light: "#dcd6f7",  // Medium lavender
+            dark: "#c4b9ed",   // Slightly darker lavender
           },
           mint: {
-            light: "#dfebc9",  // Darker mint
-            dark: "#bfd8ba",   // Even darker mint
+            light: "#e8f2dd",  // Medium mint
+            dark: "#cde5c4",   // Slightly darker mint
           },
           peach: {
-            light: "#f5b68d",  // Darker peach
-            dark: "#e69768",   // Even darker peach
+            light: "#f9cfb3",  // Medium peach
+            dark: "#eeb28e",   // Slightly darker peach
           },
           sky: {
-            light: "#8adbea",  // Darker sky
-            dark: "#5cc2d6",   // Even darker sky
+            light: "#b0e3ef",  // Medium sky
+            dark: "#85d0e0",   // Slightly darker sky
           },
-          // Updated Bubblegum theme with darker pink
+          // Updated Bubblegum theme with medium pink
           bubblegum: {
-            light: "#f096c1",  // Darker pink
-            dark: "#e561a1",   // Even darker pink
+            light: "#f5b2d3",  // Medium pink
+            dark: "#f07fb7",   // Slightly darker pink (as requested)
           },
-          // Updated Golden Hour theme with darker gold
+          // Updated Golden Hour theme with medium gold
           "golden-hour": {
-            light: "#c9a04d",  // Darker gold
-            dark: "#9e7625",   // Even darker gold
+            light: "#e4c57c",  // Medium gold
+            dark: "#d2ac50",   // Slightly darker gold
           },
           // Dark themes - keep as is
           midnight: {
