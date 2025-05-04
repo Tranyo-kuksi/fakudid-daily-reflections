@@ -107,9 +107,8 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
     }
   }, [onSpotifySelected]);
 
-  // Adjust button size for better touch targets on mobile
-  const buttonSize = isMobile ? "sm" : "icon";
-  const buttonClass = isMobile ? "px-3 py-2" : "";
+  // Always use icon-only buttons, regardless of mobile or desktop
+  const buttonSize = "icon";
 
   return (
     <div className="flex gap-2">
@@ -134,12 +133,10 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
             <Button 
               variant="outline" 
               size={buttonSize}
-              className={buttonClass}
               onClick={onImageClick}
               disabled={readOnly || isProcessing}
             >
-              <ImageIcon className={isMobile ? "h-6 w-6 mr-2" : "h-5 w-5"} />
-              {isMobile && "Image"}
+              <ImageIcon className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -156,11 +153,9 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
                 <Button 
                   variant="outline" 
                   size={buttonSize}
-                  className={buttonClass}
                   disabled={readOnly || isProcessing}
                 >
-                  <Music className={isMobile ? "h-6 w-6 mr-2" : "h-5 w-5"} />
-                  {isMobile && "Audio"}
+                  <Music className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
             </TooltipTrigger>
@@ -170,7 +165,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
           </Tooltip>
         </TooltipProvider>
         
-        <DropdownMenuContent align="center" className={isMobile ? "w-56" : "w-48"}>
+        <DropdownMenuContent align="center" className="w-48">
           <DropdownMenuItem 
             onClick={onMusicClick} 
             className="cursor-pointer"
