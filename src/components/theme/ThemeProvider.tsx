@@ -30,15 +30,17 @@ const initialState: ThemeProviderState = {
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 // Available theme options
-const lightThemes = ["lavender", "mint", "peach", "sky"];
-const darkThemes = ["midnight", "forest", "plum", "ocean"];
+const lightThemes = ["lavender", "mint", "peach", "sky", "bubblegum", "golden-hour"];
+const darkThemes = ["midnight", "forest", "plum", "ocean", "cosmos", "molten"];
 
 // Gradient definitions for proper display
 const themeGradients = {
   lavender: "linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%)",
   mint: "linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%)",
   peach: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)",
-  sky: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)"
+  sky: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)",
+  bubblegum: "linear-gradient(135deg, #FFDEE2 0%, #ffb8c2 100%)",
+  "golden-hour": "linear-gradient(135deg, #FFBF00 0%, #FDE1D3 100%)"
 };
 
 export function ThemeProvider({
@@ -68,7 +70,8 @@ export function ThemeProvider({
     // Remove all theme classes
     const themeClasses = [
       "theme-lavender", "theme-mint", "theme-peach", "theme-sky",
-      "theme-midnight", "theme-forest", "theme-plum", "theme-ocean"
+      "theme-midnight", "theme-forest", "theme-plum", "theme-ocean",
+      "theme-bubblegum", "theme-cosmos", "theme-golden-hour", "theme-molten"
     ];
     themeClasses.forEach(cls => root.classList.remove(cls));
 
@@ -107,9 +110,15 @@ export function ThemeProvider({
       } else if (themeToApply === "sky") {
         root.style.setProperty("--background", "200 20% 96%");
         root.style.background = themeGradients.sky;
+      } else if (themeToApply === "bubblegum") {
+        root.style.setProperty("--background", "350 20% 96%");
+        root.style.background = themeGradients.bubblegum;
+      } else if (themeToApply === "golden-hour") {
+        root.style.setProperty("--background", "35 20% 96%");
+        root.style.background = themeGradients["golden-hour"];
       }
       
-      // Apply more pronounced gradients that are more visible
+      // Apply fixed gradients to body
       document.body.style.backgroundAttachment = "fixed";
       document.body.style.height = "100vh";
       document.body.style.margin = "0";
@@ -131,6 +140,14 @@ export function ThemeProvider({
         case "sky":
           root.style.setProperty("--primary", "200 60% 65%");
           root.style.setProperty("--accent", "210 50% 55%");
+          break;
+        case "bubblegum":
+          root.style.setProperty("--primary", "350 100% 78%");
+          root.style.setProperty("--accent", "350 80% 65%");
+          break;
+        case "golden-hour":
+          root.style.setProperty("--primary", "45 100% 50%");
+          root.style.setProperty("--accent", "280 50% 75%");
           break;
       }
     } else {
@@ -160,6 +177,16 @@ export function ThemeProvider({
           root.style.setProperty("--background", "200 70% 8%");
           root.style.setProperty("--primary", "200 60% 60%");
           root.style.setProperty("--accent", "210 78% 60%");
+          break;
+        case "cosmos":
+          root.style.setProperty("--background", "250 40% 12%");
+          root.style.setProperty("--primary", "260 60% 70%");
+          root.style.setProperty("--accent", "230 80% 65%");
+          break;
+        case "molten":
+          root.style.setProperty("--background", "0 60% 8%");
+          root.style.setProperty("--primary", "0 100% 40%");
+          root.style.setProperty("--accent", "30 100% 50%");
           break;
       }
     }

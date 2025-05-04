@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -126,6 +127,50 @@
     --muted: 187 60% 83%;
     --accent: 187 75% 70%;
     --border: 187 45% 75%;
+  }
+
+  /* New theme: Bubblegum */
+  .theme-bubblegum {
+    --background: linear-gradient(135deg, #FFDEE2 0%, #ffb8c2 100%);
+    --primary: 350 100% 88%;
+    --secondary: 350 60% 95%;
+    --card: 350 30% 98%;
+    --muted: 350 30% 90%;
+    --accent: 350 80% 75%;
+    --border: 350 70% 85%;
+  }
+
+  /* New theme: Cosmos */
+  .theme-cosmos {
+    --background: linear-gradient(135deg, #1A1F2C 0%, #2c3e50 100%);
+    --primary: 260 30% 60%;
+    --secondary: 250 30% 30%;
+    --card: 250 20% 25%;
+    --muted: 250 15% 40%;
+    --accent: 230 80% 65%;
+    --border: 250 30% 40%;
+  }
+
+  /* New theme: Golden Hour */
+  .theme-golden-hour {
+    --background: linear-gradient(135deg, #FFBF00 0%, #FDE1D3 100%);
+    --primary: 45 100% 50%;
+    --secondary: 30 100% 95%;
+    --card: 30 70% 97%;
+    --muted: 35 50% 90%;
+    --accent: 280 50% 85%;
+    --border: 35 80% 80%;
+  }
+
+  /* New theme: Molten */
+  .theme-molten {
+    --background: linear-gradient(135deg, #000000 0%, #320A0A 100%);
+    --primary: 0 100% 40%;
+    --secondary: 0 70% 15%;
+    --card: 0 30% 10%;
+    --muted: 15 30% 20%;
+    --accent: 30 100% 50%;
+    --border: 0 80% 30%;
   }
 
   .dark.theme-midnight {

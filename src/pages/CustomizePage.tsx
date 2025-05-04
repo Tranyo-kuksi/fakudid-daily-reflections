@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,14 +17,18 @@ const lightThemes = [
   { id: "lavender", name: "Lavender", gradient: "linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%)" },
   { id: "mint", name: "Mint", gradient: "linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%)" },
   { id: "peach", name: "Peach", gradient: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)" },
-  { id: "sky", name: "Sky Blue", gradient: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)" }
+  { id: "sky", name: "Sky Blue", gradient: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)" },
+  { id: "bubblegum", name: "Bubblegum", gradient: "linear-gradient(135deg, #FFDEE2 0%, #ffb8c2 100%)" },
+  { id: "golden-hour", name: "Golden Hour", gradient: "linear-gradient(135deg, #FFBF00 0%, #FDE1D3 100%)" }
 ];
 
 const darkThemes = [
   { id: "midnight", name: "Midnight", color: "#2c3e50" },
   { id: "forest", name: "Forest", color: "#2E4045" },
   { id: "plum", name: "Plum", color: "#4A3B4B" },
-  { id: "ocean", name: "Ocean", color: "#1F3A5F" }
+  { id: "ocean", name: "Ocean", color: "#1F3A5F" },
+  { id: "cosmos", name: "Cosmos", color: "#1A1F2C" },
+  { id: "molten", name: "Molten", color: "#320A0A" }
 ];
 
 // Template section colors
@@ -856,27 +859,4 @@ export default function CustomizePage() {
                     <div className="py-8 text-center space-y-5">
                       <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
                       <div>
-                        <h2 className="text-2xl font-semibold mb-2">Premium Feature</h2>
-                        <p className="text-muted-foreground max-w-md mx-auto">
-                          Custom journal templates are available exclusively for premium users. 
-                          Upgrade your account to create, customize and manage journal templates.
-                        </p>
-                      </div>
-                      <Button 
-                        onClick={openCheckout}
-                        className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
-                        size="lg"
-                      >
-                        <Sparkles className="mr-2 h-4 w-4" /> Upgrade to Premium
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    </div>
-  );
-}
+                        <h2 className="text-2xl font-semibold mb-2
