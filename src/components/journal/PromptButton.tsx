@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Star, Sparkles } from "lucide-react";
@@ -31,6 +31,29 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
   const { isSubscribed, openCheckout } = useSubscription();
   const { getRandomPrompt } = useJournalPrompts();
   const { user } = useAuth();
+  const [allowMatureContent, setAllowMatureContent] = useState(false);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('allow_mature_content')
+          .eq('id', user.id)
+          .single();
+          
+        if (!error && data) {
+          setAllowMatureContent(data.allow_mature_content || false);
+        }
+      } catch (error) {
+        console.error('Error fetching user preferences:', error);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user]);
 
   // Get a random emoji from the appropriate array
   const getRandomEmoji = (isPremium: boolean) => {
@@ -78,7 +101,8 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
         const { data, error } = await supabase.functions.invoke('generate-prompt', {
           body: { 
             currentEntry: journalEntry,
-            recentEntries: recentEntries
+            recentEntries: recentEntries,
+            allowMatureContent: allowMatureContent
           },
           headers: {
             Authorization: `Bearer ${session.access_token}`
@@ -123,7 +147,7 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
         toast.success('AI prompt added!');
       } else {
         // For free users, get a random pre-written prompt
-        const randomPrompt = getRandomPrompt();
+        const randomPrompt = getRandomPrompt(allowMatureContent);
         const randomEmoji = getRandomEmoji(false);
         
         // Add the pre-written prompt to the journal
