@@ -35,21 +35,33 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 // Available theme options - expanded for premium users
 const lightThemes = ["lavender", "mint", "peach", "sky"];
-const premiumLightThemes = ["pink", "starry", "sunset", "rainbow"];
+const premiumLightThemes = [
+  "cosmos-light", "zen-garden", "retro-pop", "city-lights", 
+  "golden-hour", "mindspace", "forest-retreat"
+];
+
 const darkThemes = ["midnight", "forest", "plum", "ocean"];
-const premiumDarkThemes = ["nebula", "aurora", "cosmic", "void"];
+const premiumDarkThemes = [
+  "cosmos", "zen-garden", "retro-pop", "city-lights", 
+  "golden-hour", "mindspace", "forest-retreat"
+];
 
 // Gradient definitions for proper display
 const themeGradients = {
+  // Base themes
   lavender: "linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%)",
   mint: "linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%)",
   peach: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)",
   sky: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)",
+  
   // Premium light themes
-  pink: "linear-gradient(135deg, #ffdde1 0%, #ee9ca7 100%)",
-  starry: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAwIDEwMDAiPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0icmFkR3JhZCIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIiBmeD0iNTAlIiBmeT0iNTAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSJ3aGl0ZSIgc3RvcC1vcGFjaXR5PSIuNSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0id2hpdGUiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNiZGM1ZjAiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIxIiBmaWxsPSJ1cmwoI3JhZEdyYWQpIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTIwIiByPSIxLjUiIGZpbGw9InVybCgjcmFkR3JhZCkiLz48Y2lyY2xlIGN4PSIyOTAiIGN5PSI5MCIgcj0iMSIgZmlsbD0idXJsKCNyYWRHcmFkKSIvPjxjaXJjbGUgY3g9IjQzMCIgY3k9IjE1MCIgcj0iMS41IiBmaWxsPSJ1cmwoI3JhZEdyYWQpIi8+PGNpcmNsZSBjeD0iNjAwIiBjeT0iNzAiIHI9IjEiIGZpbGw9InVybCgjcmFkR3JhZCkiLz48Y2lyY2xlIGN4PSI3MDAiIGN5PSIxOTAiIHI9IjEuNSIgZmlsbD0idXJsKCNyYWRHcmFkKSIvPjxjaXJjbGUgY3g9IjkwMCIgY3k9IjgwIiByPSIxIiBmaWxsPSJ1cmwoI3JhZEdyYWQpIi8+PGNpcmNsZSBjeD0iMTIwIiBjeT0iMzAwIiByPSIxIiBmaWxsPSJ1cmwoI3JhZEdyYWQpIi8+PGNpcmNsZSBjeD0iMjMwIiBjeT0iMzkwIiByPSIxLjUiIGZpbGw9InVybCgjcmFkR3JhZCkiLz48Y2lyY2xlIGN4PSI1MDAiIGN5PSIzMDAiIHI9IjEiIGZpbGw9InVybCgjcmFkR3JhZCkiLz48Y2lyY2xlIGN4PSI3MDAiIGN5PSIzNTAiIHI9IjEuNSIgZmlsbD0idXJsKCNyYWRHcmFkKSIvPjxjaXJjbGUgY3g9IjgzMCIgY3k9IjQwMCIgcj0iMSIgZmlsbD0idXJsKCNyYWRHcmFkKSIvPjwvc3ZnPg=='), linear-gradient(135deg, #bdc5f0 0%, #9eadf0 100%)",
-  sunset: "linear-gradient(135deg, #f9d423 0%, #ff4e50 100%)",
-  rainbow: "linear-gradient(to right, #fc5c7d, #6a82fb)",
+  "cosmos-light": "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgODAwIDgwMCI+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggZD0iTTc2OSAyMjlMMTAzNyAyNjAuOU05MjcgODgwTDczMSA3MzcgNTIwIDY2MCAzMDkgNTM4IDQwIDU5OSAyOTUgNzY0IDEyNi41IDg3OS41IDQwIDU5OS0xOTcgNDkzIDEwMiAzODItMzEgMjI5IDEyNi41IDc5LjUtNjktNjMiLz48cGF0aCBkPSJNLTMxIDIyOUwyMzcgMjYxIDM5MCAzODIgNjAzIDQ5MyAzMDguNSA1MzcuNSAxMDEuNSAzODEuNU0zNzAgOTA1TDI5NSA3NjQiLz48cGF0aCBkPSJNNTIwIDY2MEw1NzggODQyIDczMSA3MzcgODQwIDU5OSA2MDMgNDkzIDUyMCA2NjAgMjk1IDc2NCAzMDkgNTM4IDM5MCAzODIgNTM5IDI2OSA3NjkgMjI5IDU3Ny41IDQxLjUgMzcwIDEwNSAyOTUgLTM2IDEyNi41IDc5LjUgMjM3IDI2MSAxMDIgMzgyIDQwIDU5OSAtNjkgNzM3IDEyNyA4ODAiLz48cGF0aCBkPSJNNTIwLTE0MEw1NzguNSA0Mi41IDczMS02M002MDMgNDkzTDUzOSAyNjkgMjM3IDI2MSAzNzAgMTA1TTkwMiAzODJMNTM5IDI2OU0zOTAgMzgyTDEwMiAzODIiLz48cGF0aCBkPSJNLTIyMiA0MkwxMjYuNSA3OS41IDM3MCAxMDUgNTM5IDI2OSA1NzcuNSA0MS41IDkyNyA4MCA3NjkgMjI5IDkwMiAzODIgNjAzIDQ5MyA3MzEgNzM3TTI5NS0zNkw1NzcuNSA0MS41TTU3OCA4NDJMMJK1IDc2NE00MC0yMDFMMTI3IDgwTTEwMiAzODJMLTI2MSAyNjkiLz48L2c+PGcgZmlsbD0iI2RkZCI+PGNpcmNsZSBjeD0iNzY5IiBjeT0iMjI5IiByPSIzIi8+PGNpcmNsZSBjeD0iNTM5IiBjeT0iMjY5IiByPSIzIi8+PGNpcmNsZSBjeD0iNjAzIiBjeT0iNDkzIiByPSI1Ii8+PGNpcmNsZSBjeD0iNzMxIiBjeT0iNzM3IiByPSIzIi8+PGNpcmNsZSBjeD0iNTIwIiBjeT0iNjYwIiByPSIzIi8+PGNpcmNsZSBjeD0iMzA5IiBjeT0iNTM4IiByPSIzIi8+PGNpcmNsZSBjeD0iMjk1IiBjeT0iNzY0IiByPSIzIi8+PGNpcmNsZSBjeD0iNDAiIGN5PSI1OTkiIHI9IjUiLz48Y2lyY2xlIGN4PSIxMDIiIGN5PSIzODIiIHI9IjUiLz48Y2lyY2xlIGN4PSIxMjciIGN5PSI4MCIgcj0iMyIvPjxjaXJjbGUgY3g9IjM3MCIgY3k9IjEwNSIgcj0iMyIvPjxjaXJjbGUgY3g9IjU3OCIgY3k9IjQyIiByPSI1Ii8+PGNpcmNsZSBjeD0iMjM3IiBjeT0iMjYxIiByPSIzIi8+PGNpcmNsZSBjeD0iMzkwIiBjeT0iMzgyIiByPSIzIi8+PC9nPjwvc3ZnPg=='), linear-gradient(135deg, #e5d7f5 0%, #d0c1e7 100%)",
+  "zen-garden": "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTAwJyBoZWlnaHQ9JzIwJyB2aWV3Qm94PScwIDAgMTAwIDIwJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxwYXRoIGQ9J00yMS4xODQgMjBjLjM1Ny0uMTMuNzItLjI2NC44ODgtLjE0IDEuODU0LjI0MyAzLjU1NC41NiA1LjcxNC41NiAxNy4wNTMgMCAxNy44MjUtMjAgMzUuMzkzLTIwIDkuMzYzIDAgMTMuNzQ2IDEwLjI5MiAxNS44MDUgMTYuMjUnIGZpbGw9J25vbmUnIHN0cm9rZT0nI2IzZDFhNScgc3Ryb2tlLXdpZHRoPScxJy8+PHBhdGggZD0nTTIxLjE4NCAyMGMuMzU3LS4xMy43Mi0uMjY0Ljg4OC0uMTQgMS44NTQuMjQzIDMuNTU0LjU2IDUuNzE0LjU2IDE3LjA1MyAwIDE3LjgyNS0yMCAzNS4zOTMtMjAgOS4zNjMgMCAxMy43NDYgMTAuMjkyIDE1LjgwNSAxNi4yNScgZmlsbD0nbm9uZScgc3Ryb2tlPScjY2ZkZmMyJyBzdHJva2Utd2lkdGg9JzEnIHN0cm9rZS1kYXNoYXJyYXk9JzMsMicvPjwvc3ZnPg=='), linear-gradient(135deg, #e8f3e2 0%, #cfdfc2 100%)",
+  "retro-pop": "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nNjAnIGhlaWdodD0nNjAnIHZpZXdCb3g9JzAgMCA2MCA2MCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZyBmaWxsPSdub25lJyBmaWxsLXJ1bGU9J2V2ZW5vZGQnPjxnIGZpbGw9JyNmZjcxY2UnIGZpbGwtb3BhY2l0eT0nMC4yJz48cGF0aCBkPSdNMzYgMzR2LTRoLTJ2NGgtNHYyaDR2NGgydi00aDR2LTJoLTR6bTAtMzBWMGgtMnY0aC00djJoNHY0aDJWNmg0VjRoLTR6TTYgMzR2LTRINHY0SDB2Mmg0djRoMnYtNGg0di0ySDZ6TTYgNFYwSDR2NEgwdjJoNHY0aDJWNmg0VjRINnonLz48L2c+PC9nPjwvc3ZnPg=='), linear-gradient(135deg, #fffcef 0%, #ffeffa 100%)",
+  "city-lights": "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MDAnIGhlaWdodD0nMjAwJyB2aWV3Qm94PScwIDAgMTYwIDgwJz48ZyBmaWxsPScjMDIyYjQ5JyBmaWxsLW9wYWNpdHk9JzAuMSc+PHBvbHlnb24gcG9pbnRzPScwIDEwIDAgMCAxMCAwJy8+PHBvbHlnb24gcG9pbnRzPScwIDQwIDAgMzAgMTAgMzAnLz48cG9seWdvbiBwb2ludHM9JzAgMzAgMCAyMCAxMCAyMCcvPjxwb2x5Z29uIHBvaW50cz0nMCA3MCAwIDYwIDEwIDYwJy8+PHBvbHlnb24gcG9pbnRzPScwIDgwIDAgNzAgMTAgNzAnLz48cG9seWdvbiBwb2ludHM9JzUwIDgwIDUwIDcwIDYwIDcwJy8+PHBvbHlnb24gcG9pbnRzPScxMCAyMCAxMCAxMCAyMCAxMCcvPjxwb2x5Z29uIHBvaW50cz0nMTAgNDAgMTAgMzAgMjAgMzAnLz48cG9seWdvbiBwb2ludHM9JzIwIDEwIDIwIDAgMzAgMCcvPjxwb2x5Z29uIHBvaW50cz0nMTAgMTAgMTAgMCAyMCAwJy8+PHBvbHlnb24gcG9pbnRzPSczMCAyMCAzMCAxMCA0MCAxMCcvPjxwb2x5Z29uIHBvaW50cz0nMjAgMjAgMjAgNDAgNDAgMjAnLz48cG9seWdvbiBwb2ludHM9JzQwIDEwIDQwIDAgNTAgMCcvPjxwb2x5Z29uIHBvaW50cz0nNDAgMjAgNDAgMTAgNTAgMTAnLz48cG9seWdvbiBwb2ludHM9JzQwIDQwIDQwIDMwIDUwIDMwJy8+PHBvbHlnb24gcG9pbnRzPSczMCA0MCAzMCAzMCA0MCAzMCcvPjxwb2x5Z29uIHBvaW50cz0nNDAgNjAgNDAgNTAgNTAgNTAnLz48cG9seWdvbiBwb2ludHM9JzUwIDMwIDUwIDIwIDYwIDIwJy8+PHBvbHlnb24gcG9pbnRzPSc0MCA2MCA0MCA4MCA2MCA2MCcvPjxwb2x5Z29uIHBvaW50cz0nNTAgNDAgNTAgNjAgNzAgNDAnLz48cG9seWdvbiBwb2ludHM9JzYwIDAgNjAgMjAgODAgMCcvPjxwb2x5Z29uIHBvaW50cz0nNzAgMzAgNzAgMjAgODAgMjAnLz48cG9seWdvbiBwb2ludHM9JzcwIDQwIDcwIDMwIDgwIDMwJy8+PHBvbHlnb24gcG9pbnRzPSc2MCA2MCA2MCA4MCA4MCA2MCcvPjxwb2x5Z29uIHBvaW50cz0nODAgMTAgODAgMCA5MCAwJy8+PHBvbHlnb24gcG9pbnRzPSc3MCA0MCA3MCA2MCA5MCA0MCcvPjxwb2x5Z29uIHBvaW50cz0nODAgNjAgODAgODAgOTAgODAgMTAwIDcwJy8+PHBvbHlnb24gcG9pbnRzPSc4MCAxMCA4MCA0MCAxMTAgMTAnLz48cG9seWdvbiBwb2ludHM9JzExMCA0MCAxMTAgMzAgMTIwIDMwJy8+PHBvbHlnb24gcG9pbnRzPSc5MCA0MCA5MCA3MCAxMjAgNDAnLz48cG9seWdvbiBwb2ludHM9JzEwIDUwIDEwIDgwIDQwIDUwJy8+PHBvbHlnb24gcG9pbnRzPScxMTAgNjAgMTEwIDgwIDEzMCA4MCAxNDAgNzAnLz48cG9seWdvbiBwb2ludHM9JzEzMCA4MCAxMzAgNzAgMTQwIDcwJy8+PC9nPjwvc3ZnPg=='), linear-gradient(135deg, #e8ebf2 0%, #d9e1f2 100%)",
+  "golden-hour": "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgdmlld0JveD0nMCAwIDEwMCAxMDAnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHBhdGggZD0nTTExIDE4YzMuODY2IDAgNy0zLjEzNCA3LTdzLTMuMTM0LTctNy03LTcgMy4xMzQtNyA3IDMuMTM0IDcgNyA3em00OCAyNWMzLjg2NiAwIDctMy4xMzQgNy03cy0zLjEzNC03LTctNy03IDMuMTM0LTcgNyAzLjEzNCA3IDcgN3ptLTQzLTdjMS42NTcgMCAzLTEuMzQzIDMtM3MtMS4zNDMtMy0zLTMtMyAxLjM0My0zIDMgMS4zNDMgMyAzIDN6bTYzIDMxYzEuNjU3IDAgMy0xLjM0MyAzLTNzLTEuMzQzLTMtMy0zLTMgMS4zNDMtMyAzIDEuMzQzIDMgMyAzek0zNCA5MGMxLjY1NyAwIDMtMS4zNDMgMy0zcy0xLjM0My0zLTMtMy0zIDEuMzQzLTMgMyAxLjM0MyAzIDMgM3ptNTYtNzZjMS42NTcgMCAzLTEuMzQzIDMtM3MtMS4zNDMtMy0zLTMtMyAxLjM0My0zIDMgMS4zNDMgMyAzIDN6TTEyIDg2YzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMjgtNjVjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0yMy0xMWMyLjc2IDAgNS0yLjI0IDUtNXMtMi4yNC01LTUtNS01IDIuMjQtNSA1IDIuMjQgNSA1IDV6bS02IDYwYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMjkgMjJjMi43NiAwIDUtMi4yNCA1LTVzLTIuMjQtNS01LTUtNSAyLjI0LTUgNSAyLjI0IDUgNSA1ek0zMiA2M2MyLjc2IDAgNS0yLjI0IDUtNXMtMi4yNC01LTUtNS01IDIuMjQtNSA1IDIuMjQgNSA1IDV6bTU3LTEzYzIuNzYgMCA1LTIuMjQgNS01cy0yLjI0LTUtNS01LTUgMi4yNC01IDUgMi4yNCA1IDUgNXptLTktMjFjMS4xMDUgMCAyLS44OTUgMi0ycy0uODk1LTItMi0yLTIgLjg5NS0yIDIgLjg5NSAyIDIgMnpNNjAgOTFjMS4xMDUgMCAyLS44OTUgMi0ycy0uODk1LTItMi0yLTIgLjg5NS0yIDIgLjg5NSAyIDIgMnpNMzUgNDFjMS4xMDUgMCAyLS44OTUgMi0ycy0uODk1LTItMi0yLTIgLjg5NS0yIDIgLjg5NSAyIDIgMnpNMTIgNjBjMS4xMDUgMCAyLS44OTUgMi0ycy0uODk1LTItMi0yLTIgLjg5NS0yIDIgLjg5NSAyIDIgMnonIGZpbGw9JyNmZGJhNzQnIGZpbGwtb3BhY2l0eT0nMC4xJyBmaWxsLXJ1bGU9J2V2ZW5vZGQnLz48L3N2Zz4='), linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)",
+  "mindspace": "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjAnIGhlaWdodD0nMjAnIHZpZXdCb3g9JzAgMCAyMCAyMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZyBmaWxsPScjNjM2NmYxJyBmaWxsLW9wYWNpdHk9JzAuMDUnIGZpbGwtcnVsZT0nZXZlbm9kZCc+PGNpcmNsZSBjeD0nMycgY3k9JzMnIHI9JzMnLz48Y2lyY2xlIGN4PScxMycgY3k9JzEzJyByPSczJy8+PC9nPjwvc3ZnPg=='), linear-gradient(135deg, #f5f3ff 0%, #e0e7ff 100%)",
+  "forest-retreat": "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nNTInIGhlaWdodD0nMjYnIHZpZXdCb3g9JzAgMCA1MiAyNicgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZyBmaWxsPSdub25lJyBmaWxsLXJ1bGU9J2V2ZW5vZGQnPjxnIGZpbGw9JyM0ZDdjMGYnIGZpbGwtb3BhY2l0eT0nMC4wNSc+PHBhdGggZD0nTTEwIDEwYzAtMi4yMS0xLjc5LTQtNC00LTMuMzE0IDAtNi0yLjY4Ni02LTZoMmMwIDIuMjEgMS43OSA0IDQgNCAzLjMxNCAwIDYgMi42ODYgNiA2IDAgMi4yMSAxLjc5IDQgNCA0IDMuMzE0IDAgNiAyLjY4NiA2IDYgMCAyLjIxIDEuNzkgNCA0IDR2MmMtMy4zMTQgMC02LTIuNjg2LTYtNiAwLTIuMjEtMS43OS00LTQtNC0zLjMxNCAwLTYtMi42ODYtNi02em0yNS40NjQtMS45NWw4LjQ4NiA4LjQ4Ni0xLjQxNCAxLjQxNC04LjQ4Ni04LjQ4NiAxLjQxNC0xLjQxNHonIC8+PC9nPjwvZz48L3N2Zz4='), linear-gradient(135deg, #ecfccb 0%, #d9f99d 100%)"
 };
 
 export function ThemeProvider({
@@ -86,10 +98,17 @@ export function ThemeProvider({
     
     // Remove all theme classes
     const allThemeClasses = [
+      // Base themes
       "theme-lavender", "theme-mint", "theme-peach", "theme-sky",
       "theme-midnight", "theme-forest", "theme-plum", "theme-ocean",
-      "theme-pink", "theme-starry", "theme-sunset", "theme-rainbow",
-      "theme-nebula", "theme-aurora", "theme-cosmic", "theme-void"
+      // Premium themes - light versions
+      "theme-cosmos-light", "theme-zen-garden", "theme-retro-pop", 
+      "theme-city-lights", "theme-golden-hour", "theme-mindspace", 
+      "theme-forest-retreat",
+      // Premium themes - dark versions
+      "theme-cosmos", "theme-zen-garden", "theme-retro-pop", 
+      "theme-city-lights", "theme-golden-hour", "theme-mindspace", 
+      "theme-forest-retreat",
     ];
     allThemeClasses.forEach(cls => root.classList.remove(cls));
 
@@ -106,136 +125,31 @@ export function ThemeProvider({
     
     // Add the appropriate theme class
     const themeToApply = mode === "dark" ? darkTheme : lightTheme;
-    root.classList.add(`theme-${themeToApply}`);
     
-    // Apply theme CSS variables
-    if (mode === "light") {
-      // Reset default variables first
-      root.style.removeProperty("--primary");
-      root.style.removeProperty("--accent");
-      
-      // Set the background gradient directly on the document root element
-      // This is crucial for the gradients to be visible
-      if (themeToApply === "lavender") {
-        root.style.setProperty("--background", "240 30% 97%");  
-        root.style.background = themeGradients.lavender;
-      } else if (themeToApply === "mint") {
-        root.style.setProperty("--background", "152 20% 96%"); 
-        root.style.background = themeGradients.mint;
-      } else if (themeToApply === "peach") {
-        root.style.setProperty("--background", "32 20% 96%");
-        root.style.background = themeGradients.peach;
-      } else if (themeToApply === "sky") {
-        root.style.setProperty("--background", "200 20% 96%");
-        root.style.background = themeGradients.sky;
-      } 
-      // Premium light themes
-      else if (themeToApply === "pink") {
-        root.style.setProperty("--background", "340 100% 97%");
-        root.style.background = themeGradients.pink;
-      } else if (themeToApply === "starry") {
-        root.style.setProperty("--background", "230 40% 90%");
-        root.style.background = themeGradients.starry;
-      } else if (themeToApply === "sunset") {
-        root.style.setProperty("--background", "35 100% 93%");
-        root.style.background = themeGradients.sunset;
-      } else if (themeToApply === "rainbow") {
-        root.style.setProperty("--background", "260 100% 96%");
-        root.style.background = themeGradients.rainbow;
-      }
-      
-      // Apply more pronounced gradients that are more visible
-      document.body.style.backgroundAttachment = "fixed";
-      document.body.style.height = "100vh";
-      document.body.style.margin = "0";
-      
-      // Now apply other theme-specific colors based on the selected theme
-      switch (themeToApply) {
-        case "lavender":
-          root.style.setProperty("--primary", "260 50% 70%");
-          root.style.setProperty("--accent", "326 50% 55%");
-          break;
-        case "mint":
-          root.style.setProperty("--primary", "152 50% 60%");
-          root.style.setProperty("--accent", "152 50% 50%");
-          break;
-        case "peach":
-          root.style.setProperty("--primary", "32 70% 65%");
-          root.style.setProperty("--accent", "6 50% 55%");
-          break;
-        case "sky":
-          root.style.setProperty("--primary", "200 60% 65%");
-          root.style.setProperty("--accent", "210 50% 55%");
-          break;
-        // Premium themes
-        case "pink":
-          root.style.setProperty("--primary", "340 80% 65%");
-          root.style.setProperty("--accent", "320 70% 50%");
-          break;
-        case "starry":
-          root.style.setProperty("--primary", "230 60% 70%");
-          root.style.setProperty("--accent", "260 70% 65%");
-          break;
-        case "sunset":
-          root.style.setProperty("--primary", "25 100% 60%");
-          root.style.setProperty("--accent", "5 90% 60%");
-          break;
-        case "rainbow":
-          root.style.setProperty("--primary", "300 80% 60%");
-          root.style.setProperty("--accent", "220 90% 60%");
-          break;
-      }
-    } else {
-      // Reset default variables first
-      root.style.removeProperty("--primary");
-      root.style.removeProperty("--accent");
-      root.style.removeProperty("background");
-      
-      // Apply dark theme variables
-      switch (darkTheme) {
-        case "midnight":
-          root.style.setProperty("--background", "240 10% 8%");
-          root.style.setProperty("--primary", "260 78% 75%");
-          root.style.setProperty("--accent", "326 78% 60%");
-          break;
-        case "forest":
-          root.style.setProperty("--background", "150 30% 10%");
-          root.style.setProperty("--primary", "152 60% 60%");
-          root.style.setProperty("--accent", "120 40% 50%");
-          break;
-        case "plum":
-          root.style.setProperty("--background", "300 30% 10%");
-          root.style.setProperty("--primary", "300 60% 60%");
-          root.style.setProperty("--accent", "326 78% 60%");
-          break;
-        case "ocean":
-          root.style.setProperty("--background", "200 70% 8%");
-          root.style.setProperty("--primary", "200 60% 60%");
-          root.style.setProperty("--accent", "210 78% 60%");
-          break;
-        // Premium dark themes
-        case "nebula":
-          root.style.setProperty("--background", "280 50% 7%");
-          root.style.setProperty("--primary", "280 70% 65%");
-          root.style.setProperty("--accent", "320 80% 60%");
-          break;
-        case "aurora":
-          root.style.setProperty("--background", "160 50% 7%");
-          root.style.setProperty("--primary", "160 70% 50%");
-          root.style.setProperty("--accent", "120 80% 50%");
-          break;
-        case "cosmic":
-          root.style.setProperty("--background", "220 60% 7%");
-          root.style.setProperty("--primary", "220 70% 60%");
-          root.style.setProperty("--accent", "260 80% 60%");
-          break;
-        case "void":
-          root.style.setProperty("--background", "0 0% 5%");
-          root.style.setProperty("--primary", "0 0% 70%");
-          root.style.setProperty("--accent", "0 0% 50%");
-          break;
-      }
+    // For dark mode premium themes, we don't need the "-light" suffix
+    const themeClass = mode === "light" && themeToApply.includes("-light") 
+      ? themeToApply 
+      : (mode === "dark" && themeToApply.includes("-light"))
+        ? themeToApply.replace("-light", "")
+        : themeToApply;
+        
+    root.classList.add(`theme-${themeClass}`);
+    
+    // Reset any background styles
+    root.style.removeProperty("--primary");
+    root.style.removeProperty("--accent");
+    root.style.removeProperty("--background");
+    root.style.background = "";
+    
+    // Apply premium theme backgrounds for light mode
+    if (mode === "light" && themeGradients[themeToApply]) {
+      root.style.background = themeGradients[themeToApply];
     }
+
+    // Apply the same fixed background behavior
+    document.body.style.backgroundAttachment = "fixed";
+    document.body.style.height = "100vh";
+    document.body.style.margin = "0";
     
     // Force a repaint to ensure theme changes are applied consistently
     document.body.style.display = 'none';

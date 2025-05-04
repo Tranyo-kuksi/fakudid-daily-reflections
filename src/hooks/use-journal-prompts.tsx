@@ -74,6 +74,7 @@ export const useJournalPrompts = () => {
         }
           
         if (data) {
+          // Use !! to ensure it's a boolean type
           setMaturityMode(!!data.mature_content);
         }
       } catch (error) {

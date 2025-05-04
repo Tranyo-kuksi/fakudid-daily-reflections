@@ -7,6 +7,8 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Crown } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { TemplateDialog } from "@/components/templates/TemplateDialog";
+import { useState } from "react";
 
 export default function CustomizePage() {
   const { 
@@ -20,42 +22,49 @@ export default function CustomizePage() {
   } = useTheme();
   
   const { isSubscribed, openCheckout } = useSubscription();
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   
   // Update premium status when subscription status changes
   useEffect(() => {
     setIsPremium(isSubscribed);
   }, [isSubscribed, setIsPremium]);
   
-  // Light theme options with premium indicator
+  // Light theme options
   const lightThemeOptions = [
-    { value: "lavender", name: "Lavender" },
-    { value: "mint", name: "Mint" },
-    { value: "peach", name: "Peach" },
-    { value: "sky", name: "Sky" },
+    { value: "lavender", name: "Lavender", color: "#bc7bed" },
+    { value: "mint", name: "Mint", color: "#92dbb7" },
+    { value: "peach", name: "Peach", color: "#f5b086" },
+    { value: "sky", name: "Sky", color: "#79d8e6" }
   ];
   
   // Premium light themes
   const premiumLightThemes = [
-    { value: "pink", name: "Pink Dreams" },
-    { value: "starry", name: "Starry Night" },
-    { value: "sunset", name: "Sunset Glow" },
-    { value: "rainbow", name: "Rainbow Vibes" },
+    { value: "cosmos-light", name: "Cosmos", color: "#d0c1e7" },
+    { value: "zen-garden", name: "Zen Garden", color: "#cfdfc2" },
+    { value: "retro-pop", name: "Retro Pop", color: "#ffeffa" },
+    { value: "city-lights", name: "City Lights", color: "#d9e1f2" },
+    { value: "golden-hour", name: "Golden Hour", color: "#fcd34d" },
+    { value: "mindspace", name: "Mindspace", color: "#e0e7ff" },
+    { value: "forest-retreat", name: "Forest Retreat", color: "#d9f99d" }
   ];
   
   // Dark theme options
   const darkThemeOptions = [
-    { value: "midnight", name: "Midnight" },
-    { value: "forest", name: "Forest" },
-    { value: "plum", name: "Plum" },
-    { value: "ocean", name: "Ocean" },
+    { value: "midnight", name: "Midnight", color: "#1e1b3c" },
+    { value: "forest", name: "Forest", color: "#1a332a" },
+    { value: "plum", name: "Plum", color: "#3d1a33" },
+    { value: "ocean", name: "Ocean", color: "#0f2b3d" }
   ];
   
   // Premium dark themes
   const premiumDarkThemes = [
-    { value: "nebula", name: "Nebula" },
-    { value: "aurora", name: "Aurora" },
-    { value: "cosmic", name: "Cosmic" },
-    { value: "void", name: "Void" },
+    { value: "cosmos", name: "Cosmos", color: "#1f1135" },
+    { value: "zen-garden", name: "Zen Garden", color: "#1c2910" },
+    { value: "retro-pop", name: "Retro Pop", color: "#170c1a" },
+    { value: "city-lights", name: "City Lights", color: "#0f172a" },
+    { value: "golden-hour", name: "Golden Hour", color: "#422006" },
+    { value: "mindspace", name: "Mindspace", color: "#1e1b4b" },
+    { value: "forest-retreat", name: "Forest Retreat", color: "#1a2e05" }
   ];
   
   // Handle theme changes, check for premium access
@@ -74,6 +83,20 @@ export default function CustomizePage() {
       setDarkTheme(newTheme);
     } else {
       setLightTheme(newTheme);
+    }
+  };
+
+  // Handle opening the templates dialog
+  const handleOpenTemplateDialog = () => {
+    if (isSubscribed) {
+      setTemplateDialogOpen(true);
+    } else {
+      toast.error("Templates require a premium subscription", {
+        action: {
+          label: 'Upgrade',
+          onClick: () => openCheckout()
+        }
+      });
     }
   };
 
@@ -158,11 +181,7 @@ export default function CustomizePage() {
                   <div className="flex flex-col items-center">
                     <div 
                       className="w-8 h-8 rounded-full mb-1"
-                      style={{ 
-                        background: option.value === "lavender" ? "#bc7bed" :
-                                   option.value === "mint" ? "#92dbb7" :
-                                   option.value === "peach" ? "#f5b086" : "#79d8e6"
-                      }}
+                      style={{ background: option.color }}
                     />
                     <span>{option.name}</span>
                   </div>
@@ -184,11 +203,7 @@ export default function CustomizePage() {
                   <div className="flex flex-col items-center">
                     <div 
                       className="w-8 h-8 rounded-full mb-1"
-                      style={{ 
-                        background: option.value === "pink" ? "#ee9ca7" :
-                                   option.value === "starry" ? "#9eadf0" :
-                                   option.value === "sunset" ? "#ff4e50" : "#6a82fb"
-                      }}
+                      style={{ background: option.color }}
                     />
                     <span>{option.name}</span>
                     {!isSubscribed && (
@@ -234,11 +249,7 @@ export default function CustomizePage() {
                   <div className="flex flex-col items-center">
                     <div 
                       className="w-8 h-8 rounded-full mb-1"
-                      style={{ 
-                        background: option.value === "midnight" ? "#1e1b3c" :
-                                   option.value === "forest" ? "#1a332a" :
-                                   option.value === "plum" ? "#3d1a33" : "#0f2b3d"
-                      }}
+                      style={{ background: option.color }}
                     />
                     <span>{option.name}</span>
                   </div>
@@ -260,11 +271,7 @@ export default function CustomizePage() {
                   <div className="flex flex-col items-center">
                     <div 
                       className="w-8 h-8 rounded-full mb-1"
-                      style={{ 
-                        background: option.value === "nebula" ? "#2d1a40" :
-                                   option.value === "aurora" ? "#122e20" :
-                                   option.value === "cosmic" ? "#0d1b3a" : "#121212"
-                      }}
+                      style={{ background: option.color }}
                     />
                     <span>{option.name}</span>
                     {!isSubscribed && (
@@ -288,7 +295,88 @@ export default function CustomizePage() {
             )}
           </CardContent>
         </Card>
+        
+        {/* Templates Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Journal Templates</CardTitle>
+            <CardDescription>Customize how you structure your journal entries</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center">
+              <Button 
+                onClick={handleOpenTemplateDialog}
+                className="w-full md:w-auto"
+                variant={isSubscribed ? "default" : "outline"}
+              >
+                {isSubscribed ? (
+                  "Manage Journal Templates"
+                ) : (
+                  <span className="flex items-center">
+                    <Crown className="h-4 w-4 mr-2 text-amber-500" /> 
+                    Premium Feature
+                  </span>
+                )}
+              </Button>
+            </div>
+            
+            {!isSubscribed && (
+              <div className="mt-4 p-3 bg-muted/50 rounded-md text-sm text-center">
+                <p className="mb-2">
+                  Templates let you create structured journal entries with custom sections
+                </p>
+                <Button 
+                  size="sm" 
+                  onClick={openCheckout} 
+                  className="bg-amber-500 hover:bg-amber-600 text-white"
+                >
+                  <Crown className="h-4 w-4 mr-1" /> Upgrade to Premium
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Mood Labels Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Mood Labels</CardTitle>
+            <CardDescription>Customize your mood tracking options</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="flex flex-col items-center">
+                <div className="h-8 w-8 bg-mood-dead rounded-full mb-1"></div>
+                <span className="text-sm">Dead</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="h-8 w-8 bg-mood-sad rounded-full mb-1"></div>
+                <span className="text-sm">Sad</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="h-8 w-8 bg-mood-meh rounded-full mb-1"></div>
+                <span className="text-sm">Meh</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="h-8 w-8 bg-mood-good rounded-full mb-1"></div>
+                <span className="text-sm">Good</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="h-8 w-8 bg-gold-gradient rounded-full mb-1"></div>
+                <span className="text-sm">Awesome</span>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground text-center">
+              Mood tracking helps you identify patterns in your emotional wellbeing over time
+            </p>
+          </CardContent>
+        </Card>
       </div>
+      
+      <TemplateDialog 
+        isOpen={templateDialogOpen} 
+        onClose={() => setTemplateDialogOpen(false)}
+      />
     </div>
   );
 }
