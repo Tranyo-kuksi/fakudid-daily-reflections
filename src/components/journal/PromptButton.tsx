@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Star, Sparkles } from "lucide-react";
@@ -27,42 +27,10 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
   onPromptGenerated,
   readOnly = false
 }) => {
-  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+  const [isGeneratingPrompt, setIsGeneratingPrompt] = React.useState(false);
   const { isSubscribed, openCheckout } = useSubscription();
   const { getRandomPrompt } = useJournalPrompts();
   const { user } = useAuth();
-  const [userProfile, setUserProfile] = useState<{username?: string, mature_content?: boolean}>({});
-
-  // Fetch user profile to get username and mature content preference
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('username, mature_content')
-          .eq('id', user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching user profile:', error);
-          return;
-        }
-          
-        if (data) {
-          setUserProfile({
-            username: data.username || undefined,
-            mature_content: !!data.mature_content
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-      }
-    };
-    
-    fetchUserProfile();
-  }, [user]);
 
   // Get a random emoji from the appropriate array
   const getRandomEmoji = (isPremium: boolean) => {
@@ -110,9 +78,7 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
         const { data, error } = await supabase.functions.invoke('generate-prompt', {
           body: { 
             currentEntry: journalEntry,
-            recentEntries: recentEntries,
-            username: userProfile.username || null,
-            mature_content: userProfile.mature_content || false
+            recentEntries: recentEntries
           },
           headers: {
             Authorization: `Bearer ${session.access_token}`

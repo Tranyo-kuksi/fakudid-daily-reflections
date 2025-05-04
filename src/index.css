@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -129,200 +128,6 @@
     --border: 187 45% 75%;
   }
 
-  /* New premium themes - light versions */
-  .theme-cosmos-light {
-    --background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 800 800'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='1'%3E%3Cpath d='M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126.5 879.5 40 599-197 493 102 382-31 229 126.5 79.5-69-63'/%3E%3Cpath d='M-31 229L237 261 390 382 603 493 308.5 537.5 101.5 381.5M370 905L295 764'/%3E%3Cpath d='M520 660L578 842 731 737 840 599 603 493 520 660 295 764 309 538 390 382 539 269 769 229 577.5 41.5 370 105 295 -36 126.5 79.5 237 261 102 382 40 599 -69 737 127 880'/%3E%3Cpath d='M520-140L578.5 42.5 731-63M603 493L539 269 237 261 370 105M902 382L539 269M390 382L102 382'/%3E%3Cpath d='M-222 42L126.5 79.5 370 105 539 269 577.5 41.5 927 80 769 229 902 382 603 493 731 737M295-36L577.5 41.5M578 842L295 764M40-201L127 80M102 382L-261 269'/%3E%3C/g%3E%3Cg fill='%23FFFFFF'%3E%3Ccircle cx='769' cy='229' r='5'/%3E%3Ccircle cx='539' cy='269' r='5'/%3E%3Ccircle cx='603' cy='493' r='5'/%3E%3Ccircle cx='731' cy='737' r='5'/%3E%3Ccircle cx='520' cy='660' r='5'/%3E%3Ccircle cx='309' cy='538' r='5'/%3E%3Ccircle cx='295' cy='764' r='5'/%3E%3Ccircle cx='40' cy='599' r='5'/%3E%3Ccircle cx='102' cy='382' r='5'/%3E%3Ccircle cx='127' cy='80' r='5'/%3E%3Ccircle cx='370' cy='105' r='5'/%3E%3Ccircle cx='578' cy='42' r='5'/%3E%3Ccircle cx='237' cy='261' r='5'/%3E%3Ccircle cx='390' cy='382' r='5'/%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #e5d7f5 0%, #d0c1e7 100%);
-    --primary: 270 50% 70%;
-    --secondary: 270 30% 85%;
-    --card: 270 25% 95%;
-    --muted: 270 20% 85%;
-    --accent: 260 40% 60%;
-    --border: 270 30% 80%;
-  }
-
-  .theme-zen-garden {
-    --background: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.184 20c.357-.13.72-.264.888-.14 1.854.243 3.554.56 5.714.56 17.053 0 17.825-20 35.393-20 9.363 0 13.746 10.292 15.805 16.25' fill='none' stroke='%23b3d1a5' stroke-width='1'/%3E%3Cpath d='M21.184 20c.357-.13.72-.264.888-.14 1.854.243 3.554.56 5.714.56 17.053 0 17.825-20 35.393-20 9.363 0 13.746 10.292 15.805 16.25' fill='none' stroke='%23cfdfc2' stroke-width='1' stroke-dasharray='3,2'/%3E%3C/svg%3E"),
-      linear-gradient(135deg, #e8f3e2 0%, #cfdfc2 100%);
-    --primary: 150 30% 50%;
-    --secondary: 150 20% 90%;
-    --card: 150 15% 98%;
-    --muted: 150 15% 85%;
-    --accent: 180 30% 50%;
-    --border: 150 20% 80%;
-  }
-
-  .theme-retro-pop {
-    --background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ff71ce' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #fffcef 0%, #ffeffa 100%);
-    --primary: 320 80% 65%;
-    --secondary: 180 70% 65%;
-    --card: 320 20% 97%;
-    --muted: 320 15% 90%;
-    --accent: 50 80% 65%;
-    --border: 320 30% 80%;
-  }
-
-  .theme-city-lights {
-    --background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 160 80'%3E%3Cg fill='%23022b49' fill-opacity='0.1'%3E%3Cpolygon points='0 10 0 0 10 0'/%3E%3Cpolygon points='0 40 0 30 10 30'/%3E%3Cpolygon points='0 30 0 20 10 20'/%3E%3Cpolygon points='0 70 0 60 10 60'/%3E%3Cpolygon points='0 80 0 70 10 70'/%3E%3Cpolygon points='50 80 50 70 60 70'/%3E%3Cpolygon points='10 20 10 10 20 10'/%3E%3Cpolygon points='10 40 10 30 20 30'/%3E%3Cpolygon points='20 10 20 0 30 0'/%3E%3Cpolygon points='10 10 10 0 20 0'/%3E%3Cpolygon points='30 20 30 10 40 10'/%3E%3Cpolygon points='20 20 20 40 40 20'/%3E%3Cpolygon points='40 10 40 0 50 0'/%3E%3Cpolygon points='40 20 40 10 50 10'/%3E%3Cpolygon points='40 40 40 30 50 30'/%3E%3Cpolygon points='30 40 30 30 40 30'/%3E%3Cpolygon points='40 60 40 50 50 50'/%3E%3Cpolygon points='50 30 50 20 60 20'/%3E%3Cpolygon points='40 60 40 80 60 60'/%3E%3Cpolygon points='50 40 50 60 70 40'/%3E%3Cpolygon points='60 0 60 20 80 0'/%3E%3Cpolygon points='70 30 70 20 80 20'/%3E%3Cpolygon points='70 40 70 30 80 30'/%3E%3Cpolygon points='60 60 60 80 80 60'/%3E%3Cpolygon points='80 10 80 0 90 0'/%3E%3Cpolygon points='70 40 70 60 90 40'/%3E%3Cpolygon points='80 60 80 80 90 80 100 70'/%3E%3Cpolygon points='80 10 80 40 110 10'/%3E%3Cpolygon points='110 40 110 30 120 30'/%3E%3Cpolygon points='90 40 90 70 120 40'/%3E%3Cpolygon points='10 50 10 80 40 50'/%3E%3Cpolygon points='110 60 110 80 130 80 140 70'/%3E%3Cpolygon points='130 80 130 70 140 70'/%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #e8ebf2 0%, #d9e1f2 100%);
-    --primary: 210 60% 50%;
-    --secondary: 210 30% 85%;
-    --card: 210 25% 95%;
-    --muted: 210 20% 85%;
-    --accent: 30 70% 60%;
-    --border: 210 30% 80%;
-  }
-
-  .theme-golden-hour {
-    --background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23fdba74' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"),
-      linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
-    --primary: 45 90% 45%;
-    --secondary: 45 50% 90%;
-    --card: 45 40% 97%;
-    --muted: 45 30% 85%;
-    --accent: 30 90% 65%;
-    --border: 45 70% 75%;
-  }
-
-  .theme-mindspace {
-    --background: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%236366f1' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #f5f3ff 0%, #e0e7ff 100%);
-    --primary: 250 70% 55%;
-    --secondary: 250 40% 90%;
-    --card: 250 25% 97%;
-    --muted: 250 20% 85%;
-    --accent: 220 70% 60%;
-    --border: 250 40% 80%;
-  }
-
-  .theme-forest-retreat {
-    --background: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234d7c0f' fill-opacity='0.05'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #ecfccb 0%, #d9f99d 100%);
-    --primary: 120 50% 40%;
-    --secondary: 100 40% 90%;
-    --card: 120 30% 97%;
-    --muted: 100 25% 85%;
-    --accent: 200 60% 60%;
-    --border: 120 30% 80%;
-  }
-
-  /* New premium themes - dark versions */
-  .dark.theme-cosmos {
-    --background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 800 800'%3E%3Cg fill='none' stroke='%23432e6b' stroke-width='1'%3E%3Cpath d='M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126.5 879.5 40 599-197 493 102 382-31 229 126.5 79.5-69-63'/%3E%3Cpath d='M-31 229L237 261 390 382 603 493 308.5 537.5 101.5 381.5M370 905L295 764'/%3E%3Cpath d='M520 660L578 842 731 737 840 599 603 493 520 660 295 764 309 538 390 382 539 269 769 229 577.5 41.5 370 105 295 -36 126.5 79.5 237 261 102 382 40 599 -69 737 127 880'/%3E%3Cpath d='M520-140L578.5 42.5 731-63M603 493L539 269 237 261 370 105M902 382L539 269M390 382L102 382'/%3E%3Cpath d='M-222 42L126.5 79.5 370 105 539 269 577.5 41.5 927 80 769 229 902 382 603 493 731 737M295-36L577.5 41.5M578 842L295 764M40-201L127 80M102 382L-261 269'/%3E%3C/g%3E%3Cg fill='%237b66b8'%3E%3Ccircle cx='769' cy='229' r='2'/%3E%3Ccircle cx='539' cy='269' r='2'/%3E%3Ccircle cx='603' cy='493' r='2'/%3E%3Ccircle cx='731' cy='737' r='2'/%3E%3Ccircle cx='520' cy='660' r='2'/%3E%3Ccircle cx='309' cy='538' r='2'/%3E%3Ccircle cx='295' cy='764' r='2'/%3E%3Ccircle cx='40' cy='599' r='2'/%3E%3Ccircle cx='102' cy='382' r='2'/%3E%3Ccircle cx='127' cy='80' r='2'/%3E%3Ccircle cx='370' cy='105' r='2'/%3E%3Ccircle cx='578' cy='42' r='2'/%3E%3Ccircle cx='237' cy='261' r='2'/%3E%3Ccircle cx='390' cy='382' r='2'/%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #1f1135 0%, #120b29 100%);
-    --primary: 270 60% 70%;
-    --secondary: 270 30% 20%;
-    --card: 270 30% 15%;
-    --muted: 270 30% 30%;
-    --accent: 270 70% 60%;
-    --border: 270 60% 30%;
-  }
-
-  .dark.theme-zen-garden {
-    --background: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.184 20c.357-.13.72-.264.888-.14 1.854.243 3.554.56 5.714.56 17.053 0 17.825-20 35.393-20 9.363 0 13.746 10.292 15.805 16.25' fill='none' stroke='%23365314' stroke-width='1'/%3E%3Cpath d='M21.184 20c.357-.13.72-.264.888-.14 1.854.243 3.554.56 5.714.56 17.053 0 17.825-20 35.393-20 9.363 0 13.746 10.292 15.805 16.25' fill='none' stroke='%23365314' stroke-width='1' stroke-dasharray='3,2'/%3E%3C/svg%3E"),
-      linear-gradient(135deg, #1c2910 0%, #141d0c 100%);
-    --primary: 150 50% 50%;
-    --secondary: 150 30% 20%;
-    --card: 150 20% 15%;
-    --muted: 150 20% 30%;
-    --accent: 150 60% 50%;
-    --border: 150 30% 30%;
-  }
-
-  .dark.theme-retro-pop {
-    --background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ff71ce' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #170c1a 0%, #0e0712 100%);
-    --primary: 320 80% 65%;
-    --secondary: 180 70% 25%;
-    --card: 320 30% 15%;
-    --muted: 320 20% 30%;
-    --accent: 50 80% 65%;
-    --border: 320 50% 30%;
-  }
-
-  .dark.theme-city-lights {
-    --background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 160 80'%3E%3Cg fill='%23FFB703' fill-opacity='0.1'%3E%3Cpolygon points='0 10 0 0 10 0'/%3E%3Cpolygon points='0 40 0 30 10 30'/%3E%3Cpolygon points='0 30 0 20 10 20'/%3E%3Cpolygon points='0 70 0 60 10 60'/%3E%3Cpolygon points='0 80 0 70 10 70'/%3E%3Cpolygon points='50 80 50 70 60 70'/%3E%3Cpolygon points='10 20 10 10 20 10'/%3E%3Cpolygon points='10 40 10 30 20 30'/%3E%3Cpolygon points='20 10 20 0 30 0'/%3E%3Cpolygon points='10 10 10 0 20 0'/%3E%3Cpolygon points='30 20 30 10 40 10'/%3E%3Cpolygon points='20 20 20 40 40 20'/%3E%3Cpolygon points='40 10 40 0 50 0'/%3E%3Cpolygon points='40 20 40 10 50 10'/%3E%3Cpolygon points='40 40 40 30 50 30'/%3E%3Cpolygon points='30 40 30 30 40 30'/%3E%3Cpolygon points='40 60 40 50 50 50'/%3E%3Cpolygon points='50 30 50 20 60 20'/%3E%3Cpolygon points='40 60 40 80 60 60'/%3E%3Cpolygon points='50 40 50 60 70 40'/%3E%3Cpolygon points='60 0 60 20 80 0'/%3E%3Cpolygon points='70 30 70 20 80 20'/%3E%3Cpolygon points='70 40 70 30 80 30'/%3E%3Cpolygon points='60 60 60 80 80 60'/%3E%3Cpolygon points='80 10 80 0 90 0'/%3E%3Cpolygon points='70 40 70 60 90 40'/%3E%3Cpolygon points='80 60 80 80 90 80 100 70'/%3E%3Cpolygon points='80 10 80 40 110 10'/%3E%3Cpolygon points='110 40 110 30 120 30'/%3E%3Cpolygon points='90 40 90 70 120 40'/%3E%3Cpolygon points='10 50 10 80 40 50'/%3E%3Cpolygon points='110 60 110 80 130 80 140 70'/%3E%3Cpolygon points='130 80 130 70 140 70'/%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #0f172a 0%, #020617 100%);
-    --primary: 210 80% 50%;
-    --secondary: 210 30% 15%;
-    --card: 210 25% 15%;
-    --muted: 210 20% 30%;
-    --accent: 30 90% 60%;
-    --border: 210 50% 30%;
-  }
-
-  .dark.theme-golden-hour {
-    --background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23eab308' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"),
-      linear-gradient(135deg, #422006 0%, #27150b 100%);
-    --primary: 45 90% 50%;
-    --secondary: 45 50% 15%;
-    --card: 45 30% 15%;
-    --muted: 45 30% 30%;
-    --accent: 30 90% 50%;
-    --border: 45 60% 30%;
-  }
-
-  .dark.theme-mindspace {
-    --background: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%236366f1' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #1e1b4b 0%, #0f0f1f 100%);
-    --primary: 250 70% 60%;
-    --secondary: 250 40% 15%;
-    --card: 250 25% 15%;
-    --muted: 250 20% 30%;
-    --accent: 220 70% 60%;
-    --border: 250 40% 30%;
-  }
-
-  .dark.theme-forest-retreat {
-    --background: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2365a30d' fill-opacity='0.1'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
-      linear-gradient(135deg, #1a2e05 0%, #0f1a03 100%);
-    --primary: 120 50% 50%;
-    --secondary: 100 40% 15%;
-    --card: 120 30% 15%;
-    --muted: 100 25% 30%;
-    --accent: 200 60% 50%;
-    --border: 120 30% 30%;
-  }
-
-  .dark {
-    --background: 240 10% 8%;
-    --foreground: 210 40% 98%;
-
-    --card: 240 10% 8%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 240 10% 8%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 260 78% 75%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 326 78% 60%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 260 78% 75%;
-    --sidebar-background: var(--background);
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
   .dark.theme-midnight {
     --background: 240 10% 8%;
   }
@@ -338,14 +143,14 @@
   .dark.theme-ocean {
     --background: 200 70% 8%;
   }
+}
 
-  @layer base {
-    * {
-      @apply border-border;
-    }
+@layer base {
+  * {
+    @apply border-border;
+  }
 
-    body {
-      @apply bg-background text-foreground transition-colors duration-300;
-    }
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
   }
 }
