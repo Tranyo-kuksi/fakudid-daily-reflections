@@ -90,54 +90,54 @@
 
   /* Theme-specific backgrounds with gradients and better contrast */
   .theme-lavender {
-    --background: linear-gradient(135deg, #bfafef 0%, #9a7fd8 100%);
-    --primary: 266 57% 50%;
-    --secondary: 266 30% 70%;
-    --card: 266 40% 85%;
-    --muted: 266 25% 65%;
-    --accent: 266 40% 45%;
-    --border: 266 35% 55%;
+    --background: linear-gradient(135deg, #e5deff 0%, #c9bef2 100%);
+    --primary: 266 57% 68%;
+    --secondary: 266 30% 90%;
+    --card: 266 50% 95%;
+    --muted: 266 25% 85%;
+    --accent: 266 40% 60%;
+    --border: 266 35% 75%;
   }
 
   .theme-mint {
-    --background: linear-gradient(135deg, #b8e0a1 0%, #8bbd7c 100%);
-    --primary: 152 50% 40%;
-    --secondary: 152 25% 70%;
-    --card: 152 25% 85%;
-    --muted: 152 20% 65%;
-    --accent: 152 35% 35%;
-    --border: 152 25% 65%;
+    --background: linear-gradient(135deg, #f2fce2 0%, #d3ecd1 100%);
+    --primary: 152 50% 60%;
+    --secondary: 152 25% 90%;
+    --card: 152 25% 99%;
+    --muted: 152 20% 85%;
+    --accent: 152 35% 55%;
+    --border: 152 25% 85%;
   }
 
   .theme-peach {
-    --background: linear-gradient(135deg, #e59d6b 0%, #d27642 100%);
-    --primary: 32 70% 45%;
-    --secondary: 32 25% 70%;
-    --card: 32 25% 85%;
-    --muted: 32 20% 65%;
-    --accent: 6 50% 40%;
-    --border: 32 25% 65%;
+    --background: linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%);
+    --primary: 32 70% 65%;
+    --secondary: 32 25% 90%;
+    --card: 32 25% 99%;
+    --muted: 32 20% 85%;
+    --accent: 6 50% 55%;
+    --border: 32 25% 85%;
   }
 
   .theme-sky {
-    --background: linear-gradient(135deg, #72c7d8 0%, #4698aa 100%);
-    --primary: 187 65% 50%;
-    --secondary: 200 25% 70%;
-    --card: 187 55% 80%;
-    --muted: 187 50% 65%;
-    --accent: 187 65% 45%;
-    --border: 187 45% 55%;
+    --background: linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%);
+    --primary: 187 75% 75%;
+    --secondary: 200 25% 90%;
+    --card: 187 75% 95%;
+    --muted: 187 60% 83%;
+    --accent: 187 75% 70%;
+    --border: 187 45% 75%;
   }
 
   /* New theme: Bubblegum */
   .theme-bubblegum {
-    --background: linear-gradient(135deg, #df9eb8 0%, #c56a94 100%);
-    --primary: 350 75% 60%;
-    --secondary: 350 50% 75%;
-    --card: 350 30% 80%;
-    --muted: 350 30% 70%;
-    --accent: 350 70% 55%;
-    --border: 350 60% 65%;
+    --background: linear-gradient(135deg, #f8e1e7 0%, #f6d4dd 100%);
+    --primary: 350 100% 88%;
+    --secondary: 350 60% 95%;
+    --card: 350 30% 98%;
+    --muted: 350 30% 90%;
+    --accent: 350 80% 75%;
+    --border: 350 70% 85%;
   }
 
   /* New theme: Cosmos */
@@ -153,23 +153,23 @@
 
   /* New theme: Golden Hour */
   .theme-golden-hour {
-    --background: linear-gradient(135deg, #c39064 0%, #a77a4f 100%);
-    --primary: 45 70% 40%;
-    --secondary: 30 60% 75%;
-    --card: 30 50% 80%;
-    --muted: 35 40% 70%;
-    --accent: 280 40% 65%;
-    --border: 35 60% 60%;
+    --background: linear-gradient(135deg, #fec6a1 0%, #e5deff 100%);
+    --primary: 45 100% 50%;
+    --secondary: 30 100% 95%;
+    --card: 30 70% 97%;
+    --muted: 35 50% 90%;
+    --accent: 280 50% 85%;
+    --border: 35 80% 80%;
   }
 
   /* New theme: Molten */
   .theme-molten {
     --background: linear-gradient(135deg, #320A0A 0%, #4a0000 100%);
-    --primary: 16 100% 45%;
+    --primary: 16 100% 50%;
     --secondary: 0 70% 15%;
     --card: 0 30% 10%;
     --muted: 15 30% 20%;
-    --accent: 30 80% 45%;
+    --accent: 30 100% 50%;
     --border: 0 80% 30%;
   }
 
@@ -186,7 +186,7 @@
   }
 
   .dark.theme-ocean {
-    --background: 200 70% 10%;
+    --background: 200 70% 12%;
   }
 }
 

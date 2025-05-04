@@ -35,12 +35,12 @@ const darkThemes = ["midnight", "forest", "plum", "ocean", "cosmos", "molten"];
 
 // Gradient definitions for proper display
 const themeGradients = {
-  lavender: "linear-gradient(135deg, #bfafef 0%, #9a7fd8 100%)",
-  mint: "linear-gradient(135deg, #b8e0a1 0%, #8bbd7c 100%)",
-  peach: "linear-gradient(135deg, #e59d6b 0%, #d27642 100%)",
-  sky: "linear-gradient(135deg, #72c7d8 0%, #4698aa 100%)",
-  bubblegum: "linear-gradient(135deg, #df9eb8 0%, #c56a94 100%)",
-  "golden-hour": "linear-gradient(135deg, #c39064 0%, #a77a4f 100%)"
+  lavender: "linear-gradient(135deg, #e5deff 0%, #c9bef2 100%)",
+  mint: "linear-gradient(135deg, #f2fce2 0%, #d3ecd1 100%)",
+  peach: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)",
+  sky: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)",
+  bubblegum: "linear-gradient(135deg, #f8e1e7 0%, #f6d4dd 100%)",
+  "golden-hour": "linear-gradient(135deg, #fec6a1 0%, #e5deff 100%)"
 };
 
 export function ThemeProvider({
@@ -99,22 +99,22 @@ export function ThemeProvider({
       // Set the background gradient directly on the document root element
       // This is crucial for the gradients to be visible
       if (themeToApply === "lavender") {
-        root.style.setProperty("--background", "260 40% 75%");  // Fallback for components using HSL
+        root.style.setProperty("--background", "240 30% 97%");  // Fallback for components using HSL
         root.style.background = themeGradients.lavender;
       } else if (themeToApply === "mint") {
-        root.style.setProperty("--background", "152 30% 70%"); 
+        root.style.setProperty("--background", "152 20% 96%"); 
         root.style.background = themeGradients.mint;
       } else if (themeToApply === "peach") {
-        root.style.setProperty("--background", "32 60% 65%");
+        root.style.setProperty("--background", "32 20% 96%");
         root.style.background = themeGradients.peach;
       } else if (themeToApply === "sky") {
-        root.style.setProperty("--background", "187 50% 65%");
+        root.style.setProperty("--background", "200 20% 96%");
         root.style.background = themeGradients.sky;
       } else if (themeToApply === "bubblegum") {
-        root.style.setProperty("--background", "350 60% 70%");
+        root.style.setProperty("--background", "350 20% 96%");
         root.style.background = themeGradients.bubblegum;
       } else if (themeToApply === "golden-hour") {
-        root.style.setProperty("--background", "35 50% 65%");
+        root.style.setProperty("--background", "35 20% 96%");
         root.style.background = themeGradients["golden-hour"];
       }
       
@@ -126,28 +126,28 @@ export function ThemeProvider({
       // Now apply other theme-specific colors based on the selected theme
       switch (themeToApply) {
         case "lavender":
-          root.style.setProperty("--primary", "260 50% 60%");
-          root.style.setProperty("--accent", "326 50% 50%");
+          root.style.setProperty("--primary", "260 50% 70%");
+          root.style.setProperty("--accent", "326 50% 55%");
           break;
         case "mint":
-          root.style.setProperty("--primary", "152 50% 45%");
-          root.style.setProperty("--accent", "152 50% 40%");
+          root.style.setProperty("--primary", "152 50% 60%");
+          root.style.setProperty("--accent", "152 50% 50%");
           break;
         case "peach":
-          root.style.setProperty("--primary", "32 70% 55%");
-          root.style.setProperty("--accent", "6 50% 45%");
+          root.style.setProperty("--primary", "32 70% 65%");
+          root.style.setProperty("--accent", "6 50% 55%");
           break;
         case "sky":
-          root.style.setProperty("--primary", "200 60% 55%");
-          root.style.setProperty("--accent", "210 50% 45%");
+          root.style.setProperty("--primary", "200 60% 65%");
+          root.style.setProperty("--accent", "210 50% 55%");
           break;
         case "bubblegum":
-          root.style.setProperty("--primary", "350 100% 65%");
-          root.style.setProperty("--accent", "350 80% 55%");
+          root.style.setProperty("--primary", "350 100% 78%");
+          root.style.setProperty("--accent", "350 80% 65%");
           break;
         case "golden-hour":
-          root.style.setProperty("--primary", "45 100% 45%");
-          root.style.setProperty("--accent", "280 50% 65%");
+          root.style.setProperty("--primary", "45 100% 50%");
+          root.style.setProperty("--accent", "280 50% 75%");
           break;
       }
     } else {
@@ -174,7 +174,7 @@ export function ThemeProvider({
           root.style.setProperty("--accent", "326 78% 60%");
           break;
         case "ocean":
-          root.style.setProperty("--background", "200 70% 10%");
+          root.style.setProperty("--background", "200 70% 12%");
           root.style.setProperty("--primary", "200 60% 60%");
           root.style.setProperty("--accent", "210 78% 60%");
           break;
@@ -184,7 +184,7 @@ export function ThemeProvider({
           root.style.setProperty("--primary", "260 60% 70%");
           root.style.setProperty("--accent", "230 80% 65%");
           
-          // Create a more visible star background effect
+          // Create a star background effect
           const starsBackground = `
             radial-gradient(1px 1px at 10% 10%, white 1px, transparent 0),
             radial-gradient(1px 1px at 20% 30%, white 1px, transparent 0),
@@ -198,25 +198,19 @@ export function ThemeProvider({
             radial-gradient(1px 1px at 95% 45%, white 1px, transparent 0),
             radial-gradient(1px 1px at 5% 45%, white 1px, transparent 0),
             radial-gradient(1px 1px at 15% 65%, white 1px, transparent 0),
-            radial-gradient(2px 2px at 25% 75%, rgba(255,255,255,0.7) 1px, transparent 0),
-            radial-gradient(2px 2px at 35% 85%, rgba(255,255,255,0.7) 1px, transparent 0),
-            radial-gradient(2px 2px at 45% 55%, rgba(255,255,255,0.7) 1px, transparent 0),
-            radial-gradient(2px 2px at 55% 90%, rgba(255,255,255,0.7) 1px, transparent 0),
-            radial-gradient(2px 2px at 65% 70%, rgba(255,255,255,0.7) 1px, transparent 0),
-            radial-gradient(2px 2px at 75% 15%, rgba(255,255,255,0.7) 1px, transparent 0),
-            radial-gradient(2px 2px at 85% 35%, rgba(255,255,255,0.7) 1px, transparent 0),
-            radial-gradient(3px 3px at 22% 42%, rgba(255,255,255,0.9) 1px, transparent 0),
-            radial-gradient(3px 3px at 63% 28%, rgba(255,255,255,0.9) 1px, transparent 0),
-            radial-gradient(3px 3px at 12% 82%, rgba(255,255,255,0.9) 1px, transparent 0),
-            radial-gradient(3px 3px at 92% 67%, rgba(255,255,255,0.9) 1px, transparent 0),
+            radial-gradient(2px 2px at 25% 75%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 35% 85%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 45% 55%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 55% 90%, rgba(255,255,255,0.5) 1px, transparent 0),
+            radial-gradient(2px 2px at 65% 70%, rgba(255,255,255,0.5) 1px, transparent 0),
             linear-gradient(135deg, #1A1F2C 0%, #2c3e50 100%)
           `;
           root.style.background = starsBackground;
           break;
         case "molten":
           root.style.setProperty("--background", "0 60% 8%");
-          root.style.setProperty("--primary", "30 100% 50%");
-          root.style.setProperty("--accent", "16 100% 50%");
+          root.style.setProperty("--primary", "16 100% 50%");
+          root.style.setProperty("--accent", "30 100% 50%");
           break;
       }
     }
