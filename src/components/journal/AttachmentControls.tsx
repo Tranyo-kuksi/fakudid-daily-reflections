@@ -132,7 +132,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
-              variant="themeDark" 
+              variant="outline" 
               size={buttonSize}
               className={buttonClass}
               onClick={onImageClick}
@@ -154,7 +154,7 @@ export const AttachmentControls: React.FC<AttachmentControlsProps> = ({
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
                 <Button 
-                  variant="themeDark" 
+                  variant="outline" 
                   size={buttonSize}
                   className={buttonClass}
                   disabled={readOnly || isProcessing}

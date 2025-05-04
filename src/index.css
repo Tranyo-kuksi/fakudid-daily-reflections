@@ -198,19 +198,4 @@
   body {
     @apply bg-background text-foreground transition-colors duration-300;
   }
-  
-  /* Add custom styles for sidebar buttons to match the theme-dark style */
-  .sidebar-button-active {
-    @apply bg-sidebar-accent-foreground text-white !important;
-  }
-}
-
-/* Add shimmer animation for premium upgrade card */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
 }

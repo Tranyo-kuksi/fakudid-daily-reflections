@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -188,19 +189,17 @@ export default function SettingsPage() {
               </div>
             ) : (
               <div className="relative overflow-hidden rounded-lg border-2 border-amber-300 dark:border-amber-600">
-                {/* Enhanced background effects */}
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 opacity-20 rounded-full blur-xl animate-pulse"></div>
                 <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tl from-amber-300 via-amber-400 to-amber-500 opacity-20 rounded-full blur-xl animate-pulse"></div>
-                <div className="absolute top-0 left-0 w-full h-full bg-amber-100/30 dark:bg-amber-900/30 z-0"></div>
                 
-                <div className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/60 dark:to-amber-900/60 p-6 relative z-10">
+                <div className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/60 dark:to-amber-900/60 p-6 relative">
                   <div className="absolute top-2 right-2">
                     <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
                   </div>
 
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-full p-2 bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-lg animate-[pulse_3s_ease-in-out_infinite]">
+                      <div className="rounded-full p-2 bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-lg">
                         <Crown className="h-6 w-6" />
                       </div>
                       <h3 className="text-xl font-bold text-amber-800 dark:text-amber-300">
@@ -212,7 +211,7 @@ export default function SettingsPage() {
                       Unlock AI journal prompts and enhance your journaling experience!
                     </p>
                     
-                    <div className="rounded-lg bg-white/70 dark:bg-black/20 p-3 space-y-2 backdrop-blur-sm">
+                    <div className="rounded-lg bg-white/70 dark:bg-black/20 p-3 space-y-2">
                       <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <span>Personalized AI journal prompts</span>
@@ -229,18 +228,14 @@ export default function SettingsPage() {
                     
                     <Button
                       className="w-full relative overflow-hidden group mt-2"
-                      variant="themeDark"
                       onClick={openCheckout}
                     >
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-300 to-amber-500 opacity-0 group-hover:opacity-30 transition-opacity"></span>
-                      <span className="relative flex items-center justify-center gap-2">
+                      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-300 to-amber-500 opacity-0 group-hover:opacity-30 transition-opacity"></div>
+                      <span className="flex items-center justify-center gap-2">
                         <Crown className="h-5 w-5" />
                         Upgrade Now - $3.99/month
                       </span>
                     </Button>
-                    
-                    {/* Add a subtle shimmer effect */}
-                    <div className="absolute -inset-px z-0 bg-gradient-to-r from-transparent via-amber-300/20 to-transparent opacity-0 group-hover:opacity-100 animate-[shimmer_2s_infinite]"></div>
                   </div>
                 </div>
               </div>
