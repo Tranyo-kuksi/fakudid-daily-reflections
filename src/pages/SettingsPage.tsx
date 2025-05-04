@@ -57,15 +57,17 @@ export default function SettingsPage() {
             .single();
             
           if (error) {
-            throw error;
+            console.error('Error fetching profile:', error);
+            setLoading(false);
+            return;
           }
           
           if (data) {
             setProfile(prev => ({
               ...prev,
               username: data.username || "",
-              email_notifications: data.email_notifications,
-              mature_content: data.mature_content || false
+              email_notifications: data.email_notifications !== null ? data.email_notifications : true,
+              mature_content: !!data.mature_content
             }));
           }
         } catch (error) {
@@ -220,7 +222,7 @@ export default function SettingsPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                    <span>Premium support and prioritized features</span>
+                    <span>Premium templates for guided journaling</span>
                   </li>
                 </ul>
                 

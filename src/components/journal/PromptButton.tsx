@@ -39,16 +39,21 @@ export const PromptButton: React.FC<PromptButtonProps> = ({
       if (!user) return;
       
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('username, mature_content')
           .eq('id', user.id)
           .single();
+        
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          return;
+        }
           
         if (data) {
           setUserProfile({
-            username: data.username,
-            mature_content: data.mature_content
+            username: data.username || undefined,
+            mature_content: !!data.mature_content
           });
         }
       } catch (error) {

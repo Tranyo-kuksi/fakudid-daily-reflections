@@ -62,14 +62,19 @@ export const useJournalPrompts = () => {
       if (!user) return;
       
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('mature_content, username')
           .eq('id', user.id)
           .single();
           
+        if (error) {
+          console.error('Error fetching user preferences:', error);
+          return;
+        }
+          
         if (data) {
-          setMaturityMode(data.mature_content || false);
+          setMaturityMode(!!data.mature_content);
         }
       } catch (error) {
         console.error('Error fetching user preferences:', error);
