@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch"; 
-import { LogOut, Crown } from "lucide-react";
+import { LogOut, Crown, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
@@ -19,7 +20,8 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState({
     username: "",
     email: "",
-    email_notifications: true
+    email_notifications: true,
+    mature_content: false
   });
   
   const [language, setLanguage] = useState("en");
@@ -50,7 +52,7 @@ export default function SettingsPage() {
           setLoading(true);
           const { data, error } = await supabase
             .from('profiles')
-            .select('username, email_notifications')
+            .select('username, email_notifications, mature_content')
             .eq('id', user.id)
             .single();
             
@@ -62,7 +64,8 @@ export default function SettingsPage() {
             setProfile(prev => ({
               ...prev,
               username: data.username || "",
-              email_notifications: data.email_notifications
+              email_notifications: data.email_notifications,
+              mature_content: data.mature_content || false
             }));
           }
         } catch (error) {
@@ -85,6 +88,7 @@ export default function SettingsPage() {
         .update({
           username: profile.username,
           email_notifications: profile.email_notifications,
+          mature_content: profile.mature_content
         })
         .eq('id', user.id);
         
@@ -197,18 +201,26 @@ export default function SettingsPage() {
                   Get personalized AI prompts and enhance your journaling.
                 </p>
                 
-                <ul className="space-y-2 text-xs">
+                <ul className="space-y-3 text-xs">
                   <li className="flex items-center gap-2">
                     <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                    <span>AI journal prompts</span>
+                    <span>AI journal prompts - personalized to your entries</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                    <span>Writing suggestions</span>
+                    <span>AI writing suggestions that match your voice</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
-                    <span>Premium support</span>
+                    <span>Exclusive journal themes and designs</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
+                    <span>Smart reflection tools and insights</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="bg-green-500 rounded-full p-0.5 text-white shrink-0">✓</span>
+                    <span>Premium support and prioritized features</span>
                   </li>
                 </ul>
                 
@@ -258,6 +270,21 @@ export default function SettingsPage() {
                   id="notifications" 
                   checked={profile.email_notifications}
                   onCheckedChange={(checked) => setProfile({...profile, email_notifications: checked})}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-orange-500" />
+                  <div>
+                    <Label htmlFor="mature_content">18+ Mode</Label>
+                    <p className="text-sm text-muted-foreground">Allow mature language in prompts</p>
+                  </div>
+                </div>
+                <Switch 
+                  id="mature_content" 
+                  checked={profile.mature_content}
+                  onCheckedChange={(checked) => setProfile({...profile, mature_content: checked})}
                 />
               </div>
             </div>

@@ -16,6 +16,8 @@ type ThemeProviderState = {
   setLightTheme: (theme: string) => void;
   darkTheme: string;
   setDarkTheme: (theme: string) => void;
+  isPremium: boolean;
+  setIsPremium: (isPremium: boolean) => void;
 };
 
 const initialState: ThemeProviderState = {
@@ -24,21 +26,30 @@ const initialState: ThemeProviderState = {
   lightTheme: "lavender",
   setLightTheme: () => null,
   darkTheme: "midnight",
-  setDarkTheme: () => null
+  setDarkTheme: () => null,
+  isPremium: false,
+  setIsPremium: () => null
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
-// Available theme options
+// Available theme options - expanded for premium users
 const lightThemes = ["lavender", "mint", "peach", "sky"];
+const premiumLightThemes = ["pink", "starry", "sunset", "rainbow"];
 const darkThemes = ["midnight", "forest", "plum", "ocean"];
+const premiumDarkThemes = ["nebula", "aurora", "cosmic", "void"];
 
 // Gradient definitions for proper display
 const themeGradients = {
   lavender: "linear-gradient(135deg, #bc7bed 0%, #9b65c7 100%)",
   mint: "linear-gradient(135deg, #c2fcdf 0%, #92dbb7 100%)",
   peach: "linear-gradient(135deg, #fcd4b1 0%, #f5b086 100%)",
-  sky: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)"
+  sky: "linear-gradient(135deg, #a2f1fa 0%, #79d8e6 100%)",
+  // Premium light themes
+  pink: "linear-gradient(135deg, #ffdde1 0%, #ee9ca7 100%)",
+  starry: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMDAwIDEwMDAiPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0icmFkR3JhZCIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIiBmeD0iNTAlIiBmeT0iNTAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSJ3aGl0ZSIgc3RvcC1vcGFjaXR5PSIuNSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0id2hpdGUiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNiZGM1ZjAiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIxIiBmaWxsPSJ1cmwoI3JhZEdyYWQpIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTIwIiByPSIxLjUiIGZpbGw9InVybCgjcmFkR3JhZCkiLz48Y2lyY2xlIGN4PSIyOTAiIGN5PSI5MCIgcj0iMSIgZmlsbD0idXJsKCNyYWRHcmFkKSIvPjxjaXJjbGUgY3g9IjQzMCIgY3k9IjE1MCIgcj0iMS41IiBmaWxsPSJ1cmwoI3JhZEdyYWQpIi8+PGNpcmNsZSBjeD0iNjAwIiBjeT0iNzAiIHI9IjEiIGZpbGw9InVybCgjcmFkR3JhZCkiLz48Y2lyY2xlIGN4PSI3MDAiIGN5PSIxOTAiIHI9IjEuNSIgZmlsbD0idXJsKCNyYWRHcmFkKSIvPjxjaXJjbGUgY3g9IjkwMCIgY3k9IjgwIiByPSIxIiBmaWxsPSJ1cmwoI3JhZEdyYWQpIi8+PGNpcmNsZSBjeD0iMTIwIiBjeT0iMzAwIiByPSIxIiBmaWxsPSJ1cmwoI3JhZEdyYWQpIi8+PGNpcmNsZSBjeD0iMjMwIiBjeT0iMzkwIiByPSIxLjUiIGZpbGw9InVybCgjcmFkR3JhZCkiLz48Y2lyY2xlIGN4PSI1MDAiIGN5PSIzMDAiIHI9IjEiIGZpbGw9InVybCgjcmFkR3JhZCkiLz48Y2lyY2xlIGN4PSI3MDAiIGN5PSIzNTAiIHI9IjEuNSIgZmlsbD0idXJsKCNyYWRHcmFkKSIvPjxjaXJjbGUgY3g9IjgzMCIgY3k9IjQwMCIgcj0iMSIgZmlsbD0idXJsKCNyYWRHcmFkKSIvPjwvc3ZnPg=='), linear-gradient(135deg, #bdc5f0 0%, #9eadf0 100%)",
+  sunset: "linear-gradient(135deg, #f9d423 0%, #ff4e50 100%)",
+  rainbow: "linear-gradient(to right, #fc5c7d, #6a82fb)",
 };
 
 export function ThemeProvider({
@@ -58,6 +69,14 @@ export function ThemeProvider({
   const [darkTheme, setDarkTheme] = useState<string>(
     () => localStorage.getItem("fakudid-dark-theme") || "midnight"
   );
+  
+  const [isPremium, setIsPremium] = useState<boolean>(
+    () => localStorage.getItem("fakudid-premium") === "true"
+  );
+
+  useEffect(() => {
+    localStorage.setItem("fakudid-premium", isPremium ? "true" : "false");
+  }, [isPremium]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -66,11 +85,13 @@ export function ThemeProvider({
     root.classList.remove("light", "dark");
     
     // Remove all theme classes
-    const themeClasses = [
+    const allThemeClasses = [
       "theme-lavender", "theme-mint", "theme-peach", "theme-sky",
-      "theme-midnight", "theme-forest", "theme-plum", "theme-ocean"
+      "theme-midnight", "theme-forest", "theme-plum", "theme-ocean",
+      "theme-pink", "theme-starry", "theme-sunset", "theme-rainbow",
+      "theme-nebula", "theme-aurora", "theme-cosmic", "theme-void"
     ];
-    themeClasses.forEach(cls => root.classList.remove(cls));
+    allThemeClasses.forEach(cls => root.classList.remove(cls));
 
     // Determine which mode to use (light or dark)
     let mode: "light" | "dark";
@@ -96,7 +117,7 @@ export function ThemeProvider({
       // Set the background gradient directly on the document root element
       // This is crucial for the gradients to be visible
       if (themeToApply === "lavender") {
-        root.style.setProperty("--background", "240 30% 97%");  // Fallback for components using HSL
+        root.style.setProperty("--background", "240 30% 97%");  
         root.style.background = themeGradients.lavender;
       } else if (themeToApply === "mint") {
         root.style.setProperty("--background", "152 20% 96%"); 
@@ -107,6 +128,20 @@ export function ThemeProvider({
       } else if (themeToApply === "sky") {
         root.style.setProperty("--background", "200 20% 96%");
         root.style.background = themeGradients.sky;
+      } 
+      // Premium light themes
+      else if (themeToApply === "pink") {
+        root.style.setProperty("--background", "340 100% 97%");
+        root.style.background = themeGradients.pink;
+      } else if (themeToApply === "starry") {
+        root.style.setProperty("--background", "230 40% 90%");
+        root.style.background = themeGradients.starry;
+      } else if (themeToApply === "sunset") {
+        root.style.setProperty("--background", "35 100% 93%");
+        root.style.background = themeGradients.sunset;
+      } else if (themeToApply === "rainbow") {
+        root.style.setProperty("--background", "260 100% 96%");
+        root.style.background = themeGradients.rainbow;
       }
       
       // Apply more pronounced gradients that are more visible
@@ -131,6 +166,23 @@ export function ThemeProvider({
         case "sky":
           root.style.setProperty("--primary", "200 60% 65%");
           root.style.setProperty("--accent", "210 50% 55%");
+          break;
+        // Premium themes
+        case "pink":
+          root.style.setProperty("--primary", "340 80% 65%");
+          root.style.setProperty("--accent", "320 70% 50%");
+          break;
+        case "starry":
+          root.style.setProperty("--primary", "230 60% 70%");
+          root.style.setProperty("--accent", "260 70% 65%");
+          break;
+        case "sunset":
+          root.style.setProperty("--primary", "25 100% 60%");
+          root.style.setProperty("--accent", "5 90% 60%");
+          break;
+        case "rainbow":
+          root.style.setProperty("--primary", "300 80% 60%");
+          root.style.setProperty("--accent", "220 90% 60%");
           break;
       }
     } else {
@@ -161,6 +213,27 @@ export function ThemeProvider({
           root.style.setProperty("--primary", "200 60% 60%");
           root.style.setProperty("--accent", "210 78% 60%");
           break;
+        // Premium dark themes
+        case "nebula":
+          root.style.setProperty("--background", "280 50% 7%");
+          root.style.setProperty("--primary", "280 70% 65%");
+          root.style.setProperty("--accent", "320 80% 60%");
+          break;
+        case "aurora":
+          root.style.setProperty("--background", "160 50% 7%");
+          root.style.setProperty("--primary", "160 70% 50%");
+          root.style.setProperty("--accent", "120 80% 50%");
+          break;
+        case "cosmic":
+          root.style.setProperty("--background", "220 60% 7%");
+          root.style.setProperty("--primary", "220 70% 60%");
+          root.style.setProperty("--accent", "260 80% 60%");
+          break;
+        case "void":
+          root.style.setProperty("--background", "0 0% 5%");
+          root.style.setProperty("--primary", "0 0% 70%");
+          root.style.setProperty("--accent", "0 0% 50%");
+          break;
       }
     }
     
@@ -172,6 +245,15 @@ export function ThemeProvider({
     console.log(`Applied theme: ${mode} - ${themeToApply}`);
   }, [theme, lightTheme, darkTheme]);
 
+  // Get all available themes based on premium status
+  const getAllLightThemes = () => {
+    return isPremium ? [...lightThemes, ...premiumLightThemes] : lightThemes;
+  };
+  
+  const getAllDarkThemes = () => {
+    return isPremium ? [...darkThemes, ...premiumDarkThemes] : darkThemes;
+  };
+
   const value = {
     theme,
     setTheme: (theme: Theme) => {
@@ -180,18 +262,22 @@ export function ThemeProvider({
     },
     lightTheme,
     setLightTheme: (theme: string) => {
-      if (lightThemes.includes(theme)) {
+      const availableThemes = getAllLightThemes();
+      if (availableThemes.includes(theme)) {
         localStorage.setItem("fakudid-light-theme", theme);
         setLightTheme(theme);
       }
     },
     darkTheme,
     setDarkTheme: (theme: string) => {
-      if (darkThemes.includes(theme)) {
+      const availableThemes = getAllDarkThemes();
+      if (availableThemes.includes(theme)) {
         localStorage.setItem("fakudid-dark-theme", theme);
         setDarkTheme(theme);
       }
-    }
+    },
+    isPremium,
+    setIsPremium
   };
 
   return (
