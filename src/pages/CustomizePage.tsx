@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -859,4 +860,22 @@ export default function CustomizePage() {
                     <div className="py-8 text-center space-y-5">
                       <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
                       <div>
-                        <h2 className="text-2xl font-semibold mb-2
+                        <h2 className="text-2xl font-semibold mb-2">Premium Feature</h2>
+                        <p className="text-muted-foreground max-w-md mx-auto">
+                          Template customization is available for Premium subscribers. Upgrade to create custom journal templates.
+                        </p>
+                      </div>
+                      <Button onClick={openCheckout} className="bg-amber-500 hover:bg-amber-600">
+                        Upgrade to Premium
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </div>
+  );
+}
