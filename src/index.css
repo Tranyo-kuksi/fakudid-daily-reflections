@@ -129,15 +129,26 @@
     --border: 187 45% 75%;
   }
 
-  /* New theme: Bubblegum */
+  /* Updated Bubblegum theme with #f07fb7 pink */
   .theme-bubblegum {
-    --background: linear-gradient(135deg, #f8e1e7 0%, #f6d4dd 100%);
-    --primary: 350 100% 88%;
-    --secondary: 350 60% 95%;
-    --card: 350 30% 98%;
-    --muted: 350 30% 90%;
-    --accent: 350 80% 75%;
-    --border: 350 70% 85%;
+    --background: linear-gradient(135deg, #f8b0d3 0%, #f07fb7 100%);
+    --primary: 330 84% 72%;     /* #f07fb7 pink */
+    --secondary: 330 70% 90%;
+    --card: 330 40% 95%;
+    --muted: 330 40% 85%;
+    --accent: 330 80% 65%;
+    --border: 330 70% 80%;
+  }
+
+  /* Updated Golden Hour theme with darker gold */
+  .theme-golden-hour {
+    --background: linear-gradient(135deg, #dfb563 0%, #b78d37 100%);
+    --primary: 38 65% 45%;      /* darker gold */
+    --secondary: 38 70% 90%;
+    --card: 38 50% 95%;
+    --muted: 38 40% 80%;
+    --accent: 38 80% 55%;
+    --border: 38 60% 70%;
   }
 
   /* New theme: Cosmos */
@@ -149,17 +160,6 @@
     --muted: 250 15% 40%;
     --accent: 230 80% 65%;
     --border: 250 30% 40%;
-  }
-
-  /* New theme: Golden Hour */
-  .theme-golden-hour {
-    --background: linear-gradient(135deg, #fec6a1 0%, #e5deff 100%);
-    --primary: 45 100% 50%;
-    --secondary: 30 100% 95%;
-    --card: 30 70% 97%;
-    --muted: 35 50% 90%;
-    --accent: 280 50% 85%;
-    --border: 35 80% 80%;
   }
 
   /* New theme: Molten */

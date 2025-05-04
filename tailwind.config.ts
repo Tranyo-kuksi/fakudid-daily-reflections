@@ -41,7 +41,7 @@ export default {
           medium: "#FFDA56",   // Medium Yellow
           dark: "#FFC107",     // Deep Yellow
         },
-        // Theme colors
+        // Updated theme colors
         theme: {
           // Light themes
           lavender: {
@@ -59,6 +59,16 @@ export default {
           sky: {
             light: "#E0F7FA",
             dark: "#79D8E6",
+          },
+          // Updated Bubblegum theme with #f07fb7 pink
+          bubblegum: {
+            light: "#f8b0d3",
+            dark: "#f07fb7",
+          },
+          // Updated Golden Hour theme with darker gold
+          "golden-hour": {
+            light: "#dfb563",
+            dark: "#b78d37",
           },
           // Dark themes
           midnight: {
