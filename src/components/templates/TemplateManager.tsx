@@ -77,6 +77,11 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }));
   };
 
+  // Filter out disabled template sections
+  const enabledTemplateSections = templateSections.filter(section => 
+    section.enabled !== false
+  );
+
   return (
     <div className="space-y-4 p-4">
       <div className="flex justify-between items-center mb-4">
@@ -86,7 +91,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
       </div>
       
       <div className="space-y-3">
-        {templateSections.map(section => (
+        {enabledTemplateSections.map(section => (
           <TemplateSection
             key={section.id}
             section={section}
