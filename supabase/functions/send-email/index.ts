@@ -35,20 +35,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Format email with proper headers for better deliverability
-    const emailContent = {
-      personalizations: [{ to: [{ email: to }] }],
-      subject: subject,
-      content: [{ type: "text/html", value: body }],
-      from: { email: Deno.env.get("APP_EMAIL_ADDRESS") || "noreply@fakudid.com", name: from_name || "FakUdid App" },
-      reply_to: { email: Deno.env.get("REPLY_TO_EMAIL") || "support@fakudid.com", name: "FakUdid Support" },
-    };
+    // Kit API credentials
+    const KIT_API_KEY = Deno.env.get("KIT_API_KEY");
+    const KIT_API_SECRET = Deno.env.get("KIT_API_SECRET");
     
-    // Send email using SendGrid API
-    const SENDGRID_API_KEY = Deno.env.get("SENDGRID_API_KEY");
-    
-    if (!SENDGRID_API_KEY) {
-      console.error("Missing SENDGRID_API_KEY environment variable");
+    if (!KIT_API_KEY || !KIT_API_SECRET) {
+      console.error("Missing Kit API credentials");
       return new Response(
         JSON.stringify({ error: "Email sending is not configured properly" }),
         {
@@ -58,20 +50,36 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    // Format email for Kit API
+    const emailContent = {
+      from: { 
+        email: Deno.env.get("APP_EMAIL_ADDRESS") || "noreply@fakudid.com", 
+        name: from_name || "FakUdid App" 
+      },
+      to: [{ email: to }],
+      subject: subject,
+      content: body,
+      text_content: body.replace(/<[^>]*>/g, ''), // Strip HTML for plain text alternative
+    };
+    
+    // Send email using Kit API
+    const response = await fetch("https://api.kit.co/v1/mail/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${SENDGRID_API_KEY}`,
+        "X-Api-Key": KIT_API_KEY,
+        "X-Api-Secret": KIT_API_SECRET,
       },
       body: JSON.stringify(emailContent),
     });
     
+    const responseData = await response.text();
+    console.log("Kit API response:", responseData);
+    
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error("Error sending email:", errorData);
+      console.error("Error sending email:", responseData);
       return new Response(
-        JSON.stringify({ error: "Failed to send email", details: errorData }),
+        JSON.stringify({ error: "Failed to send email", details: responseData }),
         {
           status: 500,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -79,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    console.log("Email sent successfully");
+    console.log("Email sent successfully using Kit");
     return new Response(
       JSON.stringify({ success: true, message: "Email sent successfully" }),
       {
