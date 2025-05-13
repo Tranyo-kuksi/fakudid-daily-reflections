@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
 import { Mail } from "lucide-react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 type AuthMode = "login" | "register" | "forgotPassword";
 
@@ -17,7 +18,15 @@ export default function AuthPage() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [savedEmail, setSavedEmail] = useLocalStorage<string>("userEmail", "");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Populate the email field with the saved email if available
+    if (savedEmail && mode === "login") {
+      setEmail(savedEmail);
+    }
+  }, [savedEmail, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +39,9 @@ export default function AuthPage() {
           password,
         });
         if (error) throw error;
+        
+        // Save email to localStorage for future logins
+        setSavedEmail(email);
         navigate("/");
       } else if (mode === "register") {
         // First sign up the user
@@ -49,6 +61,8 @@ export default function AuthPage() {
           if (profileError) throw profileError;
         }
 
+        // Save email to localStorage after successful registration
+        setSavedEmail(email);
         toast.success("Registration successful! Please verify your email.");
       } else if (mode === "forgotPassword") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -65,6 +79,11 @@ export default function AuthPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearSavedEmail = () => {
+    setSavedEmail("");
+    setEmail("");
   };
 
   return (
@@ -107,13 +126,34 @@ export default function AuthPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                {mode === "login" && savedEmail ? (
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm">{savedEmail}</span>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        className="h-6 px-2 text-xs"
+                        onClick={clearSavedEmail}
+                      >
+                        Change
+                      </Button>
+                    </div>
+                    <Input
+                      type="hidden"
+                      value={savedEmail}
+                      name="email"
+                    />
+                  </div>
+                ) : (
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                )}
               </div>
               {mode !== "forgotPassword" && (
                 <div className="space-y-2">
