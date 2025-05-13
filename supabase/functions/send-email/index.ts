@@ -38,6 +38,13 @@ const handler = async (req: Request): Promise<Response> => {
     // Kit API credentials
     const KIT_API_KEY = Deno.env.get("KIT_API_KEY");
     const KIT_API_SECRET = Deno.env.get("KIT_API_SECRET");
+    const APP_EMAIL = Deno.env.get("APP_EMAIL_ADDRESS");
+    
+    // Log environment variable status (without revealing actual values)
+    console.log("Environment check:");
+    console.log("- KIT_API_KEY present:", KIT_API_KEY ? "Yes" : "No");
+    console.log("- KIT_API_SECRET present:", KIT_API_SECRET ? "Yes" : "No");
+    console.log("- APP_EMAIL_ADDRESS present:", APP_EMAIL ? "Yes" : "No");
     
     if (!KIT_API_KEY || !KIT_API_SECRET) {
       console.error("Missing Kit API credentials");
@@ -53,7 +60,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Format email for Kit API
     const emailContent = {
       from: { 
-        email: Deno.env.get("APP_EMAIL_ADDRESS") || "noreply@fakudid.com", 
+        email: APP_EMAIL || "noreply@fakudid.com", 
         name: from_name || "FakUdid App" 
       },
       to: [{ email: to }],
@@ -61,6 +68,8 @@ const handler = async (req: Request): Promise<Response> => {
       content: body,
       text_content: body.replace(/<[^>]*>/g, ''), // Strip HTML for plain text alternative
     };
+    
+    console.log("Attempting to send email to:", to);
     
     // Send email using Kit API
     const response = await fetch("https://api.kit.co/v1/mail/send", {
@@ -74,10 +83,12 @@ const handler = async (req: Request): Promise<Response> => {
     });
     
     const responseData = await response.text();
+    console.log("Kit API response status:", response.status);
     console.log("Kit API response:", responseData);
     
     if (!response.ok) {
-      console.error("Error sending email:", responseData);
+      console.error("Error sending email. Status:", response.status);
+      console.error("Error details:", responseData);
       return new Response(
         JSON.stringify({ error: "Failed to send email", details: responseData }),
         {
