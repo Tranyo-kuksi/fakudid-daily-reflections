@@ -45,6 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("- KIT_API_KEY present:", KIT_API_KEY ? "Yes" : "No");
     console.log("- KIT_API_SECRET present:", KIT_API_SECRET ? "Yes" : "No");
     console.log("- APP_EMAIL_ADDRESS present:", APP_EMAIL ? "Yes" : "No");
+    console.log("- APP_EMAIL_ADDRESS value:", APP_EMAIL); // Show the actual value for debugging
     
     if (!KIT_API_KEY || !KIT_API_SECRET) {
       console.error("Missing Kit API credentials");
@@ -57,10 +58,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
+    const emailAddress = APP_EMAIL || "noreply.fakudid@gmail.com";  // Default to your custom email
+    
     // Format email for Kit API
     const emailContent = {
       from: { 
-        email: APP_EMAIL || "noreply@fakudid.com", 
+        email: emailAddress, 
         name: from_name || "FakUdid App" 
       },
       to: [{ email: to }],
@@ -70,6 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
     
     console.log("Attempting to send email to:", to);
+    console.log("From email address:", emailAddress);
     
     // Send email using Kit API
     const response = await fetch("https://api.kit.co/v1/mail/send", {

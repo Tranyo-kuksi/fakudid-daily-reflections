@@ -18,6 +18,7 @@ import SettingsPage from "./pages/SettingsPage";
 import CustomizePage from "./pages/CustomizePage";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
+import EmailTest from "./pages/EmailTest"; // Import the new page
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
                 <Route path="/mood-tracker" element={<PrivateRoute><Layout><MoodTrackerPage /></Layout></PrivateRoute>} />
                 <Route path="/customize" element={<PrivateRoute><Layout><CustomizePage /></Layout></PrivateRoute>} />
                 <Route path="/settings" element={<PrivateRoute><Layout><SettingsPage /></Layout></PrivateRoute>} />
+                <Route path="/email-test" element={<PrivateRoute><Layout><EmailTest /></Layout></PrivateRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </SubscriptionProvider>
