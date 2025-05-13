@@ -1,5 +1,5 @@
 
-import { ReactNode, useState, useRef, useEffect } from "react";
+import { ReactNode, useState, useRef } from "react";
 import { NavBar } from "./NavBar";
 import { 
   SidebarProvider, 
@@ -23,7 +23,6 @@ export const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const [footerVisible, setFooterVisible] = useState(false);
   const [startY, setStartY] = useState<number | null>(null);
-  const [currentY, setCurrentY] = useState<number | null>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   
   const navItems = [
@@ -34,40 +33,31 @@ export const Layout = ({ children }: LayoutProps) => {
     { path: "/settings", label: "Settings", icon: Settings },
   ];
   
-  // Handle touch events for pull-to-reveal
+  // Handle touch events for spring-like footer
   const handleTouchStart = (e: React.TouchEvent) => {
     setStartY(e.touches[0].clientY);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (startY === null) return;
-    setCurrentY(e.touches[0].clientY);
+    
+    // Calculate distance pulled
+    const currentY = e.touches[0].clientY;
+    const deltaY = startY - currentY;
+    
+    // If user is pulling up (scrolling down at the bottom), show footer
+    if (deltaY > 20) {
+      setFooterVisible(true);
+    } else {
+      setFooterVisible(false);
+    }
   };
 
   const handleTouchEnd = () => {
-    if (startY === null || currentY === null) return;
-    
-    // If pulled up more than 40px, show the footer
-    if (startY - currentY > 40) {
-      setFooterVisible(true);
-    }
-    
-    // Reset values
+    // Hide footer when user stops touching
+    setFooterVisible(false);
     setStartY(null);
-    setCurrentY(null);
   };
-
-  // Close footer when clicking outside of it
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (footerRef.current && !footerRef.current.contains(event.target as Node) && footerVisible) {
-        setFooterVisible(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [footerVisible]);
 
   return (
     <SidebarProvider>
@@ -108,17 +98,15 @@ export const Layout = ({ children }: LayoutProps) => {
               <div className="container py-4">{children}</div>
             </main>
             
-            {/* Pull indicator - only shown when not pulled */}
-            {!footerVisible && (
-              <div className="flex justify-center absolute bottom-0 left-0 right-0 py-1 text-muted-foreground">
-                <ChevronUp size={16} />
-              </div>
-            )}
+            {/* Pull indicator - always visible as a small hint */}
+            <div className="flex justify-center absolute bottom-0 left-0 right-0 py-1 text-muted-foreground">
+              <ChevronUp size={16} />
+            </div>
             
-            {/* Footer with pull-to-reveal */}
+            {/* Spring-like footer that only appears while pulling */}
             <div 
               ref={footerRef}
-              className={`bg-background border-t py-4 absolute bottom-0 left-0 right-0 transform transition-transform duration-300 ${
+              className={`bg-background border-t py-4 absolute bottom-0 left-0 right-0 transform transition-transform duration-150 ${
                 footerVisible ? 'translate-y-0' : 'translate-y-full'
               }`}
             >
