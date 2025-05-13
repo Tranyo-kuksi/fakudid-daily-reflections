@@ -9,3 +9,24 @@ name = "aws-us-west-2"
 
 [functions.send-email]
 verify_jwt = true
+
+[auth.email.template.invite]
+action_url = "https://example.com/auth/callback?token={{.Token}}&type=invite&redirect_to={{.RedirectTo}}"
+enabled = true
+
+[auth.email.template.confirmation]
+action_url = "https://example.com/auth/callback?token={{.Token}}&type=confirmation&redirect_to={{.RedirectTo}}"
+enabled = true
+
+[auth.email.template.recovery]
+action_url = "https://example.com/auth/callback?token={{.Token}}&type=recovery&redirect_to={{.RedirectTo}}"
+enabled = true
+
+[auth.email.custom_smtp]
+enabled = false
+
+# Enable Supabase to send emails through our custom function
+[auth.email.custom]
+enabled = true
+# Here we point to our send-email function for handling authentication emails
+uri = "https://fnzkkyhhqxrbyhslwply.supabase.co/functions/v1/send-email"

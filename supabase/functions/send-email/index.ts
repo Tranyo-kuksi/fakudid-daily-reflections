@@ -14,6 +14,18 @@ interface EmailRequest {
   from_name?: string;
 }
 
+// Interface for Supabase Auth emails
+interface SupabaseAuthEmailRequest {
+  template?: string;
+  user_id?: string;
+  email?: string;
+  data?: {
+    token?: string;
+    redirect_to?: string;
+    [key: string]: any;
+  }
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -21,18 +33,67 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Get the request data
-    const { to, subject, body, from_name } = await req.json() as EmailRequest;
+    const body = await req.json();
+    console.log("Received request body:", JSON.stringify(body));
+
+    let to: string = "";
+    let subject: string = "";
+    let emailBody: string = "";
+    let fromName: string = "";
+
+    // Check if this is a custom email or an auth email from Supabase
+    const isAuthEmail = body.template || body.user_id || body.email;
     
-    // Validate required fields
-    if (!to || !subject || !body) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: to, subject, body" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+    if (isAuthEmail) {
+      // This is a Supabase Auth email
+      const authRequest = body as SupabaseAuthEmailRequest;
+      console.log("Processing auth email request:", authRequest.template);
+      
+      to = authRequest.email || "";
+      const templateType = authRequest.template || "unknown";
+      
+      // Set appropriate subject and content based on template type
+      if (templateType === "confirmation") {
+        subject = "Confirm Your Email Address";
+        emailBody = generateConfirmationEmail(authRequest.data);
+        fromName = "Email Verification";
+      } else if (templateType === "recovery") {
+        subject = "Reset Your Password";
+        emailBody = generateRecoveryEmail(authRequest.data);
+        fromName = "Password Reset";
+      } else if (templateType === "invite") {
+        subject = "You've Been Invited";
+        emailBody = generateInviteEmail(authRequest.data);
+        fromName = "Account Invitation";
+      } else {
+        console.error("Unknown template type:", templateType);
+        return new Response(
+          JSON.stringify({ error: `Unknown template type: ${templateType}` }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+    } else {
+      // This is a custom email
+      const emailRequest = body as EmailRequest;
+      
+      // Validate required fields for custom emails
+      if (!emailRequest.to || !emailRequest.subject || !emailRequest.body) {
+        return new Response(
+          JSON.stringify({ error: "Missing required fields: to, subject, body" }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+      
+      to = emailRequest.to;
+      subject = emailRequest.subject;
+      emailBody = emailRequest.body;
+      fromName = emailRequest.from_name || "FakUdid App";
     }
 
     // Kit API credentials
@@ -45,7 +106,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("- KIT_API_KEY present:", KIT_API_KEY ? "Yes" : "No");
     console.log("- KIT_API_SECRET present:", KIT_API_SECRET ? "Yes" : "No");
     console.log("- APP_EMAIL_ADDRESS present:", APP_EMAIL ? "Yes" : "No");
-    console.log("- APP_EMAIL_ADDRESS value:", APP_EMAIL); // Show the actual value for debugging
+    console.log("- APP_EMAIL_ADDRESS value:", APP_EMAIL);
     
     if (!KIT_API_KEY || !KIT_API_SECRET) {
       console.error("Missing Kit API credentials");
@@ -58,22 +119,23 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    const emailAddress = APP_EMAIL || "noreply.fakudid@gmail.com";  // Default to your custom email
+    const emailAddress = APP_EMAIL || "noreply.fakudid@gmail.com";
     
     // Format email for Kit API
     const emailContent = {
       from: { 
         email: emailAddress, 
-        name: from_name || "FakUdid App" 
+        name: fromName || "FakUdid App" 
       },
       to: [{ email: to }],
       subject: subject,
-      content: body,
-      text_content: body.replace(/<[^>]*>/g, ''), // Strip HTML for plain text alternative
+      content: emailBody,
+      text_content: emailBody.replace(/<[^>]*>/g, ''), // Strip HTML for plain text alternative
     };
     
     console.log("Attempting to send email to:", to);
     console.log("From email address:", emailAddress);
+    console.log("Email subject:", subject);
     
     // Send email using Kit API
     const response = await fetch("https://api.kit.co/v1/mail/send", {
@@ -110,7 +172,7 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in send-email function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
@@ -121,5 +183,65 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
+
+// Helper functions to generate email content for auth templates
+function generateConfirmationEmail(data: any): string {
+  const token = data?.token || "";
+  const redirectTo = data?.redirect_to || "";
+  const baseUrl = "https://fnzkkyhhqxrbyhslwply.supabase.co";
+  const actionUrl = `${baseUrl}/auth/v1/verify?token=${token}&type=signup&redirect_to=${redirectTo}`;
+  
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="color: #333;">Confirm Your Email</h1>
+      <p>Thank you for signing up! Please confirm your email by clicking the button below:</p>
+      <a href="${actionUrl}" style="display: inline-block; background-color: #4A90E2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+        Confirm Email
+      </a>
+      <p>Or copy and paste this URL into your browser:</p>
+      <p style="word-break: break-all; color: #666;">${actionUrl}</p>
+      <p>If you didn't create this account, you can safely ignore this email.</p>
+    </div>
+  `;
+}
+
+function generateRecoveryEmail(data: any): string {
+  const token = data?.token || "";
+  const redirectTo = data?.redirect_to || "";
+  const baseUrl = "https://fnzkkyhhqxrbyhslwply.supabase.co";
+  const actionUrl = `${baseUrl}/auth/v1/verify?token=${token}&type=recovery&redirect_to=${redirectTo}`;
+  
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="color: #333;">Reset Your Password</h1>
+      <p>We received a request to reset your password. Click the button below to create a new password:</p>
+      <a href="${actionUrl}" style="display: inline-block; background-color: #4A90E2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+        Reset Password
+      </a>
+      <p>Or copy and paste this URL into your browser:</p>
+      <p style="word-break: break-all; color: #666;">${actionUrl}</p>
+      <p>If you didn't request a password reset, you can safely ignore this email.</p>
+    </div>
+  `;
+}
+
+function generateInviteEmail(data: any): string {
+  const token = data?.token || "";
+  const redirectTo = data?.redirect_to || "";
+  const baseUrl = "https://fnzkkyhhqxrbyhslwply.supabase.co";
+  const actionUrl = `${baseUrl}/auth/v1/verify?token=${token}&type=invite&redirect_to=${redirectTo}`;
+  
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="color: #333;">You've Been Invited</h1>
+      <p>You've been invited to join our platform. Click the button below to accept the invitation:</p>
+      <a href="${actionUrl}" style="display: inline-block; background-color: #4A90E2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+        Accept Invitation
+      </a>
+      <p>Or copy and paste this URL into your browser:</p>
+      <p style="word-break: break-all; color: #666;">${actionUrl}</p>
+    </div>
+  `;
+}
 
 serve(handler);
