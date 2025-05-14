@@ -30,4 +30,4 @@ enabled = false
 [auth.email.custom]
 enabled = true
 # Here we point to our send-email function for handling authentication emails
-uri = "https://fnzkkyhhqxrbyhslwply.supabase.co/functions/v1/send-email"
+uri = "https://fnzkkyhhqxrbyhslwply.functions.supabase.co/send-email"
