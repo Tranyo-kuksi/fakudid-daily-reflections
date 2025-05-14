@@ -11,15 +11,15 @@ name = "aws-us-west-2"
 verify_jwt = true
 
 [auth.email.template.invite]
-action_url = "https://example.com/auth/callback?token={{.Token}}&type=invite&redirect_to={{.RedirectTo}}"
+action_url = "https://fnzkkyhhqxrbyhslwply.supabase.co/auth/callback?token={{.Token}}&type=invite&redirect_to={{.RedirectTo}}"
 enabled = true
 
 [auth.email.template.confirmation]
-action_url = "https://example.com/auth/callback?token={{.Token}}&type=confirmation&redirect_to={{.RedirectTo}}"
+action_url = "https://fnzkkyhhqxrbyhslwply.supabase.co/auth/callback?token={{.Token}}&type=confirmation&redirect_to={{.RedirectTo}}"
 enabled = true
 
 [auth.email.template.recovery]
-action_url = "https://example.com/auth/callback?token={{.Token}}&type=recovery&redirect_to={{.RedirectTo}}"
+action_url = "https://fnzkkyhhqxrbyhslwply.supabase.co/auth/callback?token={{.Token}}&type=recovery&redirect_to={{.RedirectTo}}"
 enabled = true
 
 # Disable Supabase's default email system
