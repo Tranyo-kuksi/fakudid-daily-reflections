@@ -121,23 +121,11 @@ const handler = async (req: Request): Promise<Response> => {
     
     const emailAddress = APP_EMAIL || "noreply.fakudid@gmail.com";
     
-    // Format email for Kit API
-    const emailContent = {
-      from: { 
-        email: emailAddress, 
-        name: fromName || "FakUdid App" 
-      },
-      to: [{ email: to }],
-      subject: subject,
-      content: emailBody,
-      text_content: emailBody.replace(/<[^>]*>/g, ''), // Strip HTML for plain text alternative
-    };
-    
     console.log("Attempting to send email to:", to);
     console.log("From email address:", emailAddress);
     console.log("Email subject:", subject);
     
-    // Send email using Kit API
+    // Send email using Kit API directly
     const response = await fetch("https://api.kit.co/v1/mail/send", {
       method: "POST",
       headers: {
@@ -145,7 +133,16 @@ const handler = async (req: Request): Promise<Response> => {
         "X-Api-Key": KIT_API_KEY,
         "X-Api-Secret": KIT_API_SECRET,
       },
-      body: JSON.stringify(emailContent),
+      body: JSON.stringify({
+        from: { 
+          email: emailAddress, 
+          name: fromName || "FakUdid App" 
+        },
+        to: [{ email: to }],
+        subject: subject,
+        content: emailBody,
+        text_content: emailBody.replace(/<[^>]*>/g, ''), // Strip HTML for plain text alternative
+      }),
     });
     
     const responseData = await response.text();

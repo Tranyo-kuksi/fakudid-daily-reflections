@@ -18,7 +18,7 @@ import SettingsPage from "./pages/SettingsPage";
 import CustomizePage from "./pages/CustomizePage";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
-import EmailTest from "./pages/EmailTest"; // Import the new page
+import EmailTest from "./pages/EmailTest"; // Import the email test page
 
 const queryClient = new QueryClient();
 
