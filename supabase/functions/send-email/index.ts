@@ -126,8 +126,8 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("From email address:", emailAddress);
     console.log("Email subject:", subject);
     
-    // Send email using Kit API directly
-    const response = await fetch("https://api.kit.co/v1/mail/send", {
+    // Send email using Kit API with the CORRECT endpoint (kitapi.dev instead of kit.co)
+    const response = await fetch("https://api.kitapi.dev/v1/mail/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -141,8 +141,8 @@ const handler = async (req: Request): Promise<Response> => {
         },
         to: [{ email: to }],
         subject: subject,
-        content: emailBody,
-        text_content: emailBody.replace(/<[^>]*>/g, ''), // Strip HTML for plain text alternative
+        html: emailBody,
+        text: emailBody.replace(/<[^>]*>/g, ''), // Fixed: use html and text fields instead of content/text_content
       }),
     });
     
@@ -182,12 +182,12 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-// Helper functions to generate email content for auth templates
+// Helper functions to generate email content for auth templates with correct Supabase auth URLs
 function generateConfirmationEmail(data: any): string {
   const token = data?.token || "";
   const redirectTo = data?.redirect_to || "";
   // Use the correct domain for auth verification links
-  const actionUrl = `https://fnzkkyhhqxrbyhslwply.functions.supabase.co/auth/v1/verify?token=${token}&type=signup&redirect_to=${redirectTo}`;
+  const actionUrl = `https://fnzkkyhhqxrbyhslwply.supabase.co/auth/v1/verify?token=${token}&type=signup&redirect_to=${redirectTo}`;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -207,7 +207,7 @@ function generateRecoveryEmail(data: any): string {
   const token = data?.token || "";
   const redirectTo = data?.redirect_to || "";
   // Use the correct domain for auth verification links
-  const actionUrl = `https://fnzkkyhhqxrbyhslwply.functions.supabase.co/auth/v1/verify?token=${token}&type=recovery&redirect_to=${redirectTo}`;
+  const actionUrl = `https://fnzkkyhhqxrbyhslwply.supabase.co/auth/v1/verify?token=${token}&type=recovery&redirect_to=${redirectTo}`;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -227,7 +227,7 @@ function generateInviteEmail(data: any): string {
   const token = data?.token || "";
   const redirectTo = data?.redirect_to || "";
   // Use the correct domain for auth verification links
-  const actionUrl = `https://fnzkkyhhqxrbyhslwply.functions.supabase.co/auth/v1/verify?token=${token}&type=invite&redirect_to=${redirectTo}`;
+  const actionUrl = `https://fnzkkyhhqxrbyhslwply.supabase.co/auth/v1/verify?token=${token}&type=invite&redirect_to=${redirectTo}`;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
