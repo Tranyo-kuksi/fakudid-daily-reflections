@@ -119,7 +119,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     
-    const emailAddress = APP_EMAIL || "noreply.fakudid@gmail.com";
+    // Use the configured email address or fallback to default
+    const emailAddress = APP_EMAIL || "noreply@fakudid.com";
     
     console.log("Attempting to send email to:", to);
     console.log("From email address:", emailAddress);
@@ -185,8 +186,7 @@ const handler = async (req: Request): Promise<Response> => {
 function generateConfirmationEmail(data: any): string {
   const token = data?.token || "";
   const redirectTo = data?.redirect_to || "";
-  const baseUrl = "https://fnzkkyhhqxrbyhslwply.supabase.co";
-  const actionUrl = `${baseUrl}/auth/v1/verify?token=${token}&type=signup&redirect_to=${redirectTo}`;
+  const actionUrl = `https://fnzkkyhhqxrbyhslwply.supabase.co/auth/v1/verify?token=${token}&type=signup&redirect_to=${redirectTo}`;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -205,8 +205,7 @@ function generateConfirmationEmail(data: any): string {
 function generateRecoveryEmail(data: any): string {
   const token = data?.token || "";
   const redirectTo = data?.redirect_to || "";
-  const baseUrl = "https://fnzkkyhhqxrbyhslwply.supabase.co";
-  const actionUrl = `${baseUrl}/auth/v1/verify?token=${token}&type=recovery&redirect_to=${redirectTo}`;
+  const actionUrl = `https://fnzkkyhhqxrbyhslwply.supabase.co/auth/v1/verify?token=${token}&type=recovery&redirect_to=${redirectTo}`;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -225,8 +224,7 @@ function generateRecoveryEmail(data: any): string {
 function generateInviteEmail(data: any): string {
   const token = data?.token || "";
   const redirectTo = data?.redirect_to || "";
-  const baseUrl = "https://fnzkkyhhqxrbyhslwply.supabase.co";
-  const actionUrl = `${baseUrl}/auth/v1/verify?token=${token}&type=invite&redirect_to=${redirectTo}`;
+  const actionUrl = `https://fnzkkyhhqxrbyhslwply.supabase.co/auth/v1/verify?token=${token}&type=invite&redirect_to=${redirectTo}`;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
