@@ -4,21 +4,7 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
-import { CheckCircle, XCircle, Loader2, Eye, EyeOff } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import * as z from "zod";
-
-// Schema for password validation
-const passwordSchema = z.object({
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters long" })
-    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
-    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-    .regex(/[0-9]/, { message: "Password must contain at least one number" }),
-});
 
 // Components moved to separate files for better organization
 import { LoadingState } from "@/components/auth/LoadingState";
@@ -41,43 +27,93 @@ export default function AuthResetPage() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  // Get token from URL parameters
   useEffect(() => {
-    // First check for token in searchParams (normal URL parameter)
-    let token = searchParams.get("token");
-    
-    // If not found, check for token in URL hash (fragment identifier)
-    if (!token && location.hash) {
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      token = hashParams.get("token");
-    }
-    
-    console.log("Reset token present:", token ? "Yes" : "No", token ? token.substring(0, 5) + "..." : "");
-    
-    if (!token) {
-      setErrorMessage("Missing reset token. Please request a new password reset link.");
-      setValidToken(false);
-      setVerifying(false);
-      return;
-    }
+    // Function to extract token from URL
+    const extractToken = async () => {
+      console.log("Current URL:", window.location.href);
+      console.log("Search params:", location.search);
+      console.log("Hash:", location.hash);
+      
+      // First check for token in searchParams (normal URL parameter)
+      let token = searchParams.get("token");
+      
+      // If not found, check for token in URL hash (fragment identifier)
+      if (!token && location.hash) {
+        try {
+          // Try to parse the hash as search params
+          const hashParams = new URLSearchParams(location.hash.substring(1));
+          token = hashParams.get("token");
+          
+          // If still not found, check if the hash itself contains query params
+          if (!token && location.hash.includes("?")) {
+            const hashWithParams = location.hash.substring(location.hash.indexOf("?") + 1);
+            const hashQueryParams = new URLSearchParams(hashWithParams);
+            token = hashQueryParams.get("token");
+          }
+        } catch (err) {
+          console.error("Error parsing hash params:", err);
+        }
+      }
+      
+      console.log("Reset token present:", token ? "Yes" : "No", token ? token.substring(0, 5) + "..." : "");
+      
+      if (!token) {
+        setErrorMessage("Missing reset token. Please request a new password reset link.");
+        setValidToken(false);
+        setVerifying(false);
+        return;
+      }
 
-    // Store the token value for later use
-    setTokenValue(token);
-    setValidToken(true);
-    setVerifying(false);
-  }, [searchParams, location.hash]);
+      // Verify the token with Supabase
+      try {
+        console.log("Verifying token...");
+        const { data, error } = await supabase.auth.verifyOtp({
+          token,
+          type: "recovery"
+        });
+        
+        if (error) {
+          console.error("Token verification failed:", error);
+          setErrorMessage(`Invalid or expired reset token: ${error.message}`);
+          setValidToken(false);
+        } else {
+          console.log("Token verification successful:", data);
+          setValidToken(true);
+          setTokenValue(token);
+        }
+      } catch (err) {
+        console.error("Error during token verification:", err);
+        setErrorMessage("Error verifying reset token. Please try again.");
+        setValidToken(false);
+      } finally {
+        setVerifying(false);
+      }
+    };
+
+    extractToken();
+  }, [searchParams, location.hash, location.search]);
 
   const validatePassword = (pass: string) => {
-    try {
-      passwordSchema.parse({ password: pass });
-      setValidationErrors([]);
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setValidationErrors(error.errors.map(err => err.message));
-      }
-      return false;
+    const errors = [];
+    
+    if (pass.length < 8) {
+      errors.push("Password must be at least 8 characters long");
     }
+    
+    if (!/[A-Z]/.test(pass)) {
+      errors.push("Password must contain at least one uppercase letter");
+    }
+    
+    if (!/[a-z]/.test(pass)) {
+      errors.push("Password must contain at least one lowercase letter");
+    }
+    
+    if (!/[0-9]/.test(pass)) {
+      errors.push("Password must contain at least one number");
+    }
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,7 +141,7 @@ export default function AuthResetPage() {
     try {
       console.log("Submitting password reset with token");
       
-      // Use updateUser with the token already in session
+      // Update user password with the token already verified
       const { error } = await supabase.auth.updateUser({ 
         password: password 
       });

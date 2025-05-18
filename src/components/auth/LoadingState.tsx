@@ -7,5 +7,8 @@ export const LoadingState = () => (
     <p className="text-center text-sm text-muted-foreground mt-2">
       Verifying your reset link...
     </p>
+    <p className="text-center text-xs text-muted-foreground mt-1">
+      This may take a few moments
+    </p>
   </div>
 );

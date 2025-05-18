@@ -40,6 +40,8 @@ export const ResetPasswordForm = ({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="pr-10"
+          placeholder="Enter your new password"
+          autoComplete="new-password"
           required
         />
         <Button
@@ -48,19 +50,26 @@ export const ResetPasswordForm = ({
           size="icon"
           className="absolute right-0 top-0"
           onClick={() => setShowPassword(!showPassword)}
+          tabIndex={-1}
         >
           {showPassword ? (
             <EyeOff className="h-4 w-4" />
           ) : (
             <Eye className="h-4 w-4" />
           )}
+          <span className="sr-only">
+            {showPassword ? "Hide password" : "Show password"}
+          </span>
         </Button>
       </div>
       
       {validationErrors.length > 0 && (
         <ul className="text-xs text-destructive space-y-1 mt-2">
           {validationErrors.map((error, index) => (
-            <li key={index}>{error}</li>
+            <li key={index} className="flex items-start">
+              <span className="mr-1">•</span>
+              <span>{error}</span>
+            </li>
           ))}
         </ul>
       )}
@@ -74,6 +83,8 @@ export const ResetPasswordForm = ({
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         className={password !== confirmPassword && confirmPassword ? "border-destructive" : ""}
+        placeholder="Confirm your new password"
+        autoComplete="new-password"
         required
       />
       {password !== confirmPassword && confirmPassword && (
@@ -82,7 +93,9 @@ export const ResetPasswordForm = ({
     </div>
     
     {errorMessage && (
-      <p className="text-sm text-destructive">{errorMessage}</p>
+      <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+        {errorMessage}
+      </div>
     )}
     
     <Button 
@@ -93,7 +106,7 @@ export const ResetPasswordForm = ({
       {submitting ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Resetting...
+          Resetting Password...
         </>
       ) : (
         "Reset Password"

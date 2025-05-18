@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
@@ -206,8 +205,10 @@ function generateConfirmationEmail(data: any): string {
 function generateRecoveryEmail(data: any): string {
   const token = data?.token || "";
   const redirectTo = data?.redirect_to || "";
-  // Make sure we're generating the correct URL format
-  const actionUrl = `https://fakudid.com/auth/reset?token=${token}&type=recovery&redirect_to=${redirectTo}`;
+  
+  // Generate a URL that works consistently
+  // Note: We're removing the redirect_to parameter which might be causing issues
+  const actionUrl = `https://fakudid.com/auth/reset?token=${token}&type=recovery`;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -219,6 +220,7 @@ function generateRecoveryEmail(data: any): string {
       <p>Or copy and paste this URL into your browser:</p>
       <p style="word-break: break-all; color: #666;">${actionUrl}</p>
       <p>If you didn't request a password reset, you can safely ignore this email.</p>
+      <p>This link will expire in 24 hours for security reasons.</p>
     </div>
   `;
 }

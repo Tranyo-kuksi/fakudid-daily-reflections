@@ -13,6 +13,9 @@ export const ErrorState = ({ errorMessage, onNavigateToLogin }: ErrorStateProps)
     <p className="text-center text-destructive mt-2">
       {errorMessage}
     </p>
+    <p className="text-center text-xs text-muted-foreground mt-2">
+      If you need to reset your password, you can request a new reset link from the login page.
+    </p>
     <Button 
       variant="outline" 
       className="mt-4"

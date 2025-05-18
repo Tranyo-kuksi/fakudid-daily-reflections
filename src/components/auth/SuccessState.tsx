@@ -12,8 +12,11 @@ export const SuccessState = ({ onNavigateToLogin }: SuccessStateProps) => (
     <p className="text-center text-muted-foreground mt-2">
       Your password has been reset successfully.
     </p>
+    <p className="text-center text-xs text-muted-foreground mt-1">
+      You can now log in with your new password.
+    </p>
     <Button 
-      variant="outline" 
+      variant="default" 
       className="mt-4"
       onClick={onNavigateToLogin}
     >
