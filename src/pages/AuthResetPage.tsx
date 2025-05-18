@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,12 +101,9 @@ export default function AuthResetPage() {
     try {
       console.log("Submitting password reset with token");
       
-      // Update password using the token
+      // Fix: Remove the unnecessary options parameter from updateUser
       const { error } = await supabase.auth.updateUser({ 
         password: password 
-      }, {
-        // Need to provide the token in the session
-        allowedMethods: ["POST"],
       });
       
       if (error) throw error;

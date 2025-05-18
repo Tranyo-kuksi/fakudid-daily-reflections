@@ -28,8 +28,9 @@ export default function AuthVerifyPage() {
         
         // Handle the verification based on token type
         if (type === "signup" || type === "invite") {
+          // Fix: Use the correct parameter structure expected by verifyOtp
           const { error } = await supabase.auth.verifyOtp({
-            token,
+            token_hash: token,
             type: "signup",
           });
           
