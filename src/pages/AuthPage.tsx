@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +26,9 @@ export default function AuthPage() {
       setEmail(savedEmail);
     }
   }, [savedEmail, mode]);
+
+  const location = useLocation();
+  const currentUrl = window.location.origin + location.pathname;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +67,7 @@ export default function AuthPage() {
         setSavedEmail(email);
         toast.success("Registration successful! Please check your email for verification instructions.");
       } else if (mode === "forgotPassword") {
-        // The redirectTo should point to our password reset page
+        // The redirectTo should use the current origin combined with the reset path
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth/reset`,
         });
