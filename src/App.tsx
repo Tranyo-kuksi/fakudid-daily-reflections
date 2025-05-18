@@ -18,6 +18,8 @@ import SettingsPage from "./pages/SettingsPage";
 import CustomizePage from "./pages/CustomizePage";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
+import AuthVerifyPage from "./pages/AuthVerifyPage";
+import AuthResetPage from "./pages/AuthResetPage";
 import EmailTest from "./pages/EmailTest"; // Import the email test page
 
 const queryClient = new QueryClient();
@@ -33,6 +35,8 @@ const App = () => (
             <SubscriptionProvider>
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/auth/verify" element={<AuthVerifyPage />} />
+                <Route path="/auth/reset" element={<AuthResetPage />} />
                 <Route path="/" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
                 <Route path="/entry/:id" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
                 <Route path="/history" element={<PrivateRoute><Layout><HistoryPage /></Layout></PrivateRoute>} />

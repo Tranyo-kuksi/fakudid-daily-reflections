@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
-import { Mail } from "lucide-react";
+import { Mail, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 type AuthMode = "login" | "register" | "forgotPassword";
@@ -63,10 +63,11 @@ export default function AuthPage() {
 
         // Save email to localStorage after successful registration
         setSavedEmail(email);
-        toast.success("Registration successful! Please verify your email.");
+        toast.success("Registration successful! Please check your email for verification instructions.");
       } else if (mode === "forgotPassword") {
+        // The redirectTo should point to our password reset page
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth?mode=resetPassword`,
+          redirectTo: `${window.location.origin}/auth/reset`,
         });
         
         if (error) throw error;
@@ -178,13 +179,22 @@ export default function AuthPage() {
                 </div>
               )}
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading 
-                  ? "Loading..." 
-                  : mode === "login" 
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {mode === "login" 
+                      ? "Logging in..." 
+                      : mode === "register" 
+                        ? "Registering..." 
+                        : "Sending..."}
+                  </>
+                ) : (
+                  mode === "login" 
                     ? "Login" 
                     : mode === "register" 
                       ? "Register" 
-                      : "Send Reset Link"}
+                      : "Send Reset Link"
+                )}
               </Button>
               
               <div className="flex flex-col space-y-2 text-center text-sm mt-4">
