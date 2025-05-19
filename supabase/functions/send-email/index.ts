@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
@@ -204,11 +205,9 @@ function generateConfirmationEmail(data: any): string {
 
 function generateRecoveryEmail(data: any): string {
   const token = data?.token || "";
-  const redirectTo = data?.redirect_to || "";
   
-  // Generate a URL that works consistently
-  // Note: We're removing the redirect_to parameter which might be causing issues
-  const actionUrl = `https://fakudid.com/auth/reset?token=${token}&type=recovery`;
+  // Generate a URL that works consistently - use clean format
+  const actionUrl = `https://fakudid.com/auth/reset?token=${token}`;
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

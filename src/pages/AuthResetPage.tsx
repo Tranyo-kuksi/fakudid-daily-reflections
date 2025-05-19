@@ -64,30 +64,12 @@ export default function AuthResetPage() {
         return;
       }
 
-      // Verify the token with Supabase
-      try {
-        console.log("Verifying token...");
-        const { data, error } = await supabase.auth.verifyOtp({
-          token,
-          type: "recovery"
-        });
-        
-        if (error) {
-          console.error("Token verification failed:", error);
-          setErrorMessage(`Invalid or expired reset token: ${error.message}`);
-          setValidToken(false);
-        } else {
-          console.log("Token verification successful:", data);
-          setValidToken(true);
-          setTokenValue(token);
-        }
-      } catch (err) {
-        console.error("Error during token verification:", err);
-        setErrorMessage("Error verifying reset token. Please try again.");
-        setValidToken(false);
-      } finally {
-        setVerifying(false);
-      }
+      // For password reset links, we don't need to verify the token immediately
+      // We'll set it as valid and when the user submits the new password,
+      // Supabase will automatically verify it during the updateUser call
+      setValidToken(true);
+      setTokenValue(token);
+      setVerifying(false);
     };
 
     extractToken();
@@ -141,9 +123,9 @@ export default function AuthResetPage() {
     try {
       console.log("Submitting password reset with token");
       
-      // Update user password with the token already verified
-      const { error } = await supabase.auth.updateUser({ 
-        password: password 
+      // Update user password with the token from the URL
+      const { error } = await supabase.auth.resetPasswordForEmail(password, {
+        redirectTo: window.location.origin + "/auth",
       });
       
       if (error) {

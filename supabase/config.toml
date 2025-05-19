@@ -19,7 +19,7 @@ action_url = "https://fakudid.com/auth/verify?token={{.Token}}&type=signup&redir
 enabled = true
 
 [auth.email.template.recovery]
-action_url = "https://fakudid.com/auth/reset?token={{.Token}}&type=recovery"
+action_url = "https://fakudid.com/auth/reset?token={{.Token}}"
 enabled = true
 
 # Disable Supabase's default email system
