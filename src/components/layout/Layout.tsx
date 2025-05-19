@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import { NavBar } from "./NavBar";
 import { useNavbar } from "@/contexts/NavbarContext";
 
@@ -21,7 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-background">
+    <div className="flex flex-col min-h-screen bg-background">
       <NavBar />
       <main className={`flex-1 pt-14 ${isOpen ? "ml-64" : "ml-0"} transition-all duration-300`}>
         {children}
