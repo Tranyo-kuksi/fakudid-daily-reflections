@@ -206,7 +206,8 @@ function generateConfirmationEmail(data: any): string {
 function generateRecoveryEmail(data: any): string {
   const token = data?.token || "";
   
-  // Generate a URL that works consistently - use the user's current origin
+  // Generate a URL that works consistently across web and mobile
+  // For mobile compatibility, use dynamic URL detection
   const userOrigin = data?.redirect_to?.split('/auth')[0] || "https://fakudid.com";
   const actionUrl = `${userOrigin}/auth/reset?token=${token}`;
   

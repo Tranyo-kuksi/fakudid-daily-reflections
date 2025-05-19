@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,10 +58,9 @@ export function useLocalStorage<T>(
       }
       
       // If we're authenticated and the key implies user data, we could sync to Supabase
-      // This is just a placeholder for potential future expansion
+      // Note: This is now handled by the main journalService.ts
       if (isAuthenticated && key.includes('user-data')) {
-        // Example of how we could sync to Supabase
-        // syncToSupabase(key, valueToStore);
+        console.log('User data changes will be synced to cloud storage');
       }
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);
