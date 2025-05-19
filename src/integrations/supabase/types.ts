@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      journal_entries: {
+        Row: {
+          attachments: Json | null
+          content: string | null
+          created_at: string | null
+          date: string
+          id: string
+          mood: string | null
+          template_data: Json | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          content?: string | null
+          created_at?: string | null
+          date: string
+          id?: string
+          mood?: string | null
+          template_data?: Json | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          mood?: string | null
+          template_data?: Json | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           allow_mature_content: boolean | null

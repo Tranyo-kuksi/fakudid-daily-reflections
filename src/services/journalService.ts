@@ -1,5 +1,12 @@
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  fetchAllEntriesFromSupabase,
+  saveEntryToSupabase,
+  deleteEntryFromSupabase,
+  getEntryByIdFromSupabase,
+  getEntryByDateFromSupabase
+} from "./supabaseJournalService";
 
 export interface JournalEntry {
   id: string;
@@ -36,9 +43,9 @@ function loadEntriesFromStorage(): JournalEntry[] {
 }
 
 // In-memory storage for journal entries (in a real app, this would be a database)
-let journalEntries: JournalEntry[] = loadEntriesFromStorage();
+let journalEntries: JournalEntry[] = [];
 
-// Save entries to localStorage
+// Save entries to localStorage - we'll keep this for backward compatibility
 function saveEntriesToStorage() {
   try {
     localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
@@ -50,21 +57,59 @@ function saveEntriesToStorage() {
 
 // Get all journal entries for the current user
 export async function getAllEntries(): Promise<JournalEntry[]> {
-  // Get current user ID
-  const { data } = await supabase.auth.getSession();
-  const userId = data.session?.user?.id;
-  
-  // Filter entries by user ID
-  return [...journalEntries]
-    .filter(entry => {
-      // If entry has no userId, it's from before this change
-      // and we want to maintain backward compatibility
-      if (!entry.userId) return true;
+  try {
+    // Get current user ID
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user?.id;
+    
+    if (userId) {
+      // Try to fetch entries from Supabase first
+      const supabaseEntries = await fetchAllEntriesFromSupabase();
       
-      // Otherwise, only return entries for the current user
-      return entry.userId === userId;
-    })
-    .sort((a, b) => b.date.getTime() - a.date.getTime());
+      if (supabaseEntries.length > 0) {
+        journalEntries = supabaseEntries;
+        return [...journalEntries].sort((a, b) => b.date.getTime() - a.date.getTime());
+      }
+
+      // If no entries in Supabase, try to migrate from localStorage
+      if (journalEntries.length === 0) {
+        journalEntries = loadEntriesFromStorage();
+        
+        // Migrate localStorage entries to Supabase if there are any
+        if (journalEntries.length > 0) {
+          console.log("Migrating localStorage entries to Supabase...");
+          
+          for (const entry of journalEntries) {
+            // Make sure userId is set
+            if (!entry.userId) {
+              entry.userId = userId;
+            }
+            
+            await saveEntryToSupabase(entry);
+          }
+        }
+      }
+    } else {
+      // Fallback to localStorage if user is not logged in
+      journalEntries = loadEntriesFromStorage();
+    }
+    
+    // Filter entries by user ID
+    return [...journalEntries]
+      .filter(entry => {
+        // If entry has no userId, it's from before this change
+        // and we want to maintain backward compatibility
+        if (!entry.userId) return true;
+        
+        // Otherwise, only return entries for the current user
+        return entry.userId === userId;
+      })
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  } catch (error) {
+    console.error("Error in getAllEntries:", error);
+    toast.error("Failed to load your journal entries");
+    return [];
+  }
 }
 
 // Get today's entry if it exists for the current user
@@ -76,6 +121,15 @@ export async function getTodayEntry(): Promise<JournalEntry | undefined> {
   const { data } = await supabase.auth.getUser();
   const userId = data.user?.id;
   
+  if (userId) {
+    // Try to get today's entry from Supabase
+    const todayEntry = await getEntryByDateFromSupabase(today);
+    if (todayEntry) {
+      return todayEntry;
+    }
+  }
+  
+  // Fallback to local memory/storage
   return journalEntries.find(entry => {
     const entryDate = new Date(entry.date);
     entryDate.setHours(0, 0, 0, 0);
@@ -94,6 +148,15 @@ export async function getEntryById(id: string): Promise<JournalEntry | undefined
   const { data } = await supabase.auth.getUser();
   const userId = data.user?.id;
   
+  if (userId) {
+    // Try to get entry from Supabase
+    const supabaseEntry = await getEntryByIdFromSupabase(id);
+    if (supabaseEntry) {
+      return supabaseEntry;
+    }
+  }
+  
+  // Fallback to local memory/storage
   return journalEntries.find(entry => {
     // If entry has no userId, it's from before this change
     if (!entry.userId) return entry.id === id;
@@ -112,6 +175,15 @@ export async function getEntryByDate(date: Date): Promise<JournalEntry | undefin
   const { data } = await supabase.auth.getUser();
   const userId = data.user?.id;
   
+  if (userId) {
+    // Try to get entry from Supabase
+    const supabaseEntry = await getEntryByDateFromSupabase(targetDate);
+    if (supabaseEntry) {
+      return supabaseEntry;
+    }
+  }
+  
+  // Fallback to local memory/storage
   return journalEntries.find(entry => {
     const entryDate = new Date(entry.date);
     entryDate.setHours(0, 0, 0, 0);
@@ -138,7 +210,15 @@ export function updateEntry(id: string, updates: Partial<JournalEntry>): Journal
   };
   
   journalEntries[index] = updatedEntry;
+  
+  // Save to Supabase
+  saveEntryToSupabase(updatedEntry).catch(error => {
+    console.error("Error saving updated entry to Supabase:", error);
+  });
+  
+  // Also keep localStorage in sync for backward compatibility
   saveEntriesToStorage();
+  
   return updatedEntry;
 }
 
@@ -148,8 +228,14 @@ export function deleteEntry(id: string): boolean {
   journalEntries = journalEntries.filter(entry => entry.id !== id);
   
   if (journalEntries.length < initialLength) {
+    // Also delete from Supabase
+    deleteEntryFromSupabase(id).catch(error => {
+      console.error("Error deleting entry from Supabase:", error);
+    });
+    
+    // Keep localStorage in sync for backward compatibility
     saveEntriesToStorage();
-    toast.success("Journal entry deleted");
+    
     return true;
   }
   
@@ -294,7 +380,17 @@ export async function autosaveEntry(
     };
     
     journalEntries.push(newEntry);
+    
+    // Save to Supabase
+    if (userId) {
+      saveEntryToSupabase(newEntry).catch(error => {
+        console.error("Error saving new entry to Supabase:", error);
+      });
+    }
+    
+    // Keep localStorage in sync for backward compatibility
     saveEntriesToStorage();
+    
     return true;
   }
   

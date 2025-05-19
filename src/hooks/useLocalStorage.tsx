@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useLocalStorage<T>(
   key: string,
@@ -20,6 +20,26 @@ export function useLocalStorage<T>(
   };
 
   const [storedValue, setStoredValue] = useState<T>(readValue);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Return a wrapped version of useState's setter function that persists the new value to localStorage
   const setValue = (value: T | ((val: T) => T)) => {
@@ -34,6 +54,13 @@ export function useLocalStorage<T>(
       // Save to local storage
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      }
+      
+      // If we're authenticated and the key implies user data, we could sync to Supabase
+      // This is just a placeholder for potential future expansion
+      if (isAuthenticated && key.includes('user-data')) {
+        // Example of how we could sync to Supabase
+        // syncToSupabase(key, valueToStore);
       }
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);
