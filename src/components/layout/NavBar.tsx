@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Moon, Sun, Flame } from "lucide-react";
@@ -6,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getAllEntries } from "@/services/journalService";
-import { useNavbarContext } from "@/contexts/NavbarContext";
+import { useNavbar } from "@/contexts/NavbarContext";
 
 export const NavBar = () => {
   const location = useLocation();
   const { theme, setTheme } = useTheme();
   const [streak, setStreak] = useState(0);
-  const { streak: contextStreak } = useNavbarContext();
+  const { streak: contextStreak } = useNavbar();
 
   // Calculate streak of consecutive days with journal entries
   useEffect(() => {
