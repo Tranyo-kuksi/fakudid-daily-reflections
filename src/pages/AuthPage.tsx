@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,7 +68,9 @@ export default function AuthPage() {
         setSavedEmail(email);
         toast.success("Registration successful! Please check your email for verification instructions.");
       } else if (mode === "forgotPassword") {
-        // The redirectTo should use the current origin combined with the reset path
+        console.log("Sending password reset email to:", email);
+        console.log("Using redirectTo:", `${window.location.origin}/auth/reset`);
+        
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth/reset`,
         });
@@ -76,8 +79,10 @@ export default function AuthPage() {
         
         setResetSent(true);
         toast.success("Password reset email sent. Please check your inbox.");
+        console.log("Password reset email sent successfully");
       }
     } catch (error: any) {
+      console.error("Auth error:", error.message);
       toast.error(error.message);
     } finally {
       setLoading(false);

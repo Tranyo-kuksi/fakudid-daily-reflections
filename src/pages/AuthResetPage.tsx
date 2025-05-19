@@ -123,9 +123,9 @@ export default function AuthResetPage() {
     try {
       console.log("Submitting password reset with token");
       
-      // Update user password with the token from the URL
-      const { error } = await supabase.auth.resetPasswordForEmail(password, {
-        redirectTo: window.location.origin + "/auth",
+      // Update user password using the correct method
+      const { error } = await supabase.auth.updateUser({
+        password: password
       });
       
       if (error) {

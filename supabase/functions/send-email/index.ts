@@ -206,8 +206,11 @@ function generateConfirmationEmail(data: any): string {
 function generateRecoveryEmail(data: any): string {
   const token = data?.token || "";
   
-  // Generate a URL that works consistently - use clean format
-  const actionUrl = `https://fakudid.com/auth/reset?token=${token}`;
+  // Generate a URL that works consistently - use the user's current origin
+  const userOrigin = data?.redirect_to?.split('/auth')[0] || "https://fakudid.com";
+  const actionUrl = `${userOrigin}/auth/reset?token=${token}`;
+  
+  console.log("Generated password reset URL:", actionUrl);
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
