@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -53,14 +54,19 @@ export function useLocalStorage<T>(
       
       // Save to local storage
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        try {
+          window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        } catch (error) {
+          console.warn(`Error setting localStorage key "${key}":`, error);
+          // On mobile, localStorage might have quota exceeded or be unavailable
+          console.log("Falling back to in-memory storage");
+        }
       }
       
-      // If we're authenticated and the key implies user data, we could sync to Supabase
-      // This is just a placeholder for potential future expansion
+      // If we're authenticated, we could sync to Supabase
       if (isAuthenticated && key.includes('user-data')) {
-        // Example of how we could sync to Supabase
-        // syncToSupabase(key, valueToStore);
+        // This is where you could add synchronization with Supabase
+        // for important user data that should persist across devices
       }
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);
@@ -69,11 +75,20 @@ export function useLocalStorage<T>(
 
   // Listen for changes to this localStorage key in other windows
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === key && e.newValue) {
-        setStoredValue(JSON.parse(e.newValue));
+        try {
+          setStoredValue(JSON.parse(e.newValue));
+        } catch (error) {
+          console.warn(`Error parsing localStorage value for key "${key}":`, error);
+        }
       }
     };
+    
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [key]);

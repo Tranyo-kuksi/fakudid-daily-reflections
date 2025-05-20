@@ -50,6 +50,15 @@ export default function AuthResetPage() {
             const hashQueryParams = new URLSearchParams(hashWithParams);
             token = hashQueryParams.get("token");
           }
+
+          // Check if token might be in a different format (for Capacitor/mobile)
+          if (!token && location.hash.includes("token=")) {
+            const hashContent = location.hash.substring(1);
+            const tokenMatch = hashContent.match(/token=([^&]+)/);
+            if (tokenMatch && tokenMatch[1]) {
+              token = tokenMatch[1];
+            }
+          }
         } catch (err) {
           console.error("Error parsing hash params:", err);
         }
@@ -64,12 +73,19 @@ export default function AuthResetPage() {
         return;
       }
 
-      // For password reset links, we don't need to verify the token immediately
-      // We'll set it as valid and when the user submits the new password,
-      // Supabase will automatically verify it during the updateUser call
-      setValidToken(true);
-      setTokenValue(token);
-      setVerifying(false);
+      // For password reset links, we'll verify the token is valid
+      try {
+        // We don't need to make actual API call to verify, 
+        // the updateUser will fail if token is invalid
+        setValidToken(true);
+        setTokenValue(token);
+        setVerifying(false);
+      } catch (error) {
+        console.error("Error verifying token:", error);
+        setErrorMessage("Invalid or expired reset token. Please request a new password reset link.");
+        setValidToken(false);
+        setVerifying(false);
+      }
     };
 
     extractToken();

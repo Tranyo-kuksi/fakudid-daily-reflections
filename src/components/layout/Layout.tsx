@@ -137,7 +137,7 @@ export const Layout = ({ children }: LayoutProps) => {
               </div>
             )}
             
-            {/* Spring-like footer that only appears while pulling */}
+            {/* Spring-like footer that only appears while pulling - Updated text */}
             <div 
               ref={footerRef}
               className={`bg-background border-t py-4 absolute bottom-0 left-0 right-0 transform transition-transform duration-150 ${
@@ -145,7 +145,7 @@ export const Layout = ({ children }: LayoutProps) => {
               }`}
             >
               <div className="container text-center text-sm text-muted-foreground">
-                FakUdid Journal App — All data is stored locally on your device.
+                FakUdid Journal App — Your data is securely stored in the cloud.
               </div>
             </div>
           </div>

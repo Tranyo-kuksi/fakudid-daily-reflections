@@ -221,6 +221,7 @@ function generateRecoveryEmail(data: any): string {
       </a>
       <p>Or copy and paste this URL into your browser:</p>
       <p style="word-break: break-all; color: #666;">${actionUrl}</p>
+      <p>If you're using the mobile app, you may need to open this link in your browser.</p>
       <p>If you didn't request a password reset, you can safely ignore this email.</p>
       <p>This link will expire in 24 hours for security reasons.</p>
     </div>
