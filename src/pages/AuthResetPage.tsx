@@ -28,7 +28,7 @@ export default function AuthResetPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Function to extract token from URL
+    // Function to extract token from URL and exchange it for a session
     const extractToken = async () => {
       console.log("Current URL:", window.location.href);
       console.log("Search params:", location.search);
@@ -36,25 +36,28 @@ export default function AuthResetPage() {
       
       // First check for token in searchParams (normal URL parameter)
       let token = searchParams.get("token");
+      let type = searchParams.get("type") || "recovery";
       
       // If not found, check for token in URL hash (fragment identifier)
       if (!token && location.hash) {
         try {
           // Try to parse the hash as search params
           const hashParams = new URLSearchParams(location.hash.substring(1));
-          token = hashParams.get("token");
+          token = hashParams.get("token") || hashParams.get("access_token");
+          type = hashParams.get("type") || type;
           
           // If still not found, check if the hash itself contains query params
           if (!token && location.hash.includes("?")) {
             const hashWithParams = location.hash.substring(location.hash.indexOf("?") + 1);
             const hashQueryParams = new URLSearchParams(hashWithParams);
-            token = hashQueryParams.get("token");
+            token = hashQueryParams.get("token") || hashQueryParams.get("access_token");
+            type = hashQueryParams.get("type") || type;
           }
 
           // Check if token might be in a different format (for Capacitor/mobile)
-          if (!token && location.hash.includes("token=")) {
+          if (!token && (location.hash.includes("token=") || location.hash.includes("access_token="))) {
             const hashContent = location.hash.substring(1);
-            const tokenMatch = hashContent.match(/token=([^&]+)/);
+            const tokenMatch = hashContent.match(/(?:token|access_token)=([^&]+)/);
             if (tokenMatch && tokenMatch[1]) {
               token = tokenMatch[1];
             }
@@ -65,6 +68,7 @@ export default function AuthResetPage() {
       }
       
       console.log("Reset token present:", token ? "Yes" : "No", token ? token.substring(0, 5) + "..." : "");
+      console.log("Token type:", type);
       
       if (!token) {
         setErrorMessage("Missing reset token. Please request a new password reset link.");
@@ -73,10 +77,22 @@ export default function AuthResetPage() {
         return;
       }
 
-      // For password reset links, we'll verify the token is valid
       try {
-        // We don't need to make actual API call to verify, 
-        // the updateUser will fail if token is invalid
+        // Exchange the token for a session - this is the key step that was missing
+        console.log("Attempting to exchange token for session...");
+        const { data, error } = await supabase.auth.exchangeCodeForSession(token);
+        
+        if (error) {
+          console.error("Error exchanging token for session:", error);
+          setErrorMessage("Invalid or expired reset token. Please request a new password reset link.");
+          setValidToken(false);
+          setVerifying(false);
+          return;
+        }
+        
+        console.log("Session created successfully:", data?.session ? "Yes" : "No");
+        
+        // Now we have a valid session and can proceed
         setValidToken(true);
         setTokenValue(token);
         setVerifying(false);
@@ -137,9 +153,9 @@ export default function AuthResetPage() {
     setErrorMessage("");
 
     try {
-      console.log("Submitting password reset with token");
+      console.log("Submitting password reset");
       
-      // Update user password using the correct method
+      // Now we can update the user's password because we have a valid session
       const { error } = await supabase.auth.updateUser({
         password: password
       });

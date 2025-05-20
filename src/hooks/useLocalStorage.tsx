@@ -63,13 +63,40 @@ export function useLocalStorage<T>(
         }
       }
       
-      // If we're authenticated, we could sync to Supabase
+      // If we're authenticated, sync to Supabase
       if (isAuthenticated && key.includes('user-data')) {
-        // This is where you could add synchronization with Supabase
-        // for important user data that should persist across devices
+        syncToSupabase(key, valueToStore);
       }
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);
+    }
+  };
+
+  // Function to sync data to Supabase when authenticated
+  const syncToSupabase = async (key: string, value: any) => {
+    try {
+      // This is where we sync important user data to Supabase
+      // Only sync specific user data keys that should persist across devices
+      if (key === 'user-data' || key === 'user-settings' || key === 'user-preferences') {
+        const { error } = await supabase
+          .from('user_data')
+          .upsert(
+            { 
+              user_id: (await supabase.auth.getUser()).data.user?.id,
+              key: key,
+              value: value 
+            }, 
+            { onConflict: 'user_id,key' }
+          );
+          
+        if (error) {
+          console.error('Error syncing data to Supabase:', error);
+        } else {
+          console.log('Successfully synced data to Supabase:', key);
+        }
+      }
+    } catch (error) {
+      console.error('Error in syncToSupabase:', error);
     }
   };
 
