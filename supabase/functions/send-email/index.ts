@@ -206,12 +206,22 @@ function generateConfirmationEmail(data: any): string {
 function generateRecoveryEmail(data: any): string {
   const token = data?.token || "";
   
-  // Generate a URL that works consistently and explicitly includes the token type
+  // Generate multiple format URLs to support various devices and apps
   const userOrigin = data?.redirect_to?.split('/auth')[0] || "https://fakudid.com";
-  // Make sure to use access_token parameter (same format that Supabase JS SDK looks for)
-  const actionUrl = `${userOrigin}/auth/reset#access_token=${token}&type=recovery`;
   
-  console.log("Generated password reset URL:", actionUrl);
+  // Create multiple formats of reset links to ensure compatibility across devices
+  // 1. Standard query parameter format
+  const queryParamUrl = `${userOrigin}/auth/reset?token=${token}&type=recovery`;
+  
+  // 2. Hash fragment format (what Supabase JS SDK often expects)
+  const hashFragmentUrl = `${userOrigin}/auth/reset#access_token=${token}&type=recovery`;
+  
+  // Use the standard query parameter URL as the primary action URL
+  const actionUrl = queryParamUrl;
+  
+  console.log("Generated password reset URLs:");
+  console.log("- Query param URL:", queryParamUrl);
+  console.log("- Hash fragment URL:", hashFragmentUrl);
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -222,8 +232,14 @@ function generateRecoveryEmail(data: any): string {
       </a>
       <p>Or copy and paste this URL into your browser:</p>
       <p style="word-break: break-all; color: #666;">${actionUrl}</p>
-      <p>If you're using the mobile app, you may need to open this link in your browser.</p>
-      <p>If you didn't request a password reset, you can safely ignore this email.</p>
+      
+      <div style="margin-top: 20px; padding: 15px; border: 1px solid #f0f0f0; background-color: #fafafa; border-radius: 5px;">
+        <p style="font-weight: bold; margin-top: 0;">Having trouble with the link?</p>
+        <p>If the link above doesn't work on your mobile device, try copying this alternate link:</p>
+        <p style="word-break: break-all; color: #666;">${hashFragmentUrl}</p>
+      </div>
+      
+      <p style="margin-top: 20px;">If you didn't request a password reset, you can safely ignore this email.</p>
       <p>This link will expire in 24 hours for security reasons.</p>
     </div>
   `;

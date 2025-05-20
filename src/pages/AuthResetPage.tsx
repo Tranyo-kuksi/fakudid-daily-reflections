@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,52 +27,76 @@ export default function AuthResetPage() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  // Function to extract token from URL (both query param and hash)
+  // Enhanced function to extract token from URL (both query param and hash)
   const extractTokenFromUrl = () => {
     console.log("Current URL:", window.location.href);
     console.log("Search params:", location.search);
     console.log("Hash:", location.hash);
     
-    // First check for token in searchParams (normal URL parameter)
-    let token = searchParams.get("token");
-    let type = searchParams.get("type") || "recovery";
+    let token = null;
+    let type = "recovery";
     
-    // If not found, check for token in URL hash (fragment identifier)
-    if (!token && location.hash) {
-      try {
-        // Try to parse the hash as search params
-        const hashParams = new URLSearchParams(location.hash.substring(1));
-        token = hashParams.get("token") || hashParams.get("access_token");
+    // Case 1: Check for token in URL query parameters
+    token = searchParams.get("token");
+    if (token) {
+      type = searchParams.get("type") || "recovery";
+      console.log("Found token in query params");
+      return { token, type };
+    }
+    
+    // Case 2: Check for token in URL hash (fragment identifier)
+    if (location.hash) {
+      // First try standard hash format: #access_token=
+      const hashContent = location.hash.substring(1);
+      const hashParams = new URLSearchParams(hashContent);
+      token = hashParams.get("token") || hashParams.get("access_token");
+      
+      if (token) {
         type = hashParams.get("type") || type;
-        
-        // If still not found, check if the hash itself contains query params
-        if (!token && location.hash.includes("?")) {
-          const hashWithParams = location.hash.substring(location.hash.indexOf("?") + 1);
-          const hashQueryParams = new URLSearchParams(hashWithParams);
-          token = hashQueryParams.get("token") || hashQueryParams.get("access_token");
-          type = hashQueryParams.get("type") || type;
+        console.log("Found token in hash params");
+        return { token, type };
+      }
+      
+      // Case 3: Try more formats like #/auth/v1/callback?access_token=
+      if (location.hash.includes("access_token=")) {
+        const regex = /access_token=([^&]+)/;
+        const match = location.hash.match(regex);
+        if (match && match[1]) {
+          token = match[1];
+          console.log("Found token using regex in hash");
+          return { token, type };
         }
-
-        // Check if token might be in a different format (for Capacitor/mobile)
-        if (!token && (location.hash.includes("token=") || location.hash.includes("access_token="))) {
-          const hashContent = location.hash.substring(1);
-          const tokenMatch = hashContent.match(/(?:token|access_token)=([^&]+)/);
-          if (tokenMatch && tokenMatch[1]) {
-            token = tokenMatch[1];
-          }
+      }
+      
+      // Case 4: For mobile apps that might have different formats
+      if (location.hash.includes("token=")) {
+        const regex = /token=([^&]+)/;
+        const match = location.hash.match(regex);
+        if (match && match[1]) {
+          token = match[1];
+          console.log("Found token using token= regex in hash");
+          return { token, type };
         }
-      } catch (err) {
-        console.error("Error parsing hash params:", err);
       }
     }
     
-    console.log("Reset token present:", token ? "Yes" : "No", token ? token.substring(0, 5) + "..." : "");
-    console.log("Token type:", type);
+    // Case 5: Check full URL for token patterns (for some mobile apps)
+    const fullUrl = window.location.href;
+    if (fullUrl.includes("token=") || fullUrl.includes("access_token=")) {
+      let tokenRegex = /[?&#](access_token|token)=([^&]+)/;
+      let match = fullUrl.match(tokenRegex);
+      if (match && match[2]) {
+        token = match[2];
+        console.log("Found token in full URL search");
+        return { token, type };
+      }
+    }
     
-    return { token, type };
+    console.log("No token found in URL");
+    return { token: null, type };
   };
 
-  // Set up listeners for auth state changes first
+  // Set up listeners for auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed. Event:", event);
@@ -91,13 +116,10 @@ export default function AuthResetPage() {
     return () => subscription.unsubscribe();
   }, []);
   
-  // Then try to get session from URL and handle initial state
+  // Handle initial state and token exchange
   useEffect(() => {
     const initializePasswordReset = async () => {
       try {
-        // Try to get session from URL for hash-based tokens
-        // Using exchangeCodeForSession instead of getSessionFromUrl which is not available
-        
         // Extract token information
         const { token, type } = extractTokenFromUrl();
         
