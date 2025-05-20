@@ -22,7 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background w-full">
       <NavBar />
       <main className={`flex-1 pt-14 ${isOpen ? "ml-64" : "ml-0"} transition-all duration-300`}>
         {children}

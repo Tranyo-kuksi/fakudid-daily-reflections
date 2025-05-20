@@ -9,6 +9,7 @@ import { Layout } from "@/components/layout/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { NavbarProvider } from "@/contexts/NavbarContext";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { PrivateRoute } from "@/components/auth/PrivateRoute";
 
 // Pages
@@ -35,19 +36,21 @@ const App = () => (
           <AuthProvider>
             <SubscriptionProvider>
               <NavbarProvider>
-                <Routes>
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/auth/verify" element={<AuthVerifyPage />} />
-                  <Route path="/auth/reset" element={<AuthResetPage />} />
-                  <Route path="/" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
-                  <Route path="/entry/:id" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
-                  <Route path="/history" element={<PrivateRoute><Layout><HistoryPage /></Layout></PrivateRoute>} />
-                  <Route path="/mood-tracker" element={<PrivateRoute><Layout><MoodTrackerPage /></Layout></PrivateRoute>} />
-                  <Route path="/customize" element={<PrivateRoute><Layout><CustomizePage /></Layout></PrivateRoute>} />
-                  <Route path="/settings" element={<PrivateRoute><Layout><SettingsPage /></Layout></PrivateRoute>} />
-                  <Route path="/email-test" element={<PrivateRoute><Layout><EmailTest /></Layout></PrivateRoute>} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <SidebarProvider>
+                  <Routes>
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/auth/verify" element={<AuthVerifyPage />} />
+                    <Route path="/auth/reset" element={<AuthResetPage />} />
+                    <Route path="/" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
+                    <Route path="/entry/:id" element={<PrivateRoute><Layout><JournalPage /></Layout></PrivateRoute>} />
+                    <Route path="/history" element={<PrivateRoute><Layout><HistoryPage /></Layout></PrivateRoute>} />
+                    <Route path="/mood-tracker" element={<PrivateRoute><Layout><MoodTrackerPage /></Layout></PrivateRoute>} />
+                    <Route path="/customize" element={<PrivateRoute><Layout><CustomizePage /></Layout></PrivateRoute>} />
+                    <Route path="/settings" element={<PrivateRoute><Layout><SettingsPage /></Layout></PrivateRoute>} />
+                    <Route path="/email-test" element={<PrivateRoute><Layout><EmailTest /></Layout></PrivateRoute>} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </SidebarProvider>
               </NavbarProvider>
             </SubscriptionProvider>
           </AuthProvider>
