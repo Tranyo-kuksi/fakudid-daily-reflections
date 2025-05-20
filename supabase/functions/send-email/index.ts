@@ -208,7 +208,7 @@ function generateRecoveryEmail(data: any): string {
   
   // Generate a URL that works consistently and explicitly includes the token type
   const userOrigin = data?.redirect_to?.split('/auth')[0] || "https://fakudid.com";
-  // Make sure to include access_token and type=recovery in the URL for proper token exchange
+  // Make sure to use access_token parameter (same format that Supabase JS SDK looks for)
   const actionUrl = `${userOrigin}/auth/reset#access_token=${token}&type=recovery`;
   
   console.log("Generated password reset URL:", actionUrl);

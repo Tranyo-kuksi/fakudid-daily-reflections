@@ -84,7 +84,7 @@ export function useLocalStorage<T>(
         return;
       }
 
-      // Create a properly formatted entry for the user_preferences table
+      // Create a properly formatted entry for the journal_entries table
       // We'll store the data in the journal_entries table for now
       // In a more complete solution, you would create a dedicated user_preferences table
       const entryData = {
