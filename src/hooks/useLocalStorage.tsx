@@ -64,7 +64,7 @@ export function useLocalStorage<T>(
       }
       
       // If we're authenticated, sync to Supabase
-      if (isAuthenticated && key.includes('user-data')) {
+      if (isAuthenticated && (key === 'user-settings' || key === 'user-preferences')) {
         syncToSupabase(key, valueToStore);
       }
     } catch (error) {
@@ -75,25 +75,35 @@ export function useLocalStorage<T>(
   // Function to sync data to Supabase when authenticated
   const syncToSupabase = async (key: string, value: any) => {
     try {
-      // This is where we sync important user data to Supabase
-      // Only sync specific user data keys that should persist across devices
-      if (key === 'user-data' || key === 'user-settings' || key === 'user-preferences') {
-        const { error } = await supabase
-          .from('user_data')
-          .upsert(
-            { 
-              user_id: (await supabase.auth.getUser()).data.user?.id,
-              key: key,
-              value: value 
-            }, 
-            { onConflict: 'user_id,key' }
-          );
-          
-        if (error) {
-          console.error('Error syncing data to Supabase:', error);
-        } else {
-          console.log('Successfully synced data to Supabase:', key);
-        }
+      // Get current user
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      
+      if (!userId) {
+        console.log("No user ID available for syncing data");
+        return;
+      }
+
+      // Create a properly formatted entry for the user_preferences table
+      // We'll store the data in the journal_entries table for now
+      // In a more complete solution, you would create a dedicated user_preferences table
+      const entryData = {
+        id: `${key}-${userId}`, // Create a unique ID
+        user_id: userId,
+        date: new Date().toISOString(), // Required field
+        title: `User ${key.replace('user-', '')}`,
+        content: JSON.stringify(value),
+      };
+      
+      // Save to journal_entries as a special type of entry
+      const { error } = await supabase
+        .from('journal_entries')
+        .upsert(entryData, { onConflict: 'id' });
+        
+      if (error) {
+        console.error('Error syncing data to Supabase:', error);
+      } else {
+        console.log('Successfully synced data to Supabase:', key);
       }
     } catch (error) {
       console.error('Error in syncToSupabase:', error);
