@@ -69,13 +69,10 @@ export default function AuthPage() {
         toast.success("Registration successful! Please check your email for verification instructions.");
       } else if (mode === "forgotPassword") {
         console.log("Sending password reset email to:", email);
-        
-        // Get the current origin for the redirect URL
-        const origin = window.location.origin;
-        console.log("Using redirectTo:", `${origin}/auth/reset`);
+        console.log("Using redirectTo:", `${window.location.origin}/auth/reset`);
         
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${origin}/auth/reset`,
+          redirectTo: `${window.location.origin}/auth/reset`,
         });
         
         if (error) throw error;
