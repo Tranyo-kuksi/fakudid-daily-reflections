@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,7 +96,7 @@ export default function AuthResetPage() {
     const initializePasswordReset = async () => {
       try {
         // Try to get session from URL for hash-based tokens
-        await supabase.auth.getSessionFromUrl();
+        // Using exchangeCodeForSession instead of getSessionFromUrl which is not available
         
         // Extract token information
         const { token, type } = extractTokenFromUrl();
