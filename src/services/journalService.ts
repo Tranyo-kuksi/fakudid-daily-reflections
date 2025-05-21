@@ -28,7 +28,19 @@ export interface JournalEntry {
   };
 }
 
-// Load entries from localStorage with user ID filtering
+// In-memory cache for journal entries
+let journalEntries: JournalEntry[] = [];
+
+// Save entries to localStorage for offline access
+function saveEntriesToStorage(entries: JournalEntry[]) {
+  try {
+    localStorage.setItem('journalEntries', JSON.stringify(entries));
+  } catch (error) {
+    console.error('Failed to save journal entries to localStorage:', error);
+  }
+}
+
+// Load entries from localStorage as a fallback
 function loadEntriesFromStorage(): JournalEntry[] {
   try {
     const savedEntries = localStorage.getItem('journalEntries');
@@ -37,21 +49,32 @@ function loadEntriesFromStorage(): JournalEntry[] {
       return value;
     }) : [];
   } catch (error) {
-    console.error('Failed to load journal entries:', error);
+    console.error('Failed to load journal entries from localStorage:', error);
     return [];
   }
 }
 
-// In-memory storage for journal entries (in a real app, this would be a database)
-let journalEntries: JournalEntry[] = [];
-
-// Save entries to localStorage - we'll keep this for backward compatibility
-function saveEntriesToStorage() {
-  try {
-    localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-  } catch (error) {
-    console.error('Failed to save journal entries:', error);
-    toast.error("Failed to save your journal entries");
+// Sync local entries with Supabase when user is logged in
+async function syncLocalEntriesToSupabase() {
+  const { data } = await supabase.auth.getSession();
+  const userId = data.session?.user?.id;
+  
+  if (userId && journalEntries.length > 0) {
+    console.log("Syncing local entries to Supabase...");
+    
+    // Filter entries that belong to this user or have no userId
+    const userEntries = journalEntries.filter(entry => 
+      !entry.userId || entry.userId === userId
+    );
+    
+    for (const entry of userEntries) {
+      // Ensure each entry has the current user's ID
+      if (!entry.userId) {
+        entry.userId = userId;
+      }
+      
+      await saveEntryToSupabase(entry);
+    }
   }
 }
 
@@ -64,29 +87,23 @@ export async function getAllEntries(): Promise<JournalEntry[]> {
     
     if (userId) {
       // Try to fetch entries from Supabase first
+      console.log("Fetching entries from Supabase...");
       const supabaseEntries = await fetchAllEntriesFromSupabase();
       
       if (supabaseEntries.length > 0) {
         journalEntries = supabaseEntries;
+        // Update localStorage for offline access
+        saveEntriesToStorage(journalEntries);
         return [...journalEntries].sort((a, b) => b.date.getTime() - a.date.getTime());
       }
 
-      // If no entries in Supabase, try to migrate from localStorage
+      // If no entries in Supabase, try to sync from localStorage
       if (journalEntries.length === 0) {
         journalEntries = loadEntriesFromStorage();
         
         // Migrate localStorage entries to Supabase if there are any
         if (journalEntries.length > 0) {
-          console.log("Migrating localStorage entries to Supabase...");
-          
-          for (const entry of journalEntries) {
-            // Make sure userId is set
-            if (!entry.userId) {
-              entry.userId = userId;
-            }
-            
-            await saveEntryToSupabase(entry);
-          }
+          await syncLocalEntriesToSupabase();
         }
       }
     } else {
@@ -125,6 +142,14 @@ export async function getTodayEntry(): Promise<JournalEntry | undefined> {
     // Try to get today's entry from Supabase
     const todayEntry = await getEntryByDateFromSupabase(today);
     if (todayEntry) {
+      // Update the local cache to include this entry
+      const index = journalEntries.findIndex(entry => entry.id === todayEntry.id);
+      if (index >= 0) {
+        journalEntries[index] = todayEntry;
+      } else {
+        journalEntries.push(todayEntry);
+      }
+      saveEntriesToStorage(journalEntries);
       return todayEntry;
     }
   }
@@ -152,6 +177,14 @@ export async function getEntryById(id: string): Promise<JournalEntry | undefined
     // Try to get entry from Supabase
     const supabaseEntry = await getEntryByIdFromSupabase(id);
     if (supabaseEntry) {
+      // Update the local cache to include this entry
+      const index = journalEntries.findIndex(entry => entry.id === supabaseEntry.id);
+      if (index >= 0) {
+        journalEntries[index] = supabaseEntry;
+      } else {
+        journalEntries.push(supabaseEntry);
+      }
+      saveEntriesToStorage(journalEntries);
       return supabaseEntry;
     }
   }
@@ -179,6 +212,14 @@ export async function getEntryByDate(date: Date): Promise<JournalEntry | undefin
     // Try to get entry from Supabase
     const supabaseEntry = await getEntryByDateFromSupabase(targetDate);
     if (supabaseEntry) {
+      // Update the local cache to include this entry
+      const index = journalEntries.findIndex(entry => entry.id === supabaseEntry.id);
+      if (index >= 0) {
+        journalEntries[index] = supabaseEntry;
+      } else {
+        journalEntries.push(supabaseEntry);
+      }
+      saveEntriesToStorage(journalEntries);
       return supabaseEntry;
     }
   }
@@ -211,13 +252,13 @@ export function updateEntry(id: string, updates: Partial<JournalEntry>): Journal
   
   journalEntries[index] = updatedEntry;
   
-  // Save to Supabase
+  // Save to Supabase immediately
   saveEntryToSupabase(updatedEntry).catch(error => {
     console.error("Error saving updated entry to Supabase:", error);
   });
   
   // Also keep localStorage in sync for backward compatibility
-  saveEntriesToStorage();
+  saveEntriesToStorage(journalEntries);
   
   return updatedEntry;
 }
@@ -228,13 +269,13 @@ export function deleteEntry(id: string): boolean {
   journalEntries = journalEntries.filter(entry => entry.id !== id);
   
   if (journalEntries.length < initialLength) {
-    // Also delete from Supabase
+    // Also delete from Supabase immediately
     deleteEntryFromSupabase(id).catch(error => {
       console.error("Error deleting entry from Supabase:", error);
     });
     
     // Keep localStorage in sync for backward compatibility
-    saveEntriesToStorage();
+    saveEntriesToStorage(journalEntries);
     
     return true;
   }
@@ -338,7 +379,7 @@ export async function deleteAttachment(entryId: string, attachmentIndex: number)
   return updatedEntry;
 }
 
-// Autosave functionality - modified to handle past entries properly
+// Autosave functionality - improved to handle sync with Supabase
 export async function autosaveEntry(
   title: string, 
   content: string, 
@@ -346,53 +387,107 @@ export async function autosaveEntry(
   templateData?: { sections: Record<string, string[]> },
   entryId?: string // Add entryId parameter to handle existing entries
 ): Promise<boolean> {
-  // If we have an entryId, update that specific entry instead of looking for today's
-  if (entryId) {
-    const existingEntry = journalEntries.find(entry => entry.id === entryId);
-    if (existingEntry) {
-      updateEntry(entryId, { title, content, mood, templateData });
+  try {
+    // Get current user ID
+    const { data } = await supabase.auth.getUser();
+    const userId = data.user?.id;
+
+    // If we have an entryId, update that specific entry instead of looking for today's
+    if (entryId) {
+      const existingEntry = journalEntries.find(entry => entry.id === entryId);
+      if (existingEntry) {
+        const updated = updateEntry(entryId, { title, content, mood, templateData });
+        return !!updated;
+      }
+    }
+    
+    // Otherwise check for today's entry
+    let todayEntry = await getTodayEntry();
+    
+    if (todayEntry) {
+      // Update existing today's entry
+      updateEntry(todayEntry.id, { title, content, mood, templateData });
+      return true;
+    } else if (title.trim() || content.trim() || mood || (templateData && Object.keys(templateData.sections).length > 0)) {
+      // Create new entry if there's content, mood, or template data
+      const newEntry: JournalEntry = {
+        id: Date.now().toString(),
+        date: new Date(),
+        title,
+        content,
+        mood,
+        attachments: [],
+        userId,
+        templateData
+      };
+      
+      journalEntries.push(newEntry);
+      
+      // Save to Supabase immediately if user is logged in
+      if (userId) {
+        saveEntryToSupabase(newEntry).catch(error => {
+          console.error("Error saving new entry to Supabase:", error);
+        });
+      }
+      
+      // Keep localStorage in sync for backward compatibility
+      saveEntriesToStorage(journalEntries);
+      
       return true;
     }
+    
+    return false;
+  } catch (error) {
+    console.error("Error in autosaveEntry:", error);
+    toast.error("Failed to save your journal entry");
+    return false;
   }
-  
-  // Otherwise check for today's entry as before
-  let todayEntry = await getTodayEntry();
-  
-  // Get current user ID
-  const { data } = await supabase.auth.getUser();
-  const userId = data.user?.id;
-  
-  if (todayEntry) {
-    // Update existing today's entry
-    updateEntry(todayEntry.id, { title, content, mood, templateData });
-    return true;
-  } else if (title.trim() || content.trim() || mood || (templateData && Object.keys(templateData.sections).length > 0)) {
-    // Create new entry if there's content, mood, or template data
-    const newEntry: JournalEntry = {
-      id: Date.now().toString(),
-      date: new Date(),
-      title,
-      content,
-      mood,
-      attachments: [],
-      userId,
-      templateData
-    };
+}
+
+// Force a sync from Supabase to local storage
+export async function syncFromSupabase(): Promise<boolean> {
+  try {
+    const supabaseEntries = await fetchAllEntriesFromSupabase();
     
-    journalEntries.push(newEntry);
-    
-    // Save to Supabase
-    if (userId) {
-      saveEntryToSupabase(newEntry).catch(error => {
-        console.error("Error saving new entry to Supabase:", error);
-      });
+    if (supabaseEntries.length > 0) {
+      // Replace local entries with Supabase entries
+      journalEntries = supabaseEntries;
+      saveEntriesToStorage(journalEntries);
+      return true;
     }
     
-    // Keep localStorage in sync for backward compatibility
-    saveEntriesToStorage();
-    
-    return true;
+    return false;
+  } catch (error) {
+    console.error("Error syncing from Supabase:", error);
+    return false;
   }
-  
-  return false;
 }
+
+// Initialize - run this when the app starts
+export async function initializeJournalService(): Promise<void> {
+  try {
+    // First load from localStorage for immediate display
+    journalEntries = loadEntriesFromStorage();
+    
+    // Then try to sync from Supabase in the background
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      await syncFromSupabase();
+    }
+
+    // Set up auth state change listener
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // When user signs in, sync from Supabase
+        setTimeout(async () => {
+          await syncFromSupabase();
+        }, 0);
+      }
+    });
+  } catch (error) {
+    console.error("Error initializing journal service:", error);
+  }
+}
+
+// Run initialization
+initializeJournalService();

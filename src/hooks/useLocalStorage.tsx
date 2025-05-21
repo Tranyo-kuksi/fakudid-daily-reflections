@@ -72,6 +72,8 @@ export function useLocalStorage<T>(
       
       if (error) {
         console.log(`No data found in cloud storage or error: ${error.message}`);
+        // If no data in storage, try to load from database as fallback
+        await loadFromDatabase(uid, storageKey);
         return;
       }
       
@@ -88,10 +90,47 @@ export function useLocalStorage<T>(
           }
         } catch (parseError) {
           console.error(`Error parsing cloud data for ${storageKey}:`, parseError);
+          // If storage data is corrupt, try database
+          await loadFromDatabase(uid, storageKey);
         }
       }
     } catch (error) {
       console.error(`Error loading from cloud storage for ${storageKey}:`, error);
+      // If storage fails, try database
+      await loadFromDatabase(uid, storageKey);
+    }
+  };
+  
+  // Fallback function to load from database
+  const loadFromDatabase = async (uid: string, storageKey: string) => {
+    try {
+      console.log(`Falling back to database for ${storageKey}...`);
+      
+      // Convert key names to match database columns
+      const preferenceField = storageKey.replace('user-', '');
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(preferenceField)
+        .eq('id', uid)
+        .single();
+        
+      if (error) {
+        console.error(`Error loading ${preferenceField} from profiles:`, error);
+        return;
+      }
+      
+      if (data && data[preferenceField]) {
+        console.log(`✅ Loaded ${storageKey} from database`);
+        setStoredValue(data[preferenceField]);
+        
+        // Also update localStorage for offline access
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(storageKey, JSON.stringify(data[preferenceField]));
+        }
+      }
+    } catch (error) {
+      console.error(`Error loading from database for ${storageKey}:`, error);
     }
   };
 

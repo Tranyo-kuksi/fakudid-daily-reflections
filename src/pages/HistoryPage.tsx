@@ -1,12 +1,14 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Trash2, ImageIcon, LayoutGrid } from "lucide-react";
+import { Search, Trash2, ImageIcon, LayoutGrid, RefreshCw } from "lucide-react";
 import { 
   getAllEntries, 
   deleteEntry,
+  syncFromSupabase,
   JournalEntry 
 } from "@/services/journalService";
 import { toast } from "@/components/ui/sonner";
@@ -22,24 +24,35 @@ export default function HistoryPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [viewingTemplateEntry, setViewingTemplateEntry] = useState<JournalEntry | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const navigate = useNavigate();
   const { isSubscribed } = useSubscription();
 
   // Load all entries
   useEffect(() => {
-    const loadEntries = async () => {
-      const allEntries = await getAllEntries();
-      setEntries(allEntries);
-      setFilteredEntries(allEntries);
-    };
-    
     loadEntries();
-    
-    // Setup an interval to check for new entries (simulating real-time updates)
-    const intervalId = setInterval(() => loadEntries(), 10000);
-    
-    return () => clearInterval(intervalId);
   }, []);
+
+  const loadEntries = async () => {
+    const allEntries = await getAllEntries();
+    setEntries(allEntries);
+    setFilteredEntries(allEntries);
+  };
+
+  // Force sync from Supabase
+  const forceSync = async () => {
+    setIsSyncing(true);
+    try {
+      await syncFromSupabase();
+      await loadEntries();
+      toast.success("Journal entries synchronized successfully");
+    } catch (error) {
+      console.error("Error syncing entries:", error);
+      toast.error("Failed to synchronize journal entries");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,17 +179,27 @@ export default function HistoryPage() {
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">Journal History</h1>
       
-      <form onSubmit={handleSearch} className="flex gap-2 mb-8">
-        <Input
-          placeholder="Search entries by text, title or date..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1"
-        />
-        <Button type="submit" variant="outline" className="px-3">
-          <Search className="h-5 w-5" />
+      <div className="flex gap-2 mb-8">
+        <form onSubmit={handleSearch} className="flex gap-2 flex-1">
+          <Input
+            placeholder="Search entries by text, title or date..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1"
+          />
+          <Button type="submit" variant="outline" className="px-3">
+            <Search className="h-5 w-5" />
+          </Button>
+        </form>
+        <Button 
+          onClick={forceSync} 
+          variant="outline" 
+          disabled={isSyncing} 
+          title="Sync entries from cloud"
+        >
+          <RefreshCw className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
         </Button>
-      </form>
+      </div>
       
       <div className="space-y-4">
         {filteredEntries.length > 0 ? (
