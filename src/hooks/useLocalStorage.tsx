@@ -22,25 +22,78 @@ export function useLocalStorage<T>(
 
   const [storedValue, setStoredValue] = useState<T>(readValue);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Check authentication status on mount
+  // Check authentication status on mount and try to load from Storage
   useEffect(() => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
+      const session = data.session;
+      const id = session?.user?.id || null;
+      
+      setIsAuthenticated(!!session);
+      setUserId(id);
+      
+      // If authenticated, try to fetch from cloud storage
+      if (id && (key === 'user-settings' || key === 'user-preferences')) {
+        await loadFromCloudStorage(id, key);
+      }
     };
     
     checkAuth();
     
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const isAuth = !!session;
+      setIsAuthenticated(isAuth);
+      
+      const newUserId = session?.user?.id || null;
+      setUserId(newUserId);
+      
+      // If user just logged in, try to load from cloud storage
+      if (isAuth && newUserId && (key === 'user-settings' || key === 'user-preferences')) {
+        await loadFromCloudStorage(newUserId, key);
+      }
     });
     
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [key]);
+  
+  // Function to load data from cloud storage
+  const loadFromCloudStorage = async (uid: string, storageKey: string) => {
+    try {
+      const filePath = `${uid}/${storageKey}.json`;
+      
+      const { data, error } = await supabase.storage
+        .from('user-files')
+        .download(filePath);
+      
+      if (error) {
+        console.log(`No data found in cloud storage or error: ${error.message}`);
+        return;
+      }
+      
+      if (data) {
+        const text = await data.text();
+        try {
+          const parsed = JSON.parse(text);
+          console.log(`✅ Loaded ${storageKey} from cloud storage`);
+          setStoredValue(parsed);
+          
+          // Also update localStorage for offline access
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(storageKey, text);
+          }
+        } catch (parseError) {
+          console.error(`Error parsing cloud data for ${storageKey}:`, parseError);
+        }
+      }
+    } catch (error) {
+      console.error(`Error loading from cloud storage for ${storageKey}:`, error);
+    }
+  };
 
   // Return a wrapped version of useState's setter function that persists the new value to localStorage
   const setValue = (value: T | ((val: T) => T)) => {
@@ -63,84 +116,87 @@ export function useLocalStorage<T>(
         }
       }
       
-      // If we're authenticated, sync to Supabase
-      if (isAuthenticated && (key === 'user-settings' || key === 'user-preferences')) {
-        syncToSupabase(key, valueToStore);
+      // If we're authenticated, sync to Supabase Storage
+      if (isAuthenticated && userId && (key === 'user-settings' || key === 'user-preferences')) {
+        syncToSupabaseStorage(userId, key, valueToStore);
       }
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);
     }
   };
 
-  // Function to sync data to Supabase when authenticated
-  const syncToSupabase = async (key: string, value: any) => {
+  // Function to sync data to Supabase Storage when authenticated
+  const syncToSupabaseStorage = async (uid: string, storageKey: string, value: any) => {
     try {
-      // Get current user
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
+      const filePath = `${uid}/${storageKey}.json`;
       
-      if (!userId) {
-        console.log("No user ID available for syncing data");
-        return;
-      }
-
-      // Use the profiles table to store user preferences
-      // First, check if the profile exists
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .single();
-
-      const preferenceField = key.replace('user-', '');
-      
-      if (existingProfile) {
-        // Update the profile with the new preferences
-        const updateData = { 
-          [preferenceField]: value, 
-          updated_at: new Date().toISOString() 
-        };
+      const { data, error } = await supabase.storage
+        .from('user-files')
+        .upload(filePath, JSON.stringify(value), {
+          upsert: true,
+          cacheControl: '3600',
+          contentType: 'application/json',
+        });
         
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update(updateData)
-          .eq('id', userId);
-          
-        if (updateError) {
-          console.error('Error updating preferences in profiles:', updateError);
-          
-          // Fallback: Save to journal_entries as a special type of entry
-          fallbackToJournalEntries(userId, key, value);
-        } else {
-          console.log('Successfully synced data to profiles:', key);
-        }
+      if (error) {
+        console.error('Error uploading to Supabase Storage:', error);
+        
+        // Fallback to database if storage fails
+        fallbackToDatabaseSync(uid, storageKey, value);
       } else {
-        // Profile doesn't exist, this shouldn't happen normally
-        // But just in case, use the fallback method
-        fallbackToJournalEntries(userId, key, value);
+        console.log(`✅ Synced ${storageKey} to Supabase Storage`);
       }
     } catch (error) {
-      console.error('Error in syncToSupabase:', error);
+      console.error('Error in syncToSupabaseStorage:', error);
       
-      // Try to get user ID again for fallback
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      
+      // Try fallback method if the primary method fails
       if (userId) {
-        fallbackToJournalEntries(userId, key, value);
+        fallbackToDatabaseSync(userId, storageKey, value);
       }
     }
   };
   
-  // Fallback function to save preferences to journal_entries
-  const fallbackToJournalEntries = async (userId: string, key: string, value: any) => {
+  // Fallback function to save preferences to profiles table
+  const fallbackToDatabaseSync = async (uid: string, storageKey: string, value: any) => {
+    try {
+      console.log("Falling back to database sync...");
+      
+      // Use the profiles table as primary fallback
+      const preferenceField = storageKey.replace('user-', '');
+      
+      const updateData = { 
+        [preferenceField]: value, 
+        updated_at: new Date().toISOString() 
+      };
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', uid);
+        
+      if (updateError) {
+        console.error('Error updating preferences in profiles:', updateError);
+        
+        // Secondary fallback: Save to journal_entries
+        fallbackToJournalEntries(uid, storageKey, value);
+      } else {
+        console.log('Successfully synced data to profiles table as fallback');
+      }
+    } catch (error) {
+      console.error('Error in fallbackToDatabaseSync:', error);
+      fallbackToJournalEntries(uid, storageKey, value);
+    }
+  };
+  
+  // Last resort fallback function to save preferences to journal_entries
+  const fallbackToJournalEntries = async (uid: string, storageKey: string, value: any) => {
     try {
       // Format the data for journal_entries table
       const entryData = {
-        id: `${key}-${userId}`, // Create a unique ID
-        user_id: userId,
+        id: `${storageKey}-${uid}`, // Create a unique ID
+        user_id: uid,
         date: new Date().toISOString(), // Required field
-        title: `User ${key.replace('user-', '')}`,
+        title: `User ${storageKey.replace('user-', '')}`,
         content: JSON.stringify(value),
       };
       
@@ -151,7 +207,7 @@ export function useLocalStorage<T>(
       if (error) {
         console.error('Error syncing data to journal_entries:', error);
       } else {
-        console.log('Successfully synced data to journal_entries:', key);
+        console.log('Successfully synced data to journal_entries as secondary fallback');
       }
     } catch (error) {
       console.error('Error in fallbackToJournalEntries:', error);
