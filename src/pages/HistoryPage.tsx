@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Trash2, ImageIcon, LayoutGrid, RefreshCw, CloudSync } from "lucide-react";
+import { Search, Trash2, ImageIcon, LayoutGrid, RefreshCw, CloudUpload } from "lucide-react";
 import { 
   getAllEntries, 
   deleteEntry,
@@ -198,7 +199,7 @@ export default function HistoryPage() {
           disabled={isSyncing}
           className="gap-2"
         >
-          <CloudSync className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
+          <CloudUpload className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
           {isSyncing ? "Syncing..." : "Sync Now"}
         </Button>
       </div>
