@@ -84,26 +84,51 @@ export function useLocalStorage<T>(
         return;
       }
 
-      // Create a properly formatted entry for the journal_entries table
-      // We'll store the data in the journal_entries table for now
-      // In a more complete solution, you would create a dedicated user_preferences table
-      const entryData = {
+      // Create a properly formatted entry for the user_preferences table
+      // We'll create a dedicated table for this instead of using journal_entries
+      const preferencesData = {
         id: `${key}-${userId}`, // Create a unique ID
         user_id: userId,
-        date: new Date().toISOString(), // Required field
-        title: `User ${key.replace('user-', '')}`,
-        content: JSON.stringify(value),
+        key: key.replace('user-', ''), // Store just 'settings' or 'preferences'
+        data: value,
+        updated_at: new Date().toISOString(),
       };
       
-      // Save to journal_entries as a special type of entry
-      const { error } = await supabase
-        .from('journal_entries')
-        .upsert(entryData, { onConflict: 'id' });
+      // Check if the user_preferences table exists, if not, we'll fall back to using journal_entries
+      const { error: checkError } = await supabase
+        .from('user_preferences')
+        .select('id', { count: 'exact', head: true });
+      
+      if (checkError && checkError.code === '42P01') { // Table doesn't exist
+        // Fallback: Save to journal_entries as a special type of entry
+        const entryData = {
+          id: `${key}-${userId}`, // Create a unique ID
+          user_id: userId,
+          date: new Date().toISOString(), // Required field
+          title: `User ${key.replace('user-', '')}`,
+          content: JSON.stringify(value),
+        };
         
-      if (error) {
-        console.error('Error syncing data to Supabase:', error);
+        const { error } = await supabase
+          .from('journal_entries')
+          .upsert(entryData, { onConflict: 'id' });
+          
+        if (error) {
+          console.error('Error syncing data to journal_entries:', error);
+        } else {
+          console.log('Successfully synced data to journal_entries:', key);
+        }
       } else {
-        console.log('Successfully synced data to Supabase:', key);
+        // If the user_preferences table exists, use it
+        const { error } = await supabase
+          .from('user_preferences')
+          .upsert(preferencesData, { onConflict: 'id' });
+          
+        if (error) {
+          console.error('Error syncing data to user_preferences:', error);
+        } else {
+          console.log('Successfully synced data to user_preferences:', key);
+        }
       }
     } catch (error) {
       console.error('Error in syncToSupabase:', error);

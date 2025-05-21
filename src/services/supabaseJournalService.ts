@@ -36,9 +36,13 @@ export async function fetchAllEntriesFromSupabase(): Promise<JournalEntry[]> {
       return [];
     }
 
+    const userId = session.session.user.id;
+    console.log("Fetching entries for user:", userId);
+
     const { data, error } = await supabase
       .from('journal_entries')
       .select('*')
+      .eq('user_id', userId)
       .order('date', { ascending: false });
 
     if (error) {
@@ -47,6 +51,7 @@ export async function fetchAllEntriesFromSupabase(): Promise<JournalEntry[]> {
       return [];
     }
 
+    console.log(`Successfully fetched ${data?.length} entries from Supabase`);
     return data.map(dbToEntryFormat);
   } catch (error) {
     console.error("Error in fetchAllEntriesFromSupabase:", error);
@@ -70,6 +75,7 @@ export async function saveEntryToSupabase(entry: JournalEntry): Promise<JournalE
     }
 
     const dbEntry = entryToDbFormat(entry);
+    console.log("Saving entry to Supabase:", dbEntry);
     
     // Use upsert to handle both insert and update
     const { data, error } = await supabase
@@ -84,6 +90,7 @@ export async function saveEntryToSupabase(entry: JournalEntry): Promise<JournalE
       return null;
     }
 
+    console.log("Successfully saved entry to Supabase:", data);
     return dbToEntryFormat(data);
   } catch (error) {
     console.error("Error in saveEntryToSupabase:", error);
@@ -118,10 +125,17 @@ export async function deleteEntryFromSupabase(entryId: string): Promise<boolean>
 // Get an entry by ID
 export async function getEntryByIdFromSupabase(id: string): Promise<JournalEntry | null> {
   try {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) {
+      console.log("No active session, can't fetch entry");
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('journal_entries')
       .select('*')
       .eq('id', id)
+      .eq('user_id', session.session.user.id)
       .single();
 
     if (error) {
@@ -139,6 +153,12 @@ export async function getEntryByIdFromSupabase(id: string): Promise<JournalEntry
 // Get an entry by date
 export async function getEntryByDateFromSupabase(date: Date): Promise<JournalEntry | null> {
   try {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) {
+      console.log("No active session, can't fetch entry");
+      return null;
+    }
+    
     // Format the date to match the database format
     const startDate = new Date(date);
     startDate.setHours(0, 0, 0, 0);
@@ -149,6 +169,7 @@ export async function getEntryByDateFromSupabase(date: Date): Promise<JournalEnt
     const { data, error } = await supabase
       .from('journal_entries')
       .select('*')
+      .eq('user_id', session.session.user.id)
       .gte('date', startDate.toISOString())
       .lte('date', endDate.toISOString())
       .order('date', { ascending: false })
