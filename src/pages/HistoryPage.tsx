@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,12 +31,30 @@ export default function HistoryPage() {
   // Load all entries
   useEffect(() => {
     loadEntries();
+    
+    // Set up periodic refresh of entries (every 30 seconds)
+    const refreshInterval = setInterval(() => {
+      loadEntries(false); // silent refresh, no UI indication
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
   }, []);
 
-  const loadEntries = async () => {
-    const allEntries = await getAllEntries();
-    setEntries(allEntries);
-    setFilteredEntries(allEntries);
+  const loadEntries = async (showToast = true) => {
+    try {
+      const allEntries = await getAllEntries();
+      setEntries(allEntries);
+      setFilteredEntries(allEntries);
+      
+      if (showToast && allEntries.length > 0) {
+        setLastSyncTime(new Date().toLocaleTimeString());
+      }
+    } catch (error) {
+      console.error("Error loading entries:", error);
+      if (showToast) {
+        toast.error("Failed to load journal entries");
+      }
+    }
   };
 
   // Force sync from Supabase
@@ -185,24 +202,21 @@ export default function HistoryPage() {
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">Journal History</h1>
       
-      {/* New prominent sync banner */}
-      <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 flex items-center justify-between">
-        <div>
-          <h3 className="font-medium">Sync your journal entries across devices</h3>
-          <p className="text-sm text-muted-foreground">
-            {lastSyncTime ? `Last synced: ${lastSyncTime}` : "Not synced in this session"}
-          </p>
+      {lastSyncTime && (
+        <div className="text-xs text-right text-muted-foreground mb-2">
+          Last synchronized: {lastSyncTime}
+          <Button 
+            onClick={forceSync} 
+            variant="ghost" 
+            size="sm" 
+            disabled={isSyncing} 
+            className="ml-2 h-6 px-2 text-xs"
+          >
+            <RefreshCw className={`h-3 w-3 mr-1 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? "Syncing..." : "Sync"}
+          </Button>
         </div>
-        <Button 
-          onClick={forceSync} 
-          variant="default"
-          disabled={isSyncing}
-          className="gap-2"
-        >
-          <CloudUpload className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
-          {isSyncing ? "Syncing..." : "Sync Now"}
-        </Button>
-      </div>
+      )}
       
       <div className="flex gap-2 mb-8">
         <form onSubmit={handleSearch} className="flex gap-2 flex-1">
@@ -216,14 +230,6 @@ export default function HistoryPage() {
             <Search className="h-5 w-5" />
           </Button>
         </form>
-        <Button 
-          onClick={forceSync} 
-          variant="outline" 
-          disabled={isSyncing} 
-          title="Sync entries from cloud"
-        >
-          <RefreshCw className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
-        </Button>
       </div>
       
       <div className="space-y-4">

@@ -20,39 +20,47 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [initialSyncDone, setInitialSyncDone] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         // When user signs in, sync data from Supabase
         if (event === 'SIGNED_IN') {
-          setTimeout(async () => {
+          console.log("Auth context: User signed in, syncing data");
+          try {
             await syncFromSupabase();
-          }, 0);
+          } catch (error) {
+            console.error("Error syncing on sign in:", error);
+          }
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       // On initial load, if user is authenticated, sync data
-      if (session) {
-        setTimeout(async () => {
+      if (session && !initialSyncDone) {
+        console.log("Auth context: Initial session found, syncing data");
+        try {
           await syncFromSupabase();
-        }, 0);
+          setInitialSyncDone(true);
+        } catch (error) {
+          console.error("Error syncing on initial load:", error);
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initialSyncDone]);
 
   const signOut = async () => {
     await supabase.auth.signOut();

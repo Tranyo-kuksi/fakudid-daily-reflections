@@ -4,16 +4,21 @@ import { toast } from "@/components/ui/sonner";
 import { JournalEntry } from "./journalService";
 
 // Convert JournalEntry to database format
-const entryToDbFormat = (entry: JournalEntry) => ({
-  id: entry.id,
-  user_id: entry.userId,
-  date: entry.date.toISOString(),
-  title: entry.title,
-  content: entry.content,
-  mood: entry.mood,
-  attachments: entry.attachments || null,
-  template_data: entry.templateData || null
-});
+const entryToDbFormat = (entry: JournalEntry) => {
+  // Ensure date is properly formatted for Postgres
+  const dateISOString = entry.date instanceof Date ? entry.date.toISOString() : entry.date;
+  
+  return {
+    id: entry.id,
+    user_id: entry.userId,
+    date: dateISOString,
+    title: entry.title || "",
+    content: entry.content || "",
+    mood: entry.mood,
+    attachments: entry.attachments || null,
+    template_data: entry.templateData || null
+  };
+};
 
 // Convert database format to JournalEntry
 const dbToEntryFormat = (dbEntry: any): JournalEntry => ({
@@ -80,7 +85,7 @@ export async function saveEntryToSupabase(entry: JournalEntry): Promise<JournalE
     // Use upsert to handle both insert and update
     const { data, error } = await supabase
       .from('journal_entries')
-      .upsert(dbEntry, { onConflict: 'id' })
+      .upsert(dbEntry)
       .select()
       .single();
 
