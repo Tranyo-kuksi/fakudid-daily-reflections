@@ -6,6 +6,9 @@ export function useLocalStorage<T>(
   key: string,
   initialValue: T
 ): [T, (value: T | ((val: T) => T)) => void] {
+  // Define which keys should be synced to cloud storage
+  const SYNC_KEYS = ['user-settings', 'user-preferences', 'journal-entries', 'journalEntries'];
+  
   // Get from local storage then parse stored json or return initialValue
   const readValue = (): T => {
     if (typeof window === 'undefined') {
@@ -34,8 +37,8 @@ export function useLocalStorage<T>(
       setIsAuthenticated(!!session);
       setUserId(id);
       
-      // If authenticated, try to fetch from cloud storage
-      if (id && (key === 'user-settings' || key === 'user-preferences')) {
+      // If authenticated, try to fetch from cloud storage for synced keys
+      if (id && SYNC_KEYS.includes(key)) {
         await loadFromCloudStorage(id, key);
       }
     };
@@ -50,8 +53,8 @@ export function useLocalStorage<T>(
       const newUserId = session?.user?.id || null;
       setUserId(newUserId);
       
-      // If user just logged in, try to load from cloud storage
-      if (isAuth && newUserId && (key === 'user-settings' || key === 'user-preferences')) {
+      // If user just logged in, try to load from cloud storage for synced keys
+      if (isAuth && newUserId && SYNC_KEYS.includes(key)) {
         await loadFromCloudStorage(newUserId, key);
       }
     });
@@ -155,8 +158,8 @@ export function useLocalStorage<T>(
         }
       }
       
-      // If we're authenticated, sync to Supabase Storage
-      if (isAuthenticated && userId && (key === 'user-settings' || key === 'user-preferences')) {
+      // If we're authenticated, sync to Supabase Storage for synced keys
+      if (isAuthenticated && userId && SYNC_KEYS.includes(key)) {
         syncToSupabaseStorage(userId, key, valueToStore);
       }
     } catch (error) {

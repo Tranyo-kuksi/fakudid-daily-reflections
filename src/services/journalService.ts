@@ -30,11 +30,13 @@ export interface JournalEntry {
 
 // In-memory cache for journal entries
 let journalEntries: JournalEntry[] = [];
+let lastSyncedTime: number = 0;
 
 // Save entries to localStorage for offline access
 function saveEntriesToStorage(entries: JournalEntry[]) {
   try {
     localStorage.setItem('journalEntries', JSON.stringify(entries));
+    localStorage.setItem('journalLastSynced', Date.now().toString());
   } catch (error) {
     console.error('Failed to save journal entries to localStorage:', error);
   }
@@ -44,6 +46,12 @@ function saveEntriesToStorage(entries: JournalEntry[]) {
 function loadEntriesFromStorage(): JournalEntry[] {
   try {
     const savedEntries = localStorage.getItem('journalEntries');
+    const lastSynced = localStorage.getItem('journalLastSynced');
+    
+    if (lastSynced) {
+      lastSyncedTime = parseInt(lastSynced);
+    }
+    
     return savedEntries ? JSON.parse(savedEntries, (key, value) => {
       if (key === 'date') return new Date(value);
       return value;
@@ -67,15 +75,23 @@ async function syncLocalEntriesToSupabase() {
       !entry.userId || entry.userId === userId
     );
     
+    let syncedCount = 0;
+    
     for (const entry of userEntries) {
       // Ensure each entry has the current user's ID
       if (!entry.userId) {
         entry.userId = userId;
       }
       
-      await saveEntryToSupabase(entry);
+      const result = await saveEntryToSupabase(entry);
+      if (result) syncedCount++;
     }
+    
+    console.log(`Synced ${syncedCount} entries to Supabase`);
+    return syncedCount > 0;
   }
+  
+  return false;
 }
 
 // Get all journal entries for the current user
@@ -86,7 +102,7 @@ export async function getAllEntries(): Promise<JournalEntry[]> {
     const userId = data.session?.user?.id;
     
     if (userId) {
-      // Try to fetch entries from Supabase first
+      // Always try to fetch entries from Supabase first
       console.log("Fetching entries from Supabase...");
       const supabaseEntries = await fetchAllEntriesFromSupabase();
       
@@ -450,10 +466,33 @@ export async function syncFromSupabase(): Promise<boolean> {
     const supabaseEntries = await fetchAllEntriesFromSupabase();
     
     if (supabaseEntries.length > 0) {
-      // Replace local entries with Supabase entries
-      journalEntries = supabaseEntries;
-      saveEntriesToStorage(journalEntries);
-      return true;
+      // Check if we actually have new or updated entries
+      let hasChanges = false;
+      
+      if (supabaseEntries.length !== journalEntries.length) {
+        hasChanges = true;
+      } else {
+        // Compare the entries by ID and updated_at to see if anything changed
+        const localEntriesMap = new Map(
+          journalEntries.map(entry => [entry.id, entry])
+        );
+        
+        for (const serverEntry of supabaseEntries) {
+          const localEntry = localEntriesMap.get(serverEntry.id);
+          
+          if (!localEntry) {
+            hasChanges = true;
+            break;
+          }
+        }
+      }
+      
+      if (hasChanges) {
+        // Replace local entries with Supabase entries
+        journalEntries = supabaseEntries;
+        saveEntriesToStorage(journalEntries);
+        return true;
+      }
     }
     
     return false;

@@ -75,7 +75,7 @@ export async function saveEntryToSupabase(entry: JournalEntry): Promise<JournalE
     }
 
     const dbEntry = entryToDbFormat(entry);
-    console.log("Saving entry to Supabase:", dbEntry);
+    console.log("Saving entry to Supabase:", dbEntry.id);
     
     // Use upsert to handle both insert and update
     const { data, error } = await supabase
@@ -86,15 +86,13 @@ export async function saveEntryToSupabase(entry: JournalEntry): Promise<JournalE
 
     if (error) {
       console.error("Error saving entry to Supabase:", error);
-      toast.error("Failed to save your journal entry");
       return null;
     }
 
-    console.log("Successfully saved entry to Supabase:", data);
+    console.log("Successfully saved entry to Supabase");
     return dbToEntryFormat(data);
   } catch (error) {
     console.error("Error in saveEntryToSupabase:", error);
-    toast.error("Failed to save your journal entry");
     return null;
   }
 }
@@ -109,15 +107,12 @@ export async function deleteEntryFromSupabase(entryId: string): Promise<boolean>
 
     if (error) {
       console.error("Error deleting entry from Supabase:", error);
-      toast.error("Failed to delete your journal entry");
       return false;
     }
 
-    toast.success("Journal entry deleted");
     return true;
   } catch (error) {
     console.error("Error in deleteEntryFromSupabase:", error);
-    toast.error("Failed to delete your journal entry");
     return false;
   }
 }

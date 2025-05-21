@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { syncFromSupabase } from "@/services/journalService";
 
 interface AuthContextType {
   user: User | null;
@@ -27,6 +28,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // When user signs in, sync data from Supabase
+        if (event === 'SIGNED_IN') {
+          setTimeout(async () => {
+            await syncFromSupabase();
+          }, 0);
+        }
       }
     );
 
@@ -34,6 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // On initial load, if user is authenticated, sync data
+      if (session) {
+        setTimeout(async () => {
+          await syncFromSupabase();
+        }, 0);
+      }
     });
 
     return () => subscription.unsubscribe();

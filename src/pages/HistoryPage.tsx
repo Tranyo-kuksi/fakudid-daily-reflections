@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Trash2, ImageIcon, LayoutGrid, RefreshCw } from "lucide-react";
+import { Search, Trash2, ImageIcon, LayoutGrid, RefreshCw, CloudSync } from "lucide-react";
 import { 
   getAllEntries, 
   deleteEntry,
@@ -25,6 +24,7 @@ export default function HistoryPage() {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [viewingTemplateEntry, setViewingTemplateEntry] = useState<JournalEntry | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
   const navigate = useNavigate();
   const { isSubscribed } = useSubscription();
 
@@ -43,9 +43,14 @@ export default function HistoryPage() {
   const forceSync = async () => {
     setIsSyncing(true);
     try {
-      await syncFromSupabase();
-      await loadEntries();
-      toast.success("Journal entries synchronized successfully");
+      const success = await syncFromSupabase();
+      if (success) {
+        await loadEntries();
+        setLastSyncTime(new Date().toLocaleTimeString());
+        toast.success("Journal entries synchronized successfully");
+      } else {
+        toast.info("No new entries found to synchronize");
+      }
     } catch (error) {
       console.error("Error syncing entries:", error);
       toast.error("Failed to synchronize journal entries");
@@ -178,6 +183,25 @@ export default function HistoryPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">Journal History</h1>
+      
+      {/* New prominent sync banner */}
+      <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 flex items-center justify-between">
+        <div>
+          <h3 className="font-medium">Sync your journal entries across devices</h3>
+          <p className="text-sm text-muted-foreground">
+            {lastSyncTime ? `Last synced: ${lastSyncTime}` : "Not synced in this session"}
+          </p>
+        </div>
+        <Button 
+          onClick={forceSync} 
+          variant="default"
+          disabled={isSyncing}
+          className="gap-2"
+        >
+          <CloudSync className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
+          {isSyncing ? "Syncing..." : "Sync Now"}
+        </Button>
+      </div>
       
       <div className="flex gap-2 mb-8">
         <form onSubmit={handleSearch} className="flex gap-2 flex-1">
