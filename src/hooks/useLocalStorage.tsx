@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuthState } from './useAuthState';
+import { useCloudSync } from './useCloudSync';
 
 export function useLocalStorage<T>(
   key: string,
@@ -24,118 +25,27 @@ export function useLocalStorage<T>(
   };
 
   const [storedValue, setStoredValue] = useState<T>(readValue);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { isAuthenticated, userId } = useAuthState();
+  const { loadFromCloudStorage, syncToSupabaseStorage } = useCloudSync();
 
-  // Check authentication status on mount and try to load from Storage
+  // Load from cloud storage when authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
-      const id = session?.user?.id || null;
-      
-      setIsAuthenticated(!!session);
-      setUserId(id);
-      
-      // If authenticated, try to fetch from cloud storage for synced keys
-      if (id && SYNC_KEYS.includes(key)) {
-        await loadFromCloudStorage(id, key);
-      }
-    };
-    
-    checkAuth();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const isAuth = !!session;
-      setIsAuthenticated(isAuth);
-      
-      const newUserId = session?.user?.id || null;
-      setUserId(newUserId);
-      
-      // If user just logged in, try to load from cloud storage for synced keys
-      if (isAuth && newUserId && SYNC_KEYS.includes(key)) {
-        await loadFromCloudStorage(newUserId, key);
-      }
-    });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [key]);
-  
-  // Function to load data from cloud storage
-  const loadFromCloudStorage = async (uid: string, storageKey: string) => {
-    try {
-      const filePath = `${uid}/${storageKey}.json`;
-      
-      const { data, error } = await supabase.storage
-        .from('user-files')
-        .download(filePath);
-      
-      if (error) {
-        console.log(`No data found in cloud storage or error: ${error.message}`);
-        // If no data in storage, try to load from database as fallback
-        await loadFromDatabase(uid, storageKey);
-        return;
-      }
-      
-      if (data) {
-        const text = await data.text();
-        try {
-          const parsed = JSON.parse(text);
-          console.log(`✅ Loaded ${storageKey} from cloud storage`);
-          setStoredValue(parsed);
+    const loadCloudData = async () => {
+      if (userId && SYNC_KEYS.includes(key)) {
+        const cloudData = await loadFromCloudStorage(userId, key);
+        if (cloudData !== null) {
+          setStoredValue(cloudData);
           
           // Also update localStorage for offline access
           if (typeof window !== 'undefined') {
-            window.localStorage.setItem(storageKey, text);
+            window.localStorage.setItem(key, JSON.stringify(cloudData));
           }
-        } catch (parseError) {
-          console.error(`Error parsing cloud data for ${storageKey}:`, parseError);
-          // If storage data is corrupt, try database
-          await loadFromDatabase(uid, storageKey);
         }
       }
-    } catch (error) {
-      console.error(`Error loading from cloud storage for ${storageKey}:`, error);
-      // If storage fails, try database
-      await loadFromDatabase(uid, storageKey);
-    }
-  };
-  
-  // Fallback function to load from database
-  const loadFromDatabase = async (uid: string, storageKey: string) => {
-    try {
-      console.log(`Falling back to database for ${storageKey}...`);
-      
-      // Convert key names to match database columns
-      const preferenceField = storageKey.replace('user-', '');
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(preferenceField)
-        .eq('id', uid)
-        .single();
-        
-      if (error) {
-        console.error(`Error loading ${preferenceField} from profiles:`, error);
-        return;
-      }
-      
-      if (data && data[preferenceField]) {
-        console.log(`✅ Loaded ${storageKey} from database`);
-        setStoredValue(data[preferenceField]);
-        
-        // Also update localStorage for offline access
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(storageKey, JSON.stringify(data[preferenceField]));
-        }
-      }
-    } catch (error) {
-      console.error(`Error loading from database for ${storageKey}:`, error);
-    }
-  };
+    };
+    
+    loadCloudData();
+  }, [userId, key]);
 
   // Return a wrapped version of useState's setter function that persists the new value to localStorage
   const setValue = (value: T | ((val: T) => T)) => {
@@ -164,95 +74,6 @@ export function useLocalStorage<T>(
       }
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);
-    }
-  };
-
-  // Function to sync data to Supabase Storage when authenticated
-  const syncToSupabaseStorage = async (uid: string, storageKey: string, value: any) => {
-    try {
-      const filePath = `${uid}/${storageKey}.json`;
-      
-      const { data, error } = await supabase.storage
-        .from('user-files')
-        .upload(filePath, JSON.stringify(value), {
-          upsert: true,
-          cacheControl: '3600',
-          contentType: 'application/json',
-        });
-        
-      if (error) {
-        console.error('Error uploading to Supabase Storage:', error);
-        
-        // Fallback to database if storage fails
-        fallbackToDatabaseSync(uid, storageKey, value);
-      } else {
-        console.log(`✅ Synced ${storageKey} to Supabase Storage`);
-      }
-    } catch (error) {
-      console.error('Error in syncToSupabaseStorage:', error);
-      
-      // Try fallback method if the primary method fails
-      if (userId) {
-        fallbackToDatabaseSync(userId, storageKey, value);
-      }
-    }
-  };
-  
-  // Fallback function to save preferences to profiles table
-  const fallbackToDatabaseSync = async (uid: string, storageKey: string, value: any) => {
-    try {
-      console.log("Falling back to database sync...");
-      
-      // Use the profiles table as primary fallback
-      const preferenceField = storageKey.replace('user-', '');
-      
-      const updateData = { 
-        [preferenceField]: value, 
-        updated_at: new Date().toISOString() 
-      };
-      
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', uid);
-        
-      if (updateError) {
-        console.error('Error updating preferences in profiles:', updateError);
-        
-        // Secondary fallback: Save to journal_entries
-        fallbackToJournalEntries(uid, storageKey, value);
-      } else {
-        console.log('Successfully synced data to profiles table as fallback');
-      }
-    } catch (error) {
-      console.error('Error in fallbackToDatabaseSync:', error);
-      fallbackToJournalEntries(uid, storageKey, value);
-    }
-  };
-  
-  // Last resort fallback function to save preferences to journal_entries
-  const fallbackToJournalEntries = async (uid: string, storageKey: string, value: any) => {
-    try {
-      // Format the data for journal_entries table
-      const entryData = {
-        id: `${storageKey}-${uid}`, // Create a unique ID
-        user_id: uid,
-        date: new Date().toISOString(), // Required field
-        title: `User ${storageKey.replace('user-', '')}`,
-        content: JSON.stringify(value),
-      };
-      
-      const { error } = await supabase
-        .from('journal_entries')
-        .upsert(entryData, { onConflict: 'id' });
-        
-      if (error) {
-        console.error('Error syncing data to journal_entries:', error);
-      } else {
-        console.log('Successfully synced data to journal_entries as secondary fallback');
-      }
-    } catch (error) {
-      console.error('Error in fallbackToJournalEntries:', error);
     }
   };
 
