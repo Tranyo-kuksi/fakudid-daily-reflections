@@ -110,9 +110,12 @@ export async function getAllEntries(): Promise<JournalEntry[]> {
   } catch (error) {
     console.error("Error in getAllEntries:", error);
     toast.error("Failed to load your journal entries");
+    
+    // Get current user ID for filtering fallback entries
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user?.id;
+    
     return journalEntries.filter(entry => {
-      const { data } = await supabase.auth.getSession();
-      const userId = data.session?.user?.id;
       if (!entry.userId) return !userId;
       return entry.userId === userId;
     }).sort((a, b) => b.date.getTime() - a.date.getTime());
