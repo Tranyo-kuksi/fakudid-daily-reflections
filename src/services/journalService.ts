@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -30,9 +31,9 @@ export interface JournalEntry {
 
 // In-memory cache for journal entries
 let journalEntries: JournalEntry[] = [];
-let syncInProgress = false;
+let isInitialized = false;
 
-// Save entries to localStorage only as a backup
+// Save entries to localStorage as backup only
 function saveEntriesToLocalStorage(entries: JournalEntry[]) {
   try {
     localStorage.setItem('journalEntries', JSON.stringify(entries));
@@ -41,7 +42,7 @@ function saveEntriesToLocalStorage(entries: JournalEntry[]) {
   }
 }
 
-// Load entries from localStorage as a fallback only
+// Load entries from localStorage as backup only
 function loadEntriesFromLocalStorage(): JournalEntry[] {
   try {
     const savedEntries = localStorage.getItem('journalEntries');
@@ -55,35 +56,48 @@ function loadEntriesFromLocalStorage(): JournalEntry[] {
   }
 }
 
+// Initialize journal service
+async function initializeJournalService() {
+  if (isInitialized) return;
+  
+  try {
+    // Load from localStorage first as backup
+    journalEntries = loadEntriesFromLocalStorage();
+    
+    // Try to sync from Supabase if authenticated
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      console.log("User is authenticated, syncing from Supabase...");
+      await syncFromSupabase();
+    }
+    
+    isInitialized = true;
+  } catch (error) {
+    console.error("Error initializing journal service:", error);
+    isInitialized = true; // Mark as initialized even if failed to prevent loops
+  }
+}
+
 // Get all journal entries for the current user
 export async function getAllEntries(): Promise<JournalEntry[]> {
+  await initializeJournalService();
+  
   try {
     const { data } = await supabase.auth.getSession();
     const userId = data.session?.user?.id;
     
-    if (userId && !syncInProgress) {
-      syncInProgress = true;
+    if (userId) {
+      console.log("Fetching entries from Supabase for user:", userId);
+      const supabaseEntries = await fetchAllEntriesFromSupabase();
       
-      try {
-        console.log("Fetching entries from Supabase...");
-        const supabaseEntries = await fetchAllEntriesFromSupabase();
-        
-        if (supabaseEntries.length >= 0) {
-          journalEntries = supabaseEntries;
-          // Keep localStorage as backup only
-          saveEntriesToLocalStorage(journalEntries);
-        }
-      } catch (error) {
-        console.error("Error fetching from Supabase:", error);
-        // Fallback to localStorage only if Supabase fails
-        if (journalEntries.length === 0) {
-          journalEntries = loadEntriesFromLocalStorage();
-        }
-      } finally {
-        syncInProgress = false;
+      if (supabaseEntries.length >= 0) {
+        journalEntries = supabaseEntries;
+        saveEntriesToLocalStorage(journalEntries);
+        console.log(`Successfully loaded ${supabaseEntries.length} entries from Supabase`);
       }
-    } else if (!userId) {
+    } else {
       // Not authenticated, use localStorage
+      console.log("User not authenticated, using localStorage");
       journalEntries = loadEntriesFromLocalStorage();
     }
     
@@ -96,7 +110,12 @@ export async function getAllEntries(): Promise<JournalEntry[]> {
   } catch (error) {
     console.error("Error in getAllEntries:", error);
     toast.error("Failed to load your journal entries");
-    return [];
+    return journalEntries.filter(entry => {
+      const { data } = await supabase.auth.getSession();
+      const userId = data.session?.user?.id;
+      if (!entry.userId) return !userId;
+      return entry.userId === userId;
+    }).sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 }
 
@@ -349,7 +368,7 @@ export async function autosaveEntry(
       return true;
     } else if (title.trim() || content.trim() || mood || (templateData && Object.keys(templateData.sections).length > 0)) {
       const newEntry: JournalEntry = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
         date: new Date(),
         title,
         content,
@@ -381,19 +400,14 @@ export async function autosaveEntry(
 
 // Force a sync from Supabase
 export async function syncFromSupabase(): Promise<boolean> {
-  if (syncInProgress) {
-    console.log("Sync already in progress");
-    return false;
-  }
-  
-  syncInProgress = true;
-  
   try {
+    console.log("Syncing from Supabase...");
     const supabaseEntries = await fetchAllEntriesFromSupabase();
     
     if (supabaseEntries.length >= 0) {
       journalEntries = supabaseEntries;
       saveEntriesToLocalStorage(journalEntries);
+      console.log(`Successfully synced ${supabaseEntries.length} entries from Supabase`);
       return true;
     }
     
@@ -401,30 +415,23 @@ export async function syncFromSupabase(): Promise<boolean> {
   } catch (error) {
     console.error("Error syncing from Supabase:", error);
     return false;
-  } finally {
-    syncInProgress = false;
   }
 }
 
-// Initialize - run this when the app starts
-export async function initializeJournalService(): Promise<void> {
-  try {
-    journalEntries = loadEntriesFromLocalStorage();
-    
-    const { data } = await supabase.auth.getSession();
-    if (data.session) {
-      await syncFromSupabase();
-    }
-
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        console.log("User signed in, syncing from Supabase");
+// Set up auth state listener
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    console.log("User signed in, syncing journal data");
+    setTimeout(async () => {
+      try {
         await syncFromSupabase();
+        console.log("Journal sync completed after sign in");
+      } catch (error) {
+        console.error("Error syncing journal on sign in:", error);
       }
-    });
-  } catch (error) {
-    console.error("Error initializing journal service:", error);
+    }, 100);
   }
-}
+});
 
+// Initialize the service
 initializeJournalService();

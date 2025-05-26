@@ -13,6 +13,7 @@ const HistoryPage = () => {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadEntries();
@@ -21,10 +22,14 @@ const HistoryPage = () => {
   const loadEntries = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log("Loading entries from getAllEntries...");
       const allEntries = await getAllEntries();
+      console.log("Loaded entries:", allEntries.length);
       setEntries(allEntries);
     } catch (error) {
       console.error("Error loading entries:", error);
+      setError("Failed to load journal entries. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +68,26 @@ const HistoryPage = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Journal History</h1>
         </div>
-        <div className="text-center py-8">Loading your entries...</div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading your entries...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Journal History</h1>
+        </div>
+        <Card>
+          <CardContent className="text-center py-8">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button onClick={loadEntries}>Try Again</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -103,6 +127,11 @@ const HistoryPage = () => {
               <p className="text-muted-foreground">
                 {searchTerm ? "No entries match your search." : "No journal entries yet. Start writing!"}
               </p>
+              {!searchTerm && (
+                <Button className="mt-4" asChild>
+                  <Link to="/">Write Your First Entry</Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
