@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Calendar, Search, Filter } from "lucide-react";
+import { Calendar, Search, Filter, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { getAllEntries, JournalEntry } from "@/services/journalService";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 const HistoryPage = () => {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { preferences } = useUserPreferences();
 
   useEffect(() => {
     loadEntries();
@@ -40,26 +42,17 @@ const HistoryPage = () => {
     entry.content.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getMoodColor = (mood: JournalEntry['mood']) => {
-    switch (mood) {
-      case "awesome": return "bg-green-500";
-      case "good": return "bg-blue-500";
-      case "meh": return "bg-yellow-500";
-      case "sad": return "bg-orange-500";
-      case "dead": return "bg-red-500";
-      default: return "bg-gray-500";
-    }
-  };
+  const moodOptions = [
+    { name: preferences.moodNames.dead, value: "dead", icon: Skull, color: "text-mood-dead", bgColor: "bg-mood-dead" },
+    { name: preferences.moodNames.sad, value: "sad", icon: FrownIcon, color: "text-mood-sad", bgColor: "bg-mood-sad" },
+    { name: preferences.moodNames.meh, value: "meh", icon: MehIcon, color: "text-mood-meh", bgColor: "bg-mood-meh" },
+    { name: preferences.moodNames.good, value: "good", icon: SmileIcon, color: "text-mood-good", bgColor: "bg-mood-good" },
+    { name: preferences.moodNames.awesome, value: "awesome", icon: PartyPopper, color: "text-gold-dark", bgColor: "bg-gold-gradient" }
+  ];
 
-  const getMoodEmoji = (mood: JournalEntry['mood']) => {
-    switch (mood) {
-      case "awesome": return "🤩";
-      case "good": return "😊";
-      case "meh": return "😐";
-      case "sad": return "😢";
-      case "dead": return "💀";
-      default: return "❓";
-    }
+  const getMoodInfo = (mood: JournalEntry['mood']) => {
+    const moodOption = moodOptions.find(option => option.value === mood);
+    return moodOption || { name: "Unknown", bgColor: "bg-gray-500", color: "text-gray-500" };
   };
 
   if (loading) {
@@ -135,40 +128,44 @@ const HistoryPage = () => {
             </CardContent>
           </Card>
         ) : (
-          filteredEntries.map((entry) => (
-            <Link key={entry.id} to={`/entry/${entry.id}`}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg font-medium">
-                    {entry.title || "Untitled Entry"}
-                  </CardTitle>
-                  <div className="flex items-center space-x-2">
-                    {entry.mood && (
-                      <Badge 
-                        variant="secondary" 
-                        className={`${getMoodColor(entry.mood)} text-white border-0`}
-                      >
-                        {getMoodEmoji(entry.mood)} {entry.mood}
-                      </Badge>
-                    )}
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(entry.date), "MMM dd, yyyy")}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground line-clamp-2">
-                    {entry.content || "No content"}
-                  </p>
-                  {entry.attachments && entry.attachments.length > 0 && (
-                    <div className="mt-2 flex items-center text-sm text-muted-foreground">
-                      <span>📎 {entry.attachments.length} attachment(s)</span>
+          filteredEntries.map((entry) => {
+            const moodInfo = getMoodInfo(entry.mood);
+            return (
+              <Link key={entry.id} to={`/entry/${entry.id}`}>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-medium">
+                      {entry.title || "Untitled Entry"}
+                    </CardTitle>
+                    <div className="flex items-center space-x-2">
+                      {entry.mood && (
+                        <Badge 
+                          variant="secondary" 
+                          className={`${moodInfo.bgColor} text-white border-0`}
+                        >
+                          <moodInfo.icon className="h-4 w-4 mr-1" />
+                          {moodInfo.name}
+                        </Badge>
+                      )}
+                      <span className="text-sm text-muted-foreground">
+                        {format(new Date(entry.date), "MMM dd, yyyy")}
+                      </span>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
-          ))
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground line-clamp-2">
+                      {entry.content || "No content"}
+                    </p>
+                    {entry.attachments && entry.attachments.length > 0 && (
+                      <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                        <span>📎 {entry.attachments.length} attachment(s)</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })
         )}
       </div>
     </div>
