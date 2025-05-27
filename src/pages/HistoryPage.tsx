@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Calendar, Search, Filter, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ const HistoryPage = () => {
     entry.content.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Use the loaded preferences to create mood options
   const moodOptions = [
     { name: preferences.moodNames.dead, value: "dead", icon: Skull, color: "text-mood-dead", bgColor: "bg-mood-dead" },
     { name: preferences.moodNames.sad, value: "sad", icon: FrownIcon, color: "text-mood-sad", bgColor: "bg-mood-sad" },
