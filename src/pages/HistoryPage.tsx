@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Calendar, Search, Filter, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -61,22 +60,55 @@ const HistoryPage = () => {
     entry.content.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Use the loaded preferences to create mood options
-  const moodOptions = [
-    { name: preferences.moodNames.dead, value: "dead", icon: Skull, color: "text-mood-dead", bgColor: "bg-mood-dead" },
-    { name: preferences.moodNames.sad, value: "sad", icon: FrownIcon, color: "text-mood-sad", bgColor: "bg-mood-sad" },
-    { name: preferences.moodNames.meh, value: "meh", icon: MehIcon, color: "text-mood-meh", bgColor: "bg-mood-meh" },
-    { name: preferences.moodNames.good, value: "good", icon: SmileIcon, color: "text-mood-good", bgColor: "bg-mood-good" },
-    { name: preferences.moodNames.awesome, value: "awesome", icon: PartyPopper, color: "text-gold-dark", bgColor: "bg-gold-gradient" }
-  ];
+  // Map mood values to custom names and display info
+  const getMoodDisplayInfo = (mood: JournalEntry['mood']) => {
+    if (!mood) {
+      return {
+        name: "Unknown",
+        icon: MehIcon,
+        color: "text-gray-500",
+        bgColor: "bg-gray-500"
+      };
+    }
 
-  const getMoodInfo = (mood: JournalEntry['mood']) => {
-    const moodOption = moodOptions.find(option => option.value === mood);
-    return moodOption || { 
-      name: "Unknown", 
-      icon: MehIcon, 
-      bgColor: "bg-gray-500", 
-      color: "text-gray-500" 
+    const moodMappings = {
+      dead: { 
+        name: preferences.moodNames.dead, 
+        icon: Skull, 
+        color: "text-mood-dead", 
+        bgColor: "bg-mood-dead" 
+      },
+      sad: { 
+        name: preferences.moodNames.sad, 
+        icon: FrownIcon, 
+        color: "text-mood-sad", 
+        bgColor: "bg-mood-sad" 
+      },
+      meh: { 
+        name: preferences.moodNames.meh, 
+        icon: MehIcon, 
+        color: "text-mood-meh", 
+        bgColor: "bg-mood-meh" 
+      },
+      good: { 
+        name: preferences.moodNames.good, 
+        icon: SmileIcon, 
+        color: "text-mood-good", 
+        bgColor: "bg-mood-good" 
+      },
+      awesome: { 
+        name: preferences.moodNames.awesome, 
+        icon: PartyPopper, 
+        color: "text-gold-dark", 
+        bgColor: "bg-gold-gradient" 
+      }
+    };
+
+    return moodMappings[mood] || {
+      name: "Unknown",
+      icon: MehIcon,
+      color: "text-gray-500",
+      bgColor: "bg-gray-500"
     };
   };
 
@@ -154,7 +186,7 @@ const HistoryPage = () => {
           </Card>
         ) : (
           filteredEntries.map((entry) => {
-            const moodInfo = getMoodInfo(entry.mood);
+            const moodInfo = getMoodDisplayInfo(entry.mood);
             const IconComponent = moodInfo.icon;
             return (
               <Link key={entry.id} to={`/entry/${entry.id}`}>
@@ -174,7 +206,7 @@ const HistoryPage = () => {
                         </Badge>
                       )}
                       <span className="text-sm text-muted-foreground">
-                        {format(new Date(entry.date), "MMM dd, yyyy")}
+                        {format(new Date(entry.date), "MMM dd")}
                       </span>
                     </div>
                   </CardHeader>
