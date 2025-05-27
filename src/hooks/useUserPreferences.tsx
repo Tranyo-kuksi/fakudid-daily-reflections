@@ -61,7 +61,8 @@ export function useUserPreferences<T>(
 
   const loadFromStorage = async (uid: string, storageKey: string) => {
     try {
-      const filePath = `json/${uid}/${storageKey}.json`;
+      // Fix: Use the correct path format that matches the RLS policy
+      const filePath = `${uid}/${storageKey}.json`;
       
       const { data, error } = await supabase.storage
         .from('user-files')
@@ -108,7 +109,8 @@ export function useUserPreferences<T>(
 
   const syncToStorage = async (uid: string, storageKey: string, value: any) => {
     try {
-      const filePath = `json/${uid}/${storageKey}.json`;
+      // Fix: Use the correct path format that matches the RLS policy
+      const filePath = `${uid}/${storageKey}.json`;
       
       const { error } = await supabase.storage
         .from('user-files')

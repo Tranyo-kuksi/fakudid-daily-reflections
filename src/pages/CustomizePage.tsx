@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 // Define theme options with gradients for visual representation
 const lightThemes = [
@@ -63,17 +63,29 @@ interface TemplateSection {
   enabled: boolean;
 }
 
+interface MoodPreferences {
+  moodNames: {
+    dead: string;
+    sad: string;
+    meh: string;
+    good: string;
+    awesome: string;
+  };
+}
+
 export default function CustomizePage() {
   const { theme, lightTheme, setLightTheme, darkTheme, setDarkTheme } = useTheme();
   const { isSubscribed, openCheckout } = useSubscription();
   
-  // Mood customization
-  const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
-    dead: "Dead Inside",
-    sad: "Shity",
-    meh: "Meh",
-    good: "Pretty Good",
-    awesome: "Fucking AWESOME"
+  // Mood customization - use cloud-synced preferences
+  const [moodPreferences, setMoodPreferences] = useUserPreferences<MoodPreferences>('mood-preferences', {
+    moodNames: {
+      dead: "Dead Inside",
+      sad: "Shity",
+      meh: "Meh",
+      good: "Pretty Good",
+      awesome: "Fucking AWESOME"
+    }
   });
   
   // Template customization
@@ -191,23 +203,18 @@ export default function CustomizePage() {
   const [editingFieldName, setEditingFieldName] = useState("");
   const [editingTagName, setEditingTagName] = useState("");
 
-  // Load stored mood names
-  useEffect(() => {
-    const storedMoodNames = localStorage.getItem("fakudid-mood-names");
-    if (storedMoodNames) {
-      setMoodNames(JSON.parse(storedMoodNames));
-    }
-  }, []);
-  
   const saveMoodNames = () => {
-    localStorage.setItem("fakudid-mood-names", JSON.stringify(moodNames));
+    setMoodPreferences(moodPreferences);
     toast.success("Mood names saved successfully");
   };
   
   const handleMoodNameChange = (mood: string, name: string) => {
-    setMoodNames(prev => ({
+    setMoodPreferences(prev => ({
       ...prev,
-      [mood]: name
+      moodNames: {
+        ...prev.moodNames,
+        [mood]: name
+      }
     }));
   };
 
@@ -221,7 +228,6 @@ export default function CustomizePage() {
     }
   };
 
-  // Template section management
   const addNewSection = () => {
     const newId = `section-${Date.now()}`;
     const newSection: TemplateSection = {
@@ -277,7 +283,6 @@ export default function CustomizePage() {
     ));
   };
 
-  // Field management
   const addFieldToSection = (sectionId: string) => {
     const section = templateSections.find(s => s.id === sectionId);
     if (!section) return;
@@ -341,7 +346,6 @@ export default function CustomizePage() {
     toast.success("Field deleted");
   };
 
-  // Tag management
   const addTagToField = (sectionId: string, fieldId: string) => {
     if (!editingTagName.trim()) {
       toast.error("Tag name cannot be empty");
@@ -519,7 +523,7 @@ export default function CustomizePage() {
                       <div className="flex items-center gap-3">
                         <Skull className="h-8 w-8 text-mood-dead" />
                         <Input 
-                          value={moodNames.dead}
+                          value={moodPreferences.moodNames.dead}
                           onChange={(e) => handleMoodNameChange('dead', e.target.value)}
                           maxLength={20}
                           placeholder="Dead Inside"
@@ -529,7 +533,7 @@ export default function CustomizePage() {
                       <div className="flex items-center gap-3">
                         <FrownIcon className="h-8 w-8 text-mood-sad" />
                         <Input 
-                          value={moodNames.sad}
+                          value={moodPreferences.moodNames.sad}
                           onChange={(e) => handleMoodNameChange('sad', e.target.value)}
                           maxLength={20}
                           placeholder="Shity"
@@ -539,7 +543,7 @@ export default function CustomizePage() {
                       <div className="flex items-center gap-3">
                         <MehIcon className="h-8 w-8 text-mood-meh" />
                         <Input 
-                          value={moodNames.meh}
+                          value={moodPreferences.moodNames.meh}
                           onChange={(e) => handleMoodNameChange('meh', e.target.value)}
                           maxLength={20}
                           placeholder="Meh"
@@ -549,7 +553,7 @@ export default function CustomizePage() {
                       <div className="flex items-center gap-3">
                         <SmileIcon className="h-8 w-8 text-mood-good" />
                         <Input 
-                          value={moodNames.good}
+                          value={moodPreferences.moodNames.good}
                           onChange={(e) => handleMoodNameChange('good', e.target.value)}
                           maxLength={20}
                           placeholder="Pretty Good"
@@ -559,7 +563,7 @@ export default function CustomizePage() {
                       <div className="flex items-center gap-3">
                         <PartyPopper className="h-8 w-8 text-mood-awesome" />
                         <Input 
-                          value={moodNames.awesome}
+                          value={moodPreferences.moodNames.awesome}
                           onChange={(e) => handleMoodNameChange('awesome', e.target.value)}
                           maxLength={20}
                           placeholder="Fucking AWESOME"
@@ -588,12 +592,12 @@ export default function CustomizePage() {
                 <div className="text-left">
                   <h3 className="font-medium">Customize Templates</h3>
                   <p className="text-sm text-muted-foreground">Create and modify journal template sections</p>
+                  {!isSubscribed && (
+                    <Badge variant="outline" className="ml-2 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">
+                      Premium
+                    </Badge>
+                  )}
                 </div>
-                {!isSubscribed && (
-                  <Badge variant="outline" className="ml-2 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">
-                    Premium
-                  </Badge>
-                )}
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-1 pt-4">
