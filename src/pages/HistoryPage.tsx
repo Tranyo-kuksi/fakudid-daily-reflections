@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Calendar, Search, Filter, Skull, FrownIcon, MehIcon, SmileIcon, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,12 +9,31 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 
+interface MoodPreferences {
+  moodNames: {
+    dead: string;
+    sad: string;
+    meh: string;
+    good: string;
+    awesome: string;
+  };
+}
+
 const HistoryPage = () => {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { preferences } = useUserPreferences();
+  
+  const [preferences] = useUserPreferences<MoodPreferences>('mood-preferences', {
+    moodNames: {
+      dead: "Dead",
+      sad: "Sad", 
+      meh: "Meh",
+      good: "Good",
+      awesome: "Awesome"
+    }
+  });
 
   useEffect(() => {
     loadEntries();
@@ -52,7 +70,12 @@ const HistoryPage = () => {
 
   const getMoodInfo = (mood: JournalEntry['mood']) => {
     const moodOption = moodOptions.find(option => option.value === mood);
-    return moodOption || { name: "Unknown", bgColor: "bg-gray-500", color: "text-gray-500" };
+    return moodOption || { 
+      name: "Unknown", 
+      icon: MehIcon, 
+      bgColor: "bg-gray-500", 
+      color: "text-gray-500" 
+    };
   };
 
   if (loading) {
@@ -130,6 +153,7 @@ const HistoryPage = () => {
         ) : (
           filteredEntries.map((entry) => {
             const moodInfo = getMoodInfo(entry.mood);
+            const IconComponent = moodInfo.icon;
             return (
               <Link key={entry.id} to={`/entry/${entry.id}`}>
                 <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -143,7 +167,7 @@ const HistoryPage = () => {
                           variant="secondary" 
                           className={`${moodInfo.bgColor} text-white border-0`}
                         >
-                          <moodInfo.icon className="h-4 w-4 mr-1" />
+                          <IconComponent className="h-4 w-4 mr-1" />
                           {moodInfo.name}
                         </Badge>
                       )}
