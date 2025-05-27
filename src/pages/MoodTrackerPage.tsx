@@ -14,6 +14,17 @@ import { useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, addMonths, subMonths, getDaysInMonth, getDay, startOfMonth } from "date-fns";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+
+interface MoodPreferences {
+  moodNames: {
+    dead: string;
+    sad: string;
+    meh: string;
+    good: string;
+    awesome: string;
+  };
+}
 
 export default function MoodTrackerPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -26,6 +37,16 @@ export default function MoodTrackerPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('search') || "";
+  
+  const [preferences] = useUserPreferences<MoodPreferences>('mood-preferences', {
+    moodNames: {
+      dead: "Dead",
+      sad: "Sad", 
+      meh: "Meh",
+      good: "Good",
+      awesome: "Awesome"
+    }
+  });
   
   useEffect(() => {
     const fetchEntries = async () => {
@@ -98,15 +119,17 @@ export default function MoodTrackerPage() {
   };
   
   const getMoodLabel = (mood: string | null): string => {
-    const moodNames = JSON.parse(localStorage.getItem("fakudid-mood-names") || JSON.stringify({
-      dead: "Dead Inside",
-      sad: "Shity",
-      meh: "Meh",
-      good: "Pretty Good",
-      awesome: "Fucking AWESOME"
-    }));
+    if (!mood) return "No Mood";
     
-    return mood ? moodNames[mood] || "Unknown Mood" : "No Mood";
+    const moodMappings = {
+      dead: preferences.moodNames.dead,
+      sad: preferences.moodNames.sad,
+      meh: preferences.moodNames.meh,
+      good: preferences.moodNames.good,
+      awesome: preferences.moodNames.awesome
+    };
+    
+    return moodMappings[mood as keyof typeof moodMappings] || "Unknown Mood";
   };
   
   const getMoodColor = (mood: string | null): string => {
