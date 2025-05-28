@@ -21,6 +21,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Sparkles, Save, Edit, X } from "lucide-react";
 import { TemplateDialog } from "@/components/templates/TemplateDialog";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 export default function JournalPage() {
   
@@ -47,22 +48,18 @@ export default function JournalPage() {
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('search');
 
-  // Custom mood names
-  const [moodNames, setMoodNames] = useState<{[key: string]: string}>({
-    dead: "Dead Inside",
-    sad: "Shity",
-    meh: "Meh",
-    good: "Pretty Good",
-    awesome: "Fucking AWESOME"
-  });
-  
-  // Load custom mood names
-  useEffect(() => {
-    const storedMoodNames = localStorage.getItem("fakudid-mood-names");
-    if (storedMoodNames) {
-      setMoodNames(JSON.parse(storedMoodNames));
+  // Use cloud-synced mood preferences
+  const [preferences] = useUserPreferences('mood-preferences', {
+    moodNames: {
+      dead: "Dead Inside",
+      sad: "Shity",
+      meh: "Meh",
+      good: "Pretty Good",
+      awesome: "Fucking AWESOME"
     }
-  }, []);
+  });
+
+  const moodNames = preferences.moodNames;
 
   // Function to highlight search terms in text
   const highlightSearchText = (text: string) => {
